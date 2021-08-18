@@ -59,6 +59,11 @@ class SubscriptionClient(object):
         self.connections.append(connection)
         connection.connect()
 
+    def close(self):
+        self.unsubscribe_all()
+        self.__watch_dog.scheduler.shutdown()
+        self.__watch_dog.join(1)
+
     def unsubscribe_all(self):
         for conn in self.connections:
             conn.close()

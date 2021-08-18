@@ -37,7 +37,9 @@ def _postprocess_order(method):
         if results:
             order_name = results[0]
             order = results[1]
-            print(f'Order {order.clientOrderId}: {order_name} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}')
+            message = f'Order {order.clientOrderId}: {order_name} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}'
+            self.bot.sendMessage(message)
+            print(message)
             self.account.update()
             self.order_list.append(order)
             self.order_count += 1
@@ -50,9 +52,10 @@ class OrderManager:
     인스턴스를 만들때 symbol로 넣는 에셋 하나만을 거래합니다.
     다수의 에셋을 거래하고 싶다면 여러개의 오더매니저가 필요합니다.
     '''
-    def __init__(self, request_client, account, symbol: str):
+    def __init__(self, request_client, account, bot, symbol: str):
         self.request_client = request_client
         self.account = account
+        self.bot = bot
         self.order_list = []
         self.order_count = 0
         self.symbol = symbol

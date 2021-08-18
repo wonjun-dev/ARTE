@@ -4,19 +4,14 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 # import telegram
 
-from data_manager import DataManger
+from data_manager import DataManager
 
 from order_manager import OrderManager
 from account import Account
 
 from indicator_manager import Bollinger
 from strategy import BollingerTouch
-
-
-# TOKEN = "1908253406:AAFDtBdONqBrwKfAfB6PKfaP06giT7XqonQ"
-# CHAT_ID = "1925633139"
-# bot = telegram.Bot(token=TOKEN)
-
+from telegram_bot import SimonManager
 
 class BBTTTrader:
     """
@@ -32,12 +27,16 @@ class BBTTTrader:
         """초기화 함수"""
         self.symbol = symbol
         self.client = client
-        self.data_manager = DataManger(self.client)
+        self.data_manager = DataManager(self.client)
         self.scheduler = BlockingScheduler()
+
+        #init bot manager
+        self.bot_manager = SimonManager()
+        self.bot_manager.trader = self
 
         # Init OM
         self.account = Account(client.request_client)
-        self.om = OrderManager(client.request_client, self.account, symbol=self.symbol.upper())
+        self.om = OrderManager(client.request_client, self.account, self.bot_manager, symbol=self.symbol.upper())
 
         # Init strategy
         INDICATORS = [Bollinger()]
@@ -68,4 +67,5 @@ class BBTTTrader:
         self.runner = self.scheduler.add_job(
             self.mainloop, "interval", seconds=watch_interval, id="mainloop"
         )
+        self.bot_runner = self.scheduler.add_job(self.bot_manager.bot_manager_setting)
         self.scheduler.start()
