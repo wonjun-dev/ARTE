@@ -21,10 +21,6 @@ from binance_f.model.constant import *
 
 from account import Account
 
-KEY = '0dcd28f57648b0a7d5ea2737487e3b3093d47935e67506b78291042d1dd2f9ea'
-SECRET = 'b36dc15c333bd5950addaf92a0f9dc96d8ed59ea6835386c59a6e63e1ae26aa1'
-# BASE_URL = 'https://fapi.binance.com' # production base url
-BASE_URL = 'https://testnet.binancefuture.com' # testnet base url
 
 def get_timestamp():
     return int(time.time())# * 1000)
@@ -43,6 +39,7 @@ def _postprocess_order(method):
             self.account.update()
             self.order_list.append(order)
             self.order_count += 1
+        return results
     return _impl
 
 
@@ -303,16 +300,16 @@ class OrderManager:
 
 
 if __name__ == "__main__":
+    from telegram_bot import SimonManager
+    KEY = '0dcd28f57648b0a7d5ea2737487e3b3093d47935e67506b78291042d1dd2f9ea'
+    SECRET = 'b36dc15c333bd5950addaf92a0f9dc96d8ed59ea6835386c59a6e63e1ae26aa1'
+    # BASE_URL = 'https://fapi.binance.com' # production base url
+    BASE_URL = 'https://testnet.binancefuture.com' # testnet base url
     request_client = RequestClient(api_key=KEY, secret_key=SECRET, url=BASE_URL)
     account = Account(request_client)
-    btc_om = OrderManager(request_client, account, 'BTCUSDT')
+    bot = SimonManager()
+    btc_om = OrderManager(request_client, account, bot, 'BTCUSDT')
 
-    btc_om.buy_long_market(ratio=0.01)
-    time.sleep(5)
-    btc_om.sell_long_market(ratio=1)
-    time.sleep(5)
-    btc_om.buy_short_market(ratio=0.01)
-    time.sleep(5)
-    btc_om.sell_short_market(ratio=1)
-    time.sleep(5)
-    btc_om.sell_short_market(ratio=0.1)
+    res = btc_om.buy_long_market(ratio=0.01)
+    print(res)
+    
