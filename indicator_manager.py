@@ -14,7 +14,7 @@ class Bollinger:
     def __init__(self):
         pass
 
-    def calc(self, close, timeperiod: int = 21, up: float = 1, dn: float = 1):
+    def calc(self, close, timeperiod: int = 21, up: float = 2, dn: float = 2):
         """
         Calucate Bollinger band
         Args:

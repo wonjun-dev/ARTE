@@ -13,6 +13,7 @@ from indicator_manager import Bollinger
 from strategy import BollingerTouch
 from telegram_bot import SimonManager
 
+
 class BBTTTrader:
     """
     Class BBTTTrader
@@ -30,13 +31,15 @@ class BBTTTrader:
         self.data_manager = DataManager(self.client)
         self.scheduler = BlockingScheduler()
 
-        #init bot manager
+        # init bot manager
         self.bot_manager = SimonManager()
         self.bot_manager.trader = self
 
         # Init OM
         self.account = Account(client.request_client)
-        self.om = OrderManager(client.request_client, self.account, self.bot_manager, symbol=self.symbol.upper())
+        self.om = OrderManager(
+            client.request_client, self.account, self.bot_manager, symbol=self.symbol.upper()
+        )
 
         # Init strategy
         INDICATORS = [Bollinger()]
@@ -57,7 +60,7 @@ class BBTTTrader:
         except:
             print(f"error message")
 
-    def run(self, maxlen: int = 21, interval: str = "1m", watch_interval: int = 1):
+    def run(self, maxlen: int = 21, interval: str = "15m", watch_interval: int = 5):
         """
         mainloop를 watch_interval마다 실행시켜주는 함수
         """
