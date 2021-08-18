@@ -10,7 +10,7 @@ from binance_f.model.constant import CandlestickInterval
 from candlestick_manager import CandlestickManager
 
 
-class DataManger:
+class DataManager:
     """
     Class DataManager
         Binance 서버로부터 데이터를 받고, 이 데이터를 관리하는 모듈
