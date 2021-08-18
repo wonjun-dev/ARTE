@@ -50,12 +50,12 @@ class BollingerTouch(BaseStrategy):
 
                 if direction.name == "UP":
                     if volt + past == 3:  # upper band touch
-                        if self.account.positions["BTCUSDT"].positionAmt == 0:
+                        if self.account.positions["ETHUSDT"].positionAmt == 0:
                             if self.om.buy_short_market(ratio=self.ENTER_RATIO):
                                 self.num_pos += 1
                                 self.enter_cur_candle = True
                         elif (
-                            self.account.positions["BTCUSDT"].positionAmt > 0
+                            self.account.positions["ETHUSDT"].positionAmt > 0
                         ):  # current position -> long
                             # exit and open
                             if self.om.sell_long_market(ratio=self.EXIT_RATIO):
@@ -71,12 +71,12 @@ class BollingerTouch(BaseStrategy):
 
                 elif direction.name == "DOWN":
                     if past - volt == 0:  # lower band touch
-                        if self.account.positions["BTCUSDT"].positionAmt == 0:
+                        if self.account.positions["ETHUSDT"].positionAmt == 0:
                             if self.om.buy_long_market(ratio=self.ENTER_RATIO):
                                 self.num_pos += 1
                                 self.enter_cur_candle = True
                         elif (
-                            self.account.positions["BTCUSDT"].positionAmt > 0
+                            self.account.positions["ETHUSDT"].positionAmt > 0
                         ):  # current position -> long
                             # increase long position
                             if self.om.buy_long_market(ratio=self.ENTER_RATIO):

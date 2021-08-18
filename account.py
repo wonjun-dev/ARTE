@@ -18,7 +18,7 @@ class Account:
     def __init__(self, request_client):
         self.request_client = request_client
         self.usdt_balance = self.get_usdt_balance()
-        self.positions = self.get_positions(["BTCUSDT"])
+        self.positions = self.get_positions(["ETHUSDT"])
 
     def get_usdt_balance(self):
         result = self.request_client.get_balance_v2()
@@ -44,7 +44,7 @@ class Account:
 
     def update(self):
         self.usdt_balance = self.get_usdt_balance()
-        self.positions = self.get_positions(["BTCUSDT"])
+        self.positions = self.get_positions(["ETHUSDT"])
 
     def get_account_total_value(self):
         pass

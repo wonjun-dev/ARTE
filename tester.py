@@ -4,7 +4,7 @@ from BBTT_trader_scheduler import BBTTTrader
 
 def main():
     client = Client()
-    trader = BBTTTrader(client, symbol="btcusdt")
+    trader = BBTTTrader(client, symbol="ethusdt")
     trader.run()
 
 

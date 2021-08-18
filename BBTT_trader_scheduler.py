@@ -38,7 +38,10 @@ class BBTTTrader:
         # Init OM
         self.account = Account(client.request_client)
         self.om = OrderManager(
-            client.request_client, self.account, self.bot_manager, symbol=self.symbol.upper()
+            client.request_client,
+            self.account,
+            self.bot_manager,
+            symbol=self.symbol.upper(),
         )
 
         # Init strategy
@@ -60,7 +63,7 @@ class BBTTTrader:
         except:
             print(f"error message")
 
-    def run(self, maxlen: int = 21, interval: str = "15m", watch_interval: int = 5):
+    def run(self, maxlen: int = 21, interval: str = "1m", watch_interval: int = 2):
         """
         mainloop를 watch_interval마다 실행시켜주는 함수
         """
