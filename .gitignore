@@ -127,3 +127,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+*.pyc
+binance_future/build/*
+binance_fute/dist/*
+binance_futures.egg-info/*
+
+# jupyter
+*.ipynb_checkpoints
+*.ipynb
+
+# Mac system
+.DS_Store
+
+# VSCode
+.vscode
