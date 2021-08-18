@@ -51,46 +51,44 @@ class BollingerTouch(BaseStrategy):
                 if direction.name == "UP":
                     if volt + past == 3:  # upper band touch
                         if self.account.positions["BTCUSDT"].positionAmt == 0:
-                            self.om.buy_short_market(ratio=self.ENTER_RATIO)
-                            self.num_pos += 1
-                            self.enter_cur_candle = True
+                            if self.om.buy_short_market(ratio=self.ENTER_RATIO):
+                                self.num_pos += 1
+                                self.enter_cur_candle = True
                         elif (
                             self.account.positions["BTCUSDT"].positionAmt > 0
                         ):  # current position -> long
                             # exit and open
-                            res = self.om.sell_long_market(ratio=self.EXIT_RATIO)
-                            if res:
+                            if self.om.sell_long_market(ratio=self.EXIT_RATIO):
                                 self.num_pos = 0
-                            self.om.buy_short_market(ratio=self.ENTER_RATIO)
-                            self.num_pos += 1
-                            self.enter_cur_candle = True
+                            if self.om.buy_short_market(ratio=self.ENTER_RATIO):
+                                self.num_pos += 1
+                                self.enter_cur_candle = True
                         else:  # current position -> short
                             # increase short position
-                            self.om.buy_short_market(ratio=self.ENTER_RATIO)
-                            self.num_pos += 1
-                            self.enter_cur_candle = True
+                            if self.om.buy_short_market(ratio=self.ENTER_RATIO):
+                                self.num_pos += 1
+                                self.enter_cur_candle = True
 
                 elif direction.name == "DOWN":
                     if past - volt == 0:  # lower band touch
                         if self.account.positions["BTCUSDT"].positionAmt == 0:
-                            self.om.buy_long_market(ratio=self.ENTER_RATIO)
-                            self.num_pos += 1
-                            self.enter_cur_candle = True
+                            if self.om.buy_long_market(ratio=self.ENTER_RATIO):
+                                self.num_pos += 1
+                                self.enter_cur_candle = True
                         elif (
                             self.account.positions["BTCUSDT"].positionAmt > 0
                         ):  # current position -> long
                             # increase long position
-                            self.om.buy_long_market(ratio=self.ENTER_RATIO)
-                            self.num_pos += 1
-                            self.enter_cur_candle = True
+                            if self.om.buy_long_market(ratio=self.ENTER_RATIO):
+                                self.num_pos += 1
+                                self.enter_cur_candle = True
                         else:  # current position -> short
                             # exit and open
-                            res = self.om.sell_short_market(ratio=self.EXIT_RATIO)
-                            if res:
+                            if self.om.sell_short_market(ratio=self.EXIT_RATIO):
                                 self.num_pos = 0
-                            self.om.buy_long_market(ratio=self.ENTER_RATIO)
-                            self.num_pos += 1
-                            self.enter_cur_candle = True
+                            if self.om.buy_long_market(ratio=self.ENTER_RATIO):
+                                self.num_pos += 1
+                                self.enter_cur_candle = True
 
                 else:  # NO
                     print(f"IDLE")
