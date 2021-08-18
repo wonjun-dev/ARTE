@@ -6,24 +6,7 @@ from signal_hub import SignalHub
 class BaseStrategy:
     def __init__(self):
         pass
-
-
-# class OM:
-#     def __init__(self) -> None:
-#         pass
-
-#     def buy_short_market(self):
-#         pass
-
-#     def buy_long_market(self):
-#         pass
-
-#     def sell_short_market(self):
-#         pass
-
-#     def sell_short_market(self):
-#         pass
-
+    
 
 class BollingerTouch(BaseStrategy):
     def __init__(self, account, indicators: list, order_manager):
