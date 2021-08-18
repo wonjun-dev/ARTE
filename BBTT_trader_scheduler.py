@@ -52,8 +52,8 @@ class BBTTTrader:
             # print(self.data_manager.candlestick.close)
             self.strategy.run(self.data_manager.candlestick.close)
             # print(datetime.now())
-            print(self.data_manager.candlestick.close[-1])
-            print(self.strategy.signal_hub.value_dict["Bollinger"][-1])
+            # print(self.data_manager.candlestick.close[-1])
+            # print(self.strategy.signal_hub.value_dict["Bollinger"][-1])
 
         except:
             print(f"error message")
