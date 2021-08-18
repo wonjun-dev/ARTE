@@ -11,7 +11,7 @@ from account import Account
 
 from indicator_manager import Bollinger
 from strategy import BollingerTouch
-
+from telegram_bot import SimonManager
 
 class BBTTTrader:
     """
@@ -29,6 +29,10 @@ class BBTTTrader:
         self.client = client
         self.data_manager = DataManager(self.client)
         self.scheduler = BlockingScheduler()
+
+        #init bot manager
+        self.bot_manager = SimonManager()
+        self.bot_manager.trader = self
 
         # Init OM
         self.account = Account(client.request_client)
@@ -63,4 +67,5 @@ class BBTTTrader:
         self.runner = self.scheduler.add_job(
             self.mainloop, "interval", seconds=watch_interval, id="mainloop"
         )
+        self.bot_runner = self.scheduler.add_job(self.bot_manager.bot_manager_setting)
         self.scheduler.start()
