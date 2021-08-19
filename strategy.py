@@ -89,10 +89,12 @@ class BollingerTouch(BaseStrategy):
         account,
         order_manager,
         max_pos: int = 3,
-        buy_ratio: float = 0.05,
+        buy_ratio: float = 0.1,
         sell_ratio: float = 1.0,
     ):
-        super().__init__(indicators, account, order_manager, max_pos, buy_ratio, sell_ratio)
+        super().__init__(
+            indicators, account, order_manager, max_pos, buy_ratio, sell_ratio
+        )
 
         # 전략 특화 초기화
         self.enter_cur_candle = False
