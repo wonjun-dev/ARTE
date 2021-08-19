@@ -40,7 +40,7 @@ class Bollinger:
             touch_state : (tuple) vector of (state of touch, size of breakthrough, start position)
         """
         if len(value_queue) < window or len(price_queue) < window:
-            return
+            return None
 
         else:
             boll_values = list(value_queue)[-window:]

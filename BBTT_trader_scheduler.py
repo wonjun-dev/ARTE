@@ -55,7 +55,8 @@ class BBTTTrader:
         try:
             # 여기에 로직을 넣으시오
             # print(self.data_manager.candlestick.close)
-            self.strategy.run(self.data_manager.candlestick.close)
+            price = self.data_manager.candlestick.close
+            self.strategy.run(price)
             # print(datetime.now())
             # print(self.data_manager.candlestick.close[-1])
             # print(self.strategy.signal_hub.value_dict["Bollinger"][-1])
