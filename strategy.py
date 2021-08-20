@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from collections import deque
 from enum import Enum
 
@@ -19,7 +19,7 @@ class Position(Enum):
     SHORT = 2
 
 
-class BaseStrategy(ABC):
+class BaseStrategy(metaclass=ABCMeta):
     def __init__(
         self,
         indicators,
@@ -29,7 +29,6 @@ class BaseStrategy(ABC):
         buy_ratio,
         sell_ratio,
     ):
-        super().__init__()
         self.signal_hub = SignalHub(indicators)
         self.account = account
         self.om = order_manager
@@ -92,9 +91,7 @@ class BollingerTouch(BaseStrategy):
         buy_ratio: float = 0.1,
         sell_ratio: float = 1.0,
     ):
-        super().__init__(
-            indicators, account, order_manager, max_pos, buy_ratio, sell_ratio
-        )
+        super().__init__(indicators, account, order_manager, max_pos, buy_ratio, sell_ratio)
 
         # 전략 특화 초기화
         self.enter_cur_candle = False

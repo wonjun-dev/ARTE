@@ -1,5 +1,7 @@
+from abc import ABCMeta, abstractmethod
 from collections import deque
 from enum import Enum
+from strategy import BaseStrategy
 
 import talib
 
@@ -10,10 +12,13 @@ class TouchDirection(Enum):
     DOWN = 2
 
 
-class Bollinger:
-    def __init__(self):
+class BaseIndicator(metaclass=ABCMeta):
+    @abstractmethod
+    def calc(self):
         pass
 
+
+class Bollinger(BaseIndicator):
     def calc(self, close, timeperiod: int = 21, up: float = 2, dn: float = 2):
         """
         Calucate Bollinger band
