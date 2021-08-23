@@ -88,3 +88,7 @@ class SimonManager(TelegramBot):
         runner라는 scheduler의 job을 resume
         """
         self.trader.runner.resume()
+
+
+if __name__ == '__main__':
+    bot = SimonManager()

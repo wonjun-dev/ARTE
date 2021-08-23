@@ -64,3 +64,14 @@ class DataManager:
         self.client.sub_client.subscribe_candlestick_event(
             symbol=symbol, interval=interval, callback=callback, error_handler=error
         )
+
+
+if __name__ == "__main__":
+    # test code
+    import sys 
+    sys.path.append('..')
+    from arte.client import Client
+    
+    cl = Client(mode='TEST')
+    dm = DataManager(client=cl)
+    dm.open_candlestick_socket()
