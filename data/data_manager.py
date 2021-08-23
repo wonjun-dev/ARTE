@@ -1,13 +1,9 @@
-from collections import deque
-from inspect import ClosureVars
 
-from binance_f.constant.test import *
+
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
-from binance_f.base.printobject import *
-from binance_f.model.constant import CandlestickInterval
 
-from data.candlestick_manager import CandlestickManager
+from arte.data.candlestick_manager import CandlestickManager
 
 
 class DataManager:

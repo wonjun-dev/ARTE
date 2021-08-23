@@ -3,8 +3,8 @@ from collections import deque
 import talib
 
 
-from indicator.impl.base_indicator import BaseIndicator
-from indicator.impl.base_indicator import TouchDirection
+from arte.indicator.impl.base_indicator import BaseIndicator
+from arte.indicator.impl.base_indicator import TouchDirection
 
 
 class Bollinger(BaseIndicator):

@@ -19,7 +19,7 @@ from binance_f.constant.test import *
 from binance_f.base.printobject import *
 from binance_f.model.constant import *
 
-from system.account import Account
+from arte.system.account import Account
 
 
 def get_timestamp():

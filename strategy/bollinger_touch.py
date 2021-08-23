@@ -1,7 +1,7 @@
 import numpy as np
 
-from strategy.impl.base_strategy import BaseStrategy
-from strategy.impl.base_strategy import Position
+from arte.strategy.impl.base_strategy import BaseStrategy
+from arte.strategy.impl.base_strategy import Position
 
 
 class BollingerTouch(BaseStrategy):

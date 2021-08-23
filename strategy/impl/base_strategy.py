@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from collections import deque
 from enum import Enum
 
-from strategy.impl.signal_hub import SignalHub
+from arte.strategy.impl.signal_hub import SignalHub
 
 
 class OrderState(Enum):

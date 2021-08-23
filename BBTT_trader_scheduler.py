@@ -1,13 +1,13 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from data.data_manager import DataManager
+from arte.data.data_manager import DataManager
 
-from system.order_manager import OrderManager
-from system.account import Account
-from system.telegram_bot import SimonManager
+from arte.system.order_manager import OrderManager
+from arte.system.account import Account
+from arte.system.telegram_bot import SimonManager
 
-from indicator.bollinger import Bollinger
-from strategy.bollinger_touch import BollingerTouch
+from arte.indicator.bollinger import Bollinger
+from arte.strategy.bollinger_touch import BollingerTouch
 
 
 class BBTTTrader:

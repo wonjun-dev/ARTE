@@ -1,0 +1,1 @@
+from arte.strategy.bollinger_touch import BollingerTouch
