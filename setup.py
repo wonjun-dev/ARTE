@@ -21,6 +21,7 @@ setup(
         "arte.system",
     ],
     install_requires=[
+        "black",
         "requests",
         "python-telegram-bot",
         "apscheduler==3.6.3",
