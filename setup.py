@@ -4,7 +4,7 @@ from setuptools import setup
 from setuptools import setup
 
 setup(
-    name="arte-engine",
+    name="arte",
     version="0.0.1",
     packages=[
         "arte",
