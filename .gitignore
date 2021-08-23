@@ -129,9 +129,6 @@ dmypy.json
 .pyre/
 
 *.pyc
-binance_future/build/*
-binance_fute/dist/*
-binance_futures.egg-info/*
 
 # jupyter
 *.ipynb_checkpoints
