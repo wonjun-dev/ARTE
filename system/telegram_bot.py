@@ -90,5 +90,5 @@ class SimonManager(TelegramBot):
         self.trader.runner.resume()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     bot = SimonManager()
