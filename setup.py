@@ -5,6 +5,13 @@ setup(
     name="arte",
     version="0.0.1",
     packages=[
+        "binance_f",
+        "binance_f.impl",
+        "binance_f.impl.utils",
+        "binance_f.exception",
+        "binance_f.model",
+        "binance_f.base",
+        "binance_f.constant",
         "arte",
         "arte.data",
         "arte.indicator",
@@ -13,5 +20,13 @@ setup(
         "arte.strategy.impl",
         "arte.system",
     ],
-    install_requires=["ta-lib", "python-telegram-bot"],
+    install_requires=[
+        "requests",
+        "python-telegram-bot",
+        "apscheduler==3.6.3",
+        "websocket-client",
+        "urllib3",
+        "tzlocal<3.0",
+        # "ta-lib",
+    ],
 )
