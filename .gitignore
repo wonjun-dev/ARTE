@@ -142,3 +142,7 @@ binance_futures.egg-info/*
 
 # VSCode
 .vscode
+
+# PyCharm
+.idea
+.idea/
