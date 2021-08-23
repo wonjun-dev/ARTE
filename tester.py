@@ -3,7 +3,7 @@ from BBTT_trader_scheduler import BBTTTrader
 
 
 def main():
-    client = Client()
+    client = Client(mode='TEST')
     trader = BBTTTrader(client, symbol="ethusdt")
     trader.run()
 
