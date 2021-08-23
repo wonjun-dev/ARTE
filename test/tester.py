@@ -1,5 +1,5 @@
 from arte.client import Client
-from arte.BBTT_trader_scheduler import BBTTTrader
+from arte.bbtt_trader_scheduler import BBTTTrader
 
 
 def main():
