@@ -1,5 +1,3 @@
-import time
-from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from data.data_manager import DataManager
@@ -8,8 +6,8 @@ from system.order_manager import OrderManager
 from system.account import Account
 from system.telegram_bot import SimonManager
 
-from indicator.indicator_manager import Bollinger
-from strategy.strategy import BollingerTouch
+from indicator.bollinger import Bollinger
+from strategy.bollinger_touch import BollingerTouch
 
 
 class BBTTTrader:

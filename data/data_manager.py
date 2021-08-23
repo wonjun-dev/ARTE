@@ -7,7 +7,7 @@ from binance_f.exception.binanceapiexception import BinanceApiException
 from binance_f.base.printobject import *
 from binance_f.model.constant import CandlestickInterval
 
-from candlestick_manager import CandlestickManager
+from data.candlestick_manager import CandlestickManager
 
 
 class DataManager:
@@ -68,10 +68,11 @@ class DataManager:
 
 if __name__ == "__main__":
     # test code
-    import sys 
-    sys.path.append('..')
+    import sys
+
+    sys.path.append("..")
     from arte.client import Client
-    
-    cl = Client(mode='TEST')
+
+    cl = Client(mode="TEST")
     dm = DataManager(client=cl)
     dm.open_candlestick_socket()

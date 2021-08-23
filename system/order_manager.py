@@ -19,7 +19,7 @@ from binance_f.constant.test import *
 from binance_f.base.printobject import *
 from binance_f.model.constant import *
 
-from account import Account
+from system.account import Account
 
 
 def get_timestamp():
@@ -66,17 +66,13 @@ class OrderManager:
         for o in self.order_list:
             if o.type == "LIMIT":
                 if o.status == "NEW":
-                    result = self.request_client.get_order(
-                        self.symbol, origClientOrderId=o.clientOrderId
-                    )
+                    result = self.request_client.get_order(self.symbol, origClientOrderId=o.clientOrderId)
                     if o.status != result.status:
                         print(
                             f"""Status Changed - Order {result.clientOrderId}: {o.status} -> {result.status} /
                             {result.side} {result.type} - {result.symbol} / Qty: {result.origQty}, Price: ${result.price}"""
                         )
-                        o.status = (
-                            result.status
-                        )  # NEEDFIX: it should update whole instance
+                        o.status = result.status  # NEEDFIX: it should update whole instance
                         self.account.update()
 
     def long_limit(self, price: float, quantity: float):
@@ -143,9 +139,7 @@ class OrderManager:
             if self.account.positions[self.symbol].positionAmt >= 0:
                 return ("BUY_LONG", self.long_limit(price, quantity))
             else:
-                print(
-                    "Cannot execute buy_long, you have already opened short position."
-                )
+                print("Cannot execute buy_long, you have already opened short position.")
                 return None
         else:
             raise ValueError("You have to pass either quantity or ratio.")
@@ -191,9 +185,7 @@ class OrderManager:
             if self.account.positions[self.symbol].positionAmt <= 0:
                 return ("BUY_SHORT", self.short_limit(price, quantity))
             else:
-                print(
-                    "Cannot execute buy_short, you have already opened long position."
-                )
+                print("Cannot execute buy_short, you have already opened long position.")
                 return None
         else:
             raise ValueError("You have to pass either quantity or ratio.")
@@ -238,9 +230,7 @@ class OrderManager:
             if self.account.positions[self.symbol].positionAmt >= 0:
                 return ("BUY_LONG", self.long_market(quantity))
             else:
-                print(
-                    "Cannot execute buy_long, you have already opened short position."
-                )
+                print("Cannot execute buy_long, you have already opened short position.")
                 return None
         else:
             raise ValueError("You have to pass either quantity or ratio.")
@@ -284,9 +274,7 @@ class OrderManager:
             if self.account.positions[self.symbol].positionAmt <= 0:
                 return ("BUY_SHORT", self.short_market(quantity))
             else:
-                print(
-                    "Cannot execute buy_short, you have already opened long position."
-                )
+                print("Cannot execute buy_short, you have already opened long position.")
                 return None
         else:
             raise ValueError("You have to pass either quantity or ratio.")
@@ -318,17 +306,13 @@ class OrderManager:
         return result[0].price
 
     def _usdt_ratio_to_quantity(self, ratio, price, unit_float=3):
-        return math.floor(
-            ((self.account.usdt_balance * ratio) / price) * (10 ** unit_float)
-        ) / (
+        return math.floor(((self.account.usdt_balance * ratio) / price) * (10 ** unit_float)) / (
             10 ** unit_float
         )  # cut 3 decimal under floating point
 
     def _symbol_ratio_to_quantity(self, ratio, unit_float=3):
         symbol_quantity = abs(self.account.positions[self.symbol].positionAmt)
-        return math.floor((symbol_quantity * ratio) * (10 ** unit_float)) / (
-            10 ** unit_float
-        )
+        return math.floor((symbol_quantity * ratio) * (10 ** unit_float)) / (10 ** unit_float)
 
     def _generate_order_id(self):
         _id = self.symbol + str(get_timestamp()) + f"num{self.order_count:05}"

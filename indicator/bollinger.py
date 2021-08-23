@@ -1,21 +1,10 @@
-from abc import ABCMeta, abstractmethod
 from collections import deque
-from enum import Enum
-from strategy import BaseStrategy
 
 import talib
 
 
-class TouchDirection(Enum):
-    NO = 0
-    UP = 1
-    DOWN = 2
-
-
-class BaseIndicator(metaclass=ABCMeta):
-    @abstractmethod
-    def calc(self):
-        pass
+from indicator.impl.base_indicator import BaseIndicator
+from indicator.impl.base_indicator import TouchDirection
 
 
 class Bollinger(BaseIndicator):
