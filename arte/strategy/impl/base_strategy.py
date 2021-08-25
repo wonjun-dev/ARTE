@@ -19,13 +19,7 @@ class Position(Enum):
 
 class BaseStrategy(metaclass=ABCMeta):
     def __init__(
-        self,
-        indicators,
-        account,
-        order_manager,
-        max_pos,
-        buy_ratio,
-        sell_ratio,
+        self, indicators, account, order_manager, max_pos, buy_ratio, sell_ratio,
     ):
         self.signal_hub = SignalHub(indicators)
         self.account = account
@@ -36,13 +30,13 @@ class BaseStrategy(metaclass=ABCMeta):
         self.num_pos = 0
         self.order_state = OrderState.EMPTY
         self.pos_state = Position.NO
+        self.current_price = None
 
     def run(self, price: deque):
         self._update_state()
+        self._update_price(price[-1])
         self.signal_hub.update(price)
-        signal = self.signal_hub.get_signal(
-            self.signal_hub.used_indicator[0]
-        )  # TODO: get multiple indicator signals
+        signal = self.signal_hub.get_signal(self.signal_hub.used_indicator[0])  # TODO: get multiple indicator signals
         recent_signal = list(signal)[-1]
 
         print(
@@ -65,6 +59,9 @@ class BaseStrategy(metaclass=ABCMeta):
                 self.order_state = OrderState.GROWING
             else:
                 self.order_state = OrderState.FULL
+
+    def _update_price(self, price):
+        self.current_price = price
 
     @abstractmethod
     def _empty_order_loop(self, signal, price):

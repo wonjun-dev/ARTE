@@ -33,12 +33,7 @@ class BBTTTrader:
 
         # Init OM
         self.account = Account(client.request_client)
-        self.om = OrderManager(
-            client.request_client,
-            self.account,
-            self.bot_manager,
-            symbol=self.symbol.upper(),
-        )
+        self.om = OrderManager(client.request_client, self.account, self.bot_manager, symbol=self.symbol.upper(),)
 
         # Init strategy
         INDICATORS = [Bollinger()]
