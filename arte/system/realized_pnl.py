@@ -1,0 +1,41 @@
+from binance_f.model.constant import *
+
+
+class RealizedPnl:
+    def __init__(self, strategy_name):
+        self.strategy_name = strategy_name
+        self.position_side = None
+        self.avg_price = 0
+        self.quantity = 0
+
+        self.realized_pnl = 0
+        self.realized_pnl_rate = 0
+
+        self.total_realized_pnl = 0
+
+        self.winrate = 0
+        self.win_count = 0
+        self.total_count = 0
+
+    def proceeding(self, order):
+        if order.positionSide == PositionSide.LONG:
+            self.position_side = PositionSide.LONG
+            is_long = True
+        elif order.positionSide == PositionSide.SHORT:
+            self.position_side = PositionSide.SHORT
+            is_long = False
+
+        if order.side == OrderSide.BUY:
+            self.avg_price = (self.avg_price * self.quantity + order.avgPrice + order.origQty) / (
+                self.quantity + order.origQty
+            )
+            self.quantity = self.quantity + order.origQty
+        elif order.side == OrderSide.SELL:
+            abs_pnl = (order.avgPrice - self.avg_price) * order.origQty
+            self.realized_pnl = abs_pnl if is_long else -abs_pnl
+            self.realized_pnl_rate = self.realized_pnl / self.avg_price
+
+            self.total_count += 1
+            if self.realized_pnl > 0:
+                self.win_count += 1
+            self.winrate = self.total_count / self.win_count
