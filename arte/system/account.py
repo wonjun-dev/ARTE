@@ -36,10 +36,15 @@ class Account:
             positions: dictionary of positions
         """
         positions = {}
-        result = self.request_client.get_position_v2()
-        for pos in result:
+        results = self.request_client.get_position_v2()
+        for pos in results:
             if pos.symbol in symbols:
-                positions[pos.symbol] = pos
+                if pos.symbol not in positions:
+                    positions[pos.symbol] = dict()
+                if pos.positionSide == PositionSide.LONG:
+                    positions[pos.symbol][pos.positionSide] = pos
+                elif pos.positionSide == PositionSide.SHORT:
+                    positions[pos.symbol][pos.positionSide] = pos
         return positions
 
     def update(self):
@@ -60,3 +65,6 @@ if __name__ == "__main__":
     BASE_URL = "https://testnet.binancefuture.com"  # testnet base url
     request_client = RequestClient(api_key=KEY, secret_key=SECRET, url=BASE_URL)
     my_account = Account(request_client)
+    print(my_account.positions["ETHUSDT"][PositionSide.LONG].positionAmt)
+    print(my_account.positions["ETHUSDT"][PositionSide.SHORT].positionAmt)
+
