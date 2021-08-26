@@ -25,16 +25,6 @@ class Account:
         return result[1].balance
 
     def _get_positions(self, symbols: list):
-        """
-        this could lead high usage of weight
-        - get positions of 129 assets at everytime function called
-
-        Args:
-            symbols: list of symbols
-
-        Returns:
-            positions: dictionary of positions
-        """
         positions = {}
         results = self.request_client.get_position_v2()
         for pos in results:

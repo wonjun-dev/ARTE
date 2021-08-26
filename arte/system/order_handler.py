@@ -13,6 +13,7 @@ OrderManager의 역할
 import math
 import time
 from functools import wraps
+import secrets
 
 from binance_f.constant.test import *
 from binance_f.base.printobject import *
@@ -23,16 +24,11 @@ def get_timestamp():
     return int(time.time())  # * 1000)
 
 
-def _postprocess_order(method):
+def _postprocess(method):
     @wraps(method)
     def _impl(self, *args, **kwargs):
         order = method(self, *args, **kwargs)
-        message = f"Order {order.clientOrderId}: {order.side} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
-        self.bot.sendMessage(message)
-        print(message)
         self.account.update()
-        self.order_list.append(order)
-        self.order_count += 1
         return order
 
     return _impl
@@ -46,16 +42,13 @@ class OrderHandler:
     실제 헷지 모드 세팅에서만 작동하며, 가상의 원웨이 모드를 구성합니다. 
     """
 
-    def __init__(self, request_client, account, bot, symbol: str):
+    def __init__(self, request_client, account, symbol: str):
         self.request_client = request_client
         self.account = account
-        self.bot = bot
-        self.order_list = []
-        self.order_count = 0
         self.symbol = symbol
         self.manager = None
 
-    @_postprocess_order
+    @_postprocess
     def _limit(self, order_side: OrderSide, position_side: PositionSide, price: float, quantity: float):
         result = self.request_client.post_order(
             symbol=self.symbol,
@@ -69,7 +62,7 @@ class OrderHandler:
         )
         return result
 
-    @_postprocess_order
+    @_postprocess
     def _market(self, order_side: OrderSide, position_side: PositionSide, quantity: float):
         result = self.request_client.post_order(
             symbol=self.symbol,
@@ -85,7 +78,7 @@ class OrderHandler:
     def buy_limit(self, position_side: PositionSide, price, usdt=None, ratio=None):
         if bool(usdt) ^ bool(ratio):
             if ratio:
-                usdt = self.account.usdt_balance * ratio
+                usdt = self.account["USDT"] * ratio
             if self.manager.positionSide in [PositionSide.INVALID, position_side]:
                 return self._limit(OrderSide.BUY, position_side, price, self._usdt_to_quantity(usdt, price))
             else:
@@ -99,7 +92,7 @@ class OrderHandler:
     def buy_market(self, position_side: PositionSide, price, usdt=None, ratio=None):
         if bool(usdt) ^ bool(ratio):
             if ratio:
-                usdt = self.account.usdt_balance * ratio
+                usdt = self.account["USDT"] * ratio
             if self.manager.positionSide in [PositionSide.INVALID, position_side]:
                 return self._market(OrderSide.BUY, position_side, self._usdt_to_quantity(usdt, price))
             else:
@@ -127,6 +120,7 @@ class OrderHandler:
             return None
 
     def _get_ticker_price(self):
+        # temporary function
         result = self.request_client.get_symbol_price_ticker(symbol=self.symbol)
         return result[0].price
 
@@ -134,11 +128,11 @@ class OrderHandler:
         return math.floor((usdt / price) * (10 ** unit_float)) / (10 ** unit_float)
 
     def _asset_ratio_to_quantity(self, position_side: PositionSide, ratio, unit_float=3):
-        asset_quantity = abs(self.account.positions[self.symbol][position_side].positionAmt)
+        asset_quantity = abs(self.account[self.symbol][position_side].positionAmt)
         return math.floor((asset_quantity * ratio) * (10 ** unit_float)) / (10 ** unit_float)
 
     def _generate_order_id(self):
-        _id = self.symbol + str(get_timestamp()) + f"num{self.order_count:05}"
+        _id = self.symbol + str(get_timestamp()) + f"-{secrets.token_hex(4)}"
         return _id
 
     def update(self):
@@ -161,8 +155,7 @@ class OrderHandler:
 if __name__ == "__main__":
     from arte.client import Client
     from arte.system.account import Account
-    from arte.system.telegram_bot import SimonManager
 
     cl = Client(mode="TEST", req_only=True)
-    oh = OrderHandler(cl.request_client, Account(cl.request_client), SimonManager(), "ETHUSDT")
+    oh = OrderHandler(cl.request_client, Account(cl.request_client), "ETHUSDT")
 
