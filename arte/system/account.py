@@ -17,14 +17,14 @@ from binance_f.model.constant import *
 class Account:
     def __init__(self, request_client):
         self.request_client = request_client
-        self.usdt_balance = self.get_usdt_balance()
-        self.positions = self.get_positions(["ETHUSDT"])
+        self._positions = self._get_positions(["ETHUSDT"])
+        self._positions["USDT"] = self._get_usdt_balance()
 
-    def get_usdt_balance(self):
+    def _get_usdt_balance(self):
         result = self.request_client.get_balance_v2()
         return result[1].balance
 
-    def get_positions(self, symbols: list):
+    def _get_positions(self, symbols: list):
         """
         this could lead high usage of weight
         - get positions of 129 assets at everytime function called
@@ -48,8 +48,11 @@ class Account:
         return positions
 
     def update(self):
-        self.usdt_balance = self.get_usdt_balance()
-        self.positions = self.get_positions(["ETHUSDT"])
+        self._positions["USDT"] = self._get_usdt_balance()
+        self._positions = self._get_positions(["ETHUSDT"])
+
+    def __getitem__(self, key):
+        return self._positions[key]
 
     def get_account_total_value(self):
         pass
@@ -64,7 +67,7 @@ if __name__ == "__main__":
     # BASE_URL = "https://fapi.binance.com"  # production base url
     BASE_URL = "https://testnet.binancefuture.com"  # testnet base url
     request_client = RequestClient(api_key=KEY, secret_key=SECRET, url=BASE_URL)
-    my_account = Account(request_client)
-    print(my_account.positions["ETHUSDT"][PositionSide.LONG].positionAmt)
-    print(my_account.positions["ETHUSDT"][PositionSide.SHORT].positionAmt)
-
+    acc = Account(request_client)
+    print(acc["ETHUSDT"][PositionSide.LONG].positionAmt)
+    print(acc["ETHUSDT"][PositionSide.SHORT].positionAmt)
+    print(acc["USDT"])
