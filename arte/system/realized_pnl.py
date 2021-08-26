@@ -26,7 +26,7 @@ class RealizedPnl:
             is_long = False
 
         if order.side == OrderSide.BUY:
-            self.avg_price = (self.avg_price * self.quantity + order.avgPrice + order.origQty) / (
+            self.avg_price = (self.avg_price * self.quantity + order.avgPrice * order.origQty) / (
                 self.quantity + order.origQty
             )
             self.quantity = self.quantity + order.origQty
@@ -35,7 +35,22 @@ class RealizedPnl:
             self.realized_pnl = abs_pnl if is_long else -abs_pnl
             self.realized_pnl_rate = self.realized_pnl / self.avg_price
 
+            self.total_realized_pnl += self.realized_pnl
             self.total_count += 1
             if self.realized_pnl > 0:
                 self.win_count += 1
-            self.winrate = self.total_count / self.win_count
+            self.winrate = self.win_count / self.total_count
+
+            print(self.realized_pnl, self.realized_pnl_rate, self.winrate, self.avg_price)
+            if self.quantity == order.origQty:
+                self.close_position()
+
+    def close_position(self):
+        self.position_side = None
+        self.avg_price = 0
+        self.quantity = 0
+
+        self.realized_pnl = 0
+        self.realized_pnl_rate = 0
+
+    # 다 팔때 초기화하기
