@@ -28,6 +28,7 @@ def _postprocess(method):
     @wraps(method)
     def _impl(self, *args, **kwargs):
         order = method(self, *args, **kwargs)
+        # PrintBasic.print_obj(order)
         self.account.update()
         return order
 
@@ -59,6 +60,7 @@ class OrderHandler:
             quantity=quantity,
             timeInForce=TimeInForce.GTC,
             newClientOrderId=self._generate_order_id(),
+            newOrderRespType=OrderRespType.RESULT,
         )
         return result
 
@@ -69,6 +71,20 @@ class OrderHandler:
             side=order_side,
             positionSide=position_side,
             ordertype=OrderType.MARKET,
+            quantity=quantity,
+            newClientOrderId=self._generate_order_id(),
+            newOrderRespType=OrderRespType.RESULT,
+        )
+        return result
+
+    @_postprocess
+    def _stop_market(self, order_side: OrderSide, position_side: PositionSide, stop_price: float, quantity: float):
+        result = self.request_client.post_order(
+            symbol=self.symbol,
+            side=order_side,
+            positionSide=position_side,
+            ordertype=OrderType.STOP_MARKET,
+            stopPrice=stop_price,
             quantity=quantity,
             newClientOrderId=self._generate_order_id(),
             newOrderRespType=OrderRespType.RESULT,
@@ -158,4 +174,5 @@ if __name__ == "__main__":
 
     cl = Client(mode="TEST", req_only=True)
     oh = OrderHandler(cl.request_client, Account(cl.request_client), "ETHUSDT")
-
+    # oh._stop_market(OrderSide.SELL, PositionSide.LONG, stop_price=3050, quantity=0.032)
+    # oh._limit(OrderSide.BUY, PositionSide.LONG, price=3120, quantity=0.05)

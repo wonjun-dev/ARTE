@@ -106,7 +106,7 @@ if __name__ == "__main__":
     account = Account(cl.request_client)
     order_handler = OrderHandler(cl.request_client, account, "ETHUSDT")
     strategy = None
-    manager = StrategyManager(order_handler, strategy, SimonManager(), 3)
+    manager = StrategyManager(order_handler, strategy, SimonManager(), max_order_count=3, verbose_bot=False)
     manager.buy_long_market(usdt=50)
     manager.sell_long_market(ratio=0.5)
     manager.sell_long_market(ratio=1)
