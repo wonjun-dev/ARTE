@@ -1,0 +1,1 @@
+from arte.strategy.core.base_strategy import BaseStrategy

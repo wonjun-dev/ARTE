@@ -1,117 +1,63 @@
 import numpy as np
 
-from arte.strategy.impl.base_strategy import BaseStrategy
-from arte.strategy.impl.base_strategy import Position
+from arte.strategy.core.base_strategy import BaseStrategy
+from arte.strategy.core.base_strategy import check_touch
 
 
 class BollingerTouch(BaseStrategy):
     def __init__(
         self,
-        indicators: list,
-        account,
-        order_manager,
-        max_pos: int = 3,
+        indicator_manager,
         buy_ratio: float = 0.1,
         sell_ratio: float = 1.0,
     ):
-        super().__init__(indicators, account, order_manager, max_pos, buy_ratio, sell_ratio)
+        super().__init__(indicator_manager, buy_ratio, sell_ratio)
 
         # 전략 특화 초기화
         self.enter_cur_candle = False
+        self.price_queue = None
         self.past_price = None
+        self.signals = {"TouchDirection": None, "Volatility": None, "StartFrom": None}
 
-    def __check_candle_update(self, price):
+
+    def _make_signals(self, indicators: dict):
+
+
+        # self.price_queue = self.data.close
+        # self.__check_candle_update(self.price_queue)
+        # make signal
+        # signal1 = func1(indicator['Bollinger up'], self.current_price)
+        # signal2 = func1(indicator['Bollinger down'], self.current_price)
+        # self.signals.append(signal1)
+        # self.signals.append(signal2)
+        pass
+
+    def _order(self, signals: dict):
+        pass
+
+        # if self.signal[0] > cond1:
+        #     order1
+        # else:
+        #     order2
+
+    # 전략 특화 함수들
+    def __check_candle_update(self, price_deque):
         if self.past_price is None:
-            self.past_price = np.array(list(price))[:5]
+            self.past_price = np.array(list(price_deque))[:5]
         else:
-            cur_price = np.array(list(price)[:5])
+            cur_price = np.array(list(price_deque)[:5])
             diff = self.past_price - cur_price
 
             if not np.all((diff == 0)):
                 self.enter_cur_candle = False
                 self.past_price = cur_price
+    
+    def __touch_direction(self, current_price, band_line):
+        pass
 
-    def _empty_order_loop(self, signal, price):
-        self.__check_candle_update(price)
-        if not self.enter_cur_candle:
-            try:
-                direction, volt, past = signal[0], signal[1], signal[2]
-            except:
-                print("Start trading! No enough data to generate signal.")
-                return
-            if direction.name == "UP":
-                if volt + past == 3:
-                    if self.om.buy_short_market(ratio=self.BUY_RATIO):
-                        self.num_pos += 1
-                        self.enter_cur_candle = True
-                        self.pos_state = Position.SHORT
-            elif direction.name == "DOWN":
-                if past - volt == 0:
-                    if self.om.buy_long_market(ratio=self.BUY_RATIO):
-                        self.num_pos += 1
-                        self.enter_cur_candle = True
-                        self.pos_state = Position.LONG
-            else:  # No
-                pass
-        else:  # 현재 분봉에서 이미 포지션을 산 경우
-            pass
+    def __volatility(self, ):
+        pass
 
-    def _growing_order_loop(self, signal, price):
-        self.__check_candle_update(price)
-        if not self.enter_cur_candle:
-            direction, volt, past = signal[0], signal[1], signal[2]
-            if direction.name == "UP":
-                if volt + past == 3:
-                    if self.pos_state.name == "LONG":
-                        if self.om.sell_long_market(ratio=self.SELL_RATIO):
-                            self.num_pos = 0
-                            self.pos_state = Position.NO
-                    elif self.pos_state.name == "SHORT":
-                        if self.om.buy_short_market(ratio=self.BUY_RATIO):
-                            self.num_pos += 1
-                            self.enter_cur_candle = True
-            elif direction.name == "DOWN":
-                if past - volt == 0:
-                    if self.pos_state.name == "SHORT":
-                        if self.om.sell_short_market(ratio=self.SELL_RATIO):
-                            self.num_pos = 0
-                            self.pos_state = Position.NO
-                    elif self.pos_state.name == "LONG":
-                        if self.om.buy_long_market(ratio=self.BUY_RATIO):
-                            self.num_pos += 1
-                            self.enter_cur_candle = True
-            else:
-                pass
-        else:
-            pass
+    def __start_from(self):
+        pass
 
-    def _full_order_loop(self, signal, price):
-        self.__check_candle_update(price)
-        if not self.enter_cur_candle:
-            direction, volt, past = signal[0], signal[1], signal[2]
-            if direction.name == "UP":
-                if volt + past == 3:
-                    if self.pos_state.name == "LONG":  # 익절
-                        if self.om.sell_long_market(ratio=self.SELL_RATIO):
-                            self.num_pos = 0
-                            self.pos_state = Position.NO
-                    elif self.pos_state.name == "SHORT":  # 손절
-                        pass
-                        # if self.om.sell_short_market(ratio=self.SELL_RATIO):
-                        #     self.num_pos = 0
-                        #     self.pos_state = Position.NO
-            elif direction.name == "DOWN":
-                if past - volt == 0:
-                    if self.pos_state.name == "SHORT":  # 익절
-                        if self.om.sell_short_market(ratio=self.SELL_RATIO):
-                            self.num_pos = 0
-                            self.pos_state = Position.NO
-                    elif self.pos_state.name == "LONG":  # 손절
-                        pass
-                        # if self.om.sell_long_market(ratio=self.SELL_RATIO):
-                        #     self.num_pos = 0
-                        #     self.pos_state = Position.NO
-            else:
-                pass
-        else:
-            pass

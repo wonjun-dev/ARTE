@@ -1,1 +1,0 @@
-from arte.indicator.impl.base_indicator import BaseIndicator

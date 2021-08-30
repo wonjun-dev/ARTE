@@ -7,6 +7,7 @@ from arte.system import OrderHandler
 from arte.system.telegram_bot import SimonManager
 
 
+from arte.indicator.core.indicator_manager import IndicatorManager
 from arte.indicator.bollinger import Bollinger
 from arte.strategy.bollinger_touch import BollingerTouch
 
@@ -38,7 +39,8 @@ class BBTTTrader:
 
         # Init strategy
         INDICATORS = [Bollinger()]
-        self.strategy = BollingerTouch(indicators=INDICATORS, account=self.account, order_manager=self.om)
+        self.im = IndicatorManager(indicator_instance=INDICATORS)
+        self.strategy = BollingerTouch(indicator_manager=self.im)
         self.strategy_manager = StrategyManager(
             self.oh, self.strategy, self.bot_manager, max_order_count=3, verbose_bot=False
         )
@@ -48,7 +50,7 @@ class BBTTTrader:
         try:
             # 여기에 로직을 넣으시오
             # print(self.data_manager.candlestick.close)
-            data = self.data_manager.candlestick.close
+            data = self.data_manager.candlestick
             self.strategy_manager.run(data)
 
         except:
