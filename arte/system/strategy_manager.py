@@ -34,6 +34,9 @@ class StrategyManager:
         self.positionSize = 0
         self.positionSide = PositionSide.INVALID
 
+    def run(self, data):
+        self.strategy.run(data)
+
     def initialize_position_info(self):
         self.order_count = 0
         self.positionSide = PositionSide.INVALID
