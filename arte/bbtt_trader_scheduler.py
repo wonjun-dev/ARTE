@@ -1,10 +1,11 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from arte.data.data_manager import DataManager
-
-from arte.system.order_manager import OrderManager
+from arte.system.strategy_manager import StrategyManager
 from arte.system.account import Account
+from arte.system import OrderHandler
 from arte.system.telegram_bot import SimonManager
+
 
 from arte.indicator.bollinger import Bollinger
 from arte.strategy.bollinger_touch import BollingerTouch
@@ -31,24 +32,24 @@ class BBTTTrader:
         self.bot_manager = SimonManager()
         self.bot_manager.trader = self
 
-        # Init OM
+        # Init Order Handler
         self.account = Account(client.request_client)
-        self.om = OrderManager(client.request_client, self.account, self.bot_manager, symbol=self.symbol.upper(),)
+        self.oh = OrderHandler(client.request_client, self.account, symbol=self.symbol.upper())
 
         # Init strategy
         INDICATORS = [Bollinger()]
         self.strategy = BollingerTouch(indicators=INDICATORS, account=self.account, order_manager=self.om)
+        self.strategy_manager = StrategyManager(
+            self.oh, self.strategy, self.bot_manager, max_order_count=3, verbose_bot=False
+        )
 
     def mainloop(self):
         """주기적으로 실행되는 함수"""
         try:
             # 여기에 로직을 넣으시오
             # print(self.data_manager.candlestick.close)
-            price = self.data_manager.candlestick.close
-            self.strategy.run(price)
-            # print(datetime.now())
-            # print(self.data_manager.candlestick.close[-1])
-            # print(self.strategy.signal_hub.value_dict["Bollinger"][-1])
+            data = self.data_manager.candlestick.close
+            self.strategy_manager.run(data)
 
         except:
             print(f"error message")
