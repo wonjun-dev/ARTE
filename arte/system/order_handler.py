@@ -10,6 +10,7 @@ OrderManager의 역할
 - 포지션 / 밸런스 계산 및 시각화
 - 레버리지 / 마진 변화
 """
+from binance_f.model.diffdepthevent import Order
 import math
 import time
 from functools import wraps
@@ -91,12 +92,12 @@ class OrderHandler:
         )
         return result
 
-    def buy_limit(self, position_side: PositionSide, price, usdt=None, ratio=None):
+    def buy_limit(self, order_side: OrderSide, position_side: PositionSide, price, usdt=None, ratio=None):
         if bool(usdt) ^ bool(ratio):
             if ratio:
                 usdt = self.account["USDT"] * ratio
             if self.manager.positionSide in [PositionSide.INVALID, position_side]:
-                return self._limit(OrderSide.BUY, position_side, price, self._usdt_to_quantity(usdt, price))
+                return self._limit(order_side, position_side, price, self._usdt_to_quantity(usdt, price))
             else:
                 print(
                     f"Cannot execute buy_{position_side}, you have already opened {self.manager.positionSide} position."
@@ -105,12 +106,12 @@ class OrderHandler:
         else:
             raise ValueError("You have to pass either quantity or ratio.")
 
-    def buy_market(self, position_side: PositionSide, price, usdt=None, ratio=None):
+    def buy_market(self, order_side: OrderSide, position_side: PositionSide, price, usdt=None, ratio=None):
         if bool(usdt) ^ bool(ratio):
             if ratio:
                 usdt = self.account["USDT"] * ratio
             if self.manager.positionSide in [PositionSide.INVALID, position_side]:
-                return self._market(OrderSide.BUY, position_side, self._usdt_to_quantity(usdt, price))
+                return self._market(order_side, position_side, self._usdt_to_quantity(usdt, price))
             else:
                 print(
                     f"Cannot execute buy_{position_side}, you have already opened {self.manager.positionSide} position."
@@ -119,18 +120,16 @@ class OrderHandler:
         else:
             raise ValueError("You have to pass either quantity or ratio.")
 
-    def sell_limit(self, position_side: PositionSide, price, ratio):
+    def sell_limit(self, order_side: OrderSide, position_side: PositionSide, price, ratio):
         if self.manager.positionSide == position_side:
-            return self._limit(
-                OrderSide.SELL, position_side, price, self._asset_ratio_to_quantity(position_side, ratio)
-            )
+            return self._limit(order_side, position_side, price, self._asset_ratio_to_quantity(position_side, ratio))
         else:
             print(f"Cannot execute sell_{position_side}, you dont have any {position_side} position.")
             return None
 
-    def sell_market(self, position_side: PositionSide, ratio):
+    def sell_market(self, order_side: OrderSide, position_side: PositionSide, ratio):
         if self.manager.positionSide == position_side:
-            return self._market(OrderSide.SELL, position_side, self._asset_ratio_to_quantity(position_side, ratio))
+            return self._market(order_side, position_side, self._asset_ratio_to_quantity(position_side, ratio))
         else:
             print(f"Cannot execute sell_{position_side}, you dont have any {position_side} position.")
             return None
@@ -174,5 +173,6 @@ if __name__ == "__main__":
 
     cl = Client(mode="TEST", req_only=True)
     oh = OrderHandler(cl.request_client, Account(cl.request_client), "ETHUSDT")
+    oh._market(OrderSide.BUY, PositionSide.SHORT, quantity=0.3)
     # oh._stop_market(OrderSide.SELL, PositionSide.LONG, stop_price=3050, quantity=0.032)
     # oh._limit(OrderSide.BUY, PositionSide.LONG, price=3120, quantity=0.05)

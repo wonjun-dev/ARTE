@@ -1,8 +1,17 @@
-from arte.system.order_handler import OrderHandler
 from enum import Enum
 from functools import wraps
+from decimal import Decimal, getcontext
+
+getcontext().prec = 2
+
+import numpy as np
 
 from binance_f.model.constant import *
+from arte.system.order_handler import OrderHandler
+
+
+def trunc(values, decs=3):
+    return np.trunc(values * 10 ** decs) / (10 ** decs)
 
 
 def _postprocess(method):
@@ -45,51 +54,67 @@ class StrategyManager:
     def buy_long_market(self, usdt=None, ratio=None):
         if self.order_count < self.max_order_count:
             return self.order_handler.buy_market(
-                position_side=PositionSide.LONG, price=self.order_handler._get_ticker_price(), usdt=usdt, ratio=ratio
+                order_side=OrderSide.BUY,
+                position_side=PositionSide.LONG,
+                price=self.strategy.current_price,
+                usdt=usdt,
+                ratio=ratio,
             )
 
     @_postprocess
     def buy_short_market(self, usdt=None, ratio=None):
         if self.order_count < self.max_order_count:
             return self.order_handler.buy_market(
-                position_side=PositionSide.SHORT, price=self.order_handler._get_ticker_price(), usdt=usdt, ratio=ratio
+                order_side=OrderSide.SELL,
+                position_side=PositionSide.SHORT,
+                price=self.strategy.current_price,
+                usdt=usdt,
+                ratio=ratio,
             )
 
     @_postprocess
     def buy_long_limit(self, price, usdt=None, ratio=None):
         if self.order_count < self.max_order_count:
-            return self.order_handler.buy_limit(position_side=PositionSide.LONG, price=price, usdt=usdt, ratio=ratio)
+            return self.order_handler.buy_limit(
+                order_side=OrderSide.BUY, position_side=PositionSide.LONG, price=price, usdt=usdt, ratio=ratio
+            )
 
     @_postprocess
     def buy_short_limit(self, price, usdt=None, ratio=None):
         if self.order_count < self.max_order_count:
-            return self.order_handler.buy_limit(position_side=PositionSide.SHORT, price=price, usdt=usdt, ratio=ratio)
+            return self.order_handler.buy_limit(
+                order_side=OrderSide.SELL, position_side=PositionSide.SHORT, price=price, usdt=usdt, ratio=ratio
+            )
 
     @_postprocess
     def sell_long_market(self, ratio):
-        return self.order_handler.sell_market(position_side=PositionSide.LONG, ratio=ratio)
+        return self.order_handler.sell_market(order_side=OrderSide.SELL, position_side=PositionSide.LONG, ratio=ratio)
 
     @_postprocess
     def sell_short_market(self, ratio):
-        return self.order_handler.sell_market(position_side=PositionSide.SHORT, ratio=ratio)
+        return self.order_handler.sell_market(order_side=OrderSide.BUY, position_side=PositionSide.SHORT, ratio=ratio)
 
     @_postprocess
     def sell_long_limit(self, price, ratio):
-        return self.order_handler.sell_limit(position_side=PositionSide.LONG, price=price, ratio=ratio)
+        return self.order_handler.sell_limit(
+            order_side=OrderSide.SELL, position_side=PositionSide.LONG, price=price, ratio=ratio
+        )
 
     @_postprocess
     def sell_short_limit(self, price, ratio):
-        return self.order_handler.sell_limit(position_side=PositionSide.SHORT, price=price, ratio=ratio)
+        return self.order_handler.sell_limit(
+            order_side=OrderSide.BUY, position_side=PositionSide.SHORT, price=price, ratio=ratio
+        )
 
     def _postprocess_order(self, order):
         if order:
-            if order.side == OrderSide.BUY:
+            if self._is_buy_or_sell(order) == "BUY":
                 self.order_count += 1
-                self.positionSize += order.origQty
+                self.positionSize = float(Decimal(self.positionSize + order.origQty))
                 self.positionSide = order.positionSide
 
-            elif order.side == OrderSide.SELL:
-                self.positionSize -= order.origQty
+            elif self._is_buy_or_sell(order) == "SELL":
+                self.positionSize = float(Decimal(self.positionSize - order.origQty))
                 if self.positionSize == 0:
                     self.initialize_position_info()
 
@@ -97,6 +122,19 @@ class StrategyManager:
             print(message)
             if self.verbose_bot:
                 self.bot.sendMessage(message)
+
+    @staticmethod
+    def _is_buy_or_sell(order):
+        if ((order.side == OrderSide.BUY) & (order.positionSide == PositionSide.LONG)) or (
+            (order.side == OrderSide.SELL) & (order.positionSide == PositionSide.SHORT)
+        ):
+            return "BUY"
+        elif ((order.side == OrderSide.SELL) & (order.positionSide == PositionSide.LONG)) or (
+            (order.side == OrderSide.BUY) & (order.positionSide == PositionSide.SHORT)
+        ):
+            return "SELL"
+        else:
+            raise ValueError("Cannot check order is buy or sell")
 
 
 if __name__ == "__main__":
@@ -110,7 +148,10 @@ if __name__ == "__main__":
     order_handler = OrderHandler(cl.request_client, account, "ETHUSDT")
     strategy = None
     manager = StrategyManager(order_handler, strategy, SimonManager(), max_order_count=3, verbose_bot=False)
-    manager.buy_long_market(usdt=50)
-    manager.sell_long_market(ratio=0.5)
-    manager.sell_long_market(ratio=1)
-    manager.sell_long_market(ratio=1)
+    manager.buy_short_market(usdt=100)
+    print(manager.positionSide, manager.positionSize)
+    manager.sell_short_market(ratio=0.5)
+    print(manager.positionSide, manager.positionSize)
+    manager.sell_short_market(ratio=1)
+    print(manager.positionSide, manager.positionSize)
+    manager.sell_short_market(ratio=1)
