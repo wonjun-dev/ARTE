@@ -19,7 +19,7 @@ class BaseStrategy(metaclass=ABCMeta):
         self.data = None
         self.BUY_RATIO = buy_ratio
         self.SELL_RATIO = sell_ratio
-        self.current_pirce = None
+        self.current_price = None
         self.manager = None
 
     def run(self, data):
