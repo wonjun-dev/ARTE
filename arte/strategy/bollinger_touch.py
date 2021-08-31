@@ -20,19 +20,10 @@ class BollingerTouch(BaseStrategy):
         self.patience = 2
         self.price_idxs = deque(maxlen=2)
         self.signals = {"TouchDirection": None, "PastLoc": None, "CurLoc": None, "PastTouch": self.past_touch}
-        self.tmp = True
         self.enter_cur_candle = False
     
     def run(self, data):
         super().run(data)
-        # if self.tmp:
-        #     print('dfdf', self.manager.account["USDT"])
-        #     self.manager.buy_short_market(usdt=100) # ratio=self.BUY_RATIO)
-        #     print('asdfwef')
-        #     self.manager.sell_short_market(ratio=self.SELL_RATIO)
-        #     print('dfdfd')
-        #     self.tmp = False
-
         print(f"{self.signals}")
 
     def _make_signals(self, indicators: dict):

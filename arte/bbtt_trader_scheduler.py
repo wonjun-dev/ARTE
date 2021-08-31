@@ -1,4 +1,3 @@
-from test.user_data import UserDataManager
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from arte.data.data_manager import DataManager
