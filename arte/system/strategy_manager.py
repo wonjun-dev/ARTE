@@ -33,7 +33,7 @@ class StrategyManager:
         self.account = self.order_handler.account
         self.strategy = strategy
         self.order_handler.manager = self
-        # self.strategy.manager = self
+        self.strategy.manager = self
         self.bot = bot
         self.verbose_bot = verbose_bot
 
@@ -56,7 +56,7 @@ class StrategyManager:
             return self.order_handler.buy_market(
                 order_side=OrderSide.BUY,
                 position_side=PositionSide.LONG,
-                price=self.order_handler._get_ticker_price(),
+                price=self.strategy.current_price,
                 usdt=usdt,
                 ratio=ratio,
             )
@@ -67,7 +67,7 @@ class StrategyManager:
             return self.order_handler.buy_market(
                 order_side=OrderSide.SELL,
                 position_side=PositionSide.SHORT,
-                price=self.order_handler._get_ticker_price(),
+                price=self.strategy.current_price,
                 usdt=usdt,
                 ratio=ratio,
             )
