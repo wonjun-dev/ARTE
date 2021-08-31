@@ -60,7 +60,11 @@ class BBTTTrader:
         """
         mainloop를 watch_interval마다 실행시켜주는 함수
         """
-        self.data_manager.open_candlestick_socket(symbol=self.symbol.lower(), maxlen=maxlen, interval=interval)
-        self.runner = self.scheduler.add_job(self.mainloop, "interval", seconds=watch_interval, id="mainloop")
+        self.data_manager.open_candlestick_socket(
+            symbol=self.symbol.lower(), maxlen=maxlen, interval=interval
+        )
+        self.runner = self.scheduler.add_job(
+            self.mainloop, "interval", seconds=watch_interval, id="mainloop"
+        )
         self.bot_runner = self.scheduler.add_job(self.bot_manager.bot_manager_setting)
         self.scheduler.start()

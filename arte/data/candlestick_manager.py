@@ -30,6 +30,7 @@ class CandlestickManager:
         self.takerBuyBaseAssetVolume = deque(maxlen=maxlen)
         self.takerBuyQuoteAssetVolume = deque(maxlen=maxlen)
         self.ignore = deque(maxlen=maxlen)
+        self.candle_closed = None
 
     def init_candlestick(self, init_candle):
         """초기값을 request로 받아와 저장하는 함수"""
@@ -44,8 +45,13 @@ class CandlestickManager:
             self.numTrades.append(float(init_candle[index_candlestick].numTrades))
             self.quoteAssetVolume.append(float(init_candle[index_candlestick].quoteAssetVolume))
             self.ignore.append(float(init_candle[index_candlestick].ignore))
-            self.takerBuyBaseAssetVolume.append(float(init_candle[index_candlestick].takerBuyBaseAssetVolume))
-            self.takerBuyQuoteAssetVolume.append(float(init_candle[index_candlestick].takerBuyQuoteAssetVolume))
+            self.takerBuyBaseAssetVolume.append(
+                float(init_candle[index_candlestick].takerBuyBaseAssetVolume)
+            )
+            self.takerBuyQuoteAssetVolume.append(
+                float(init_candle[index_candlestick].takerBuyQuoteAssetVolume)
+            )
+            self.candle_closed = False
 
     def update_candlestick(self, event):
         """다음 candlestick으로 바뀌었을 때 update를 위한 함수"""
@@ -61,6 +67,7 @@ class CandlestickManager:
         self.takerBuyBaseAssetVolume.append(event.data.takerBuyBaseAssetVolume)
         self.takerBuyQuoteAssetVolume.append(event.data.takerBuyQuoteAssetVolume)
         self.ignore.append(event.data.ignore)
+        self.candle_closed = True
 
     def update_next_candlestick(self, event):
         """현재 candlestick 업데이트"""
@@ -89,3 +96,4 @@ class CandlestickManager:
         self.takerBuyBaseAssetVolume.append(event.data.takerBuyBaseAssetVolume)
         self.takerBuyQuoteAssetVolume.append(event.data.takerBuyQuoteAssetVolume)
         self.ignore.append(event.data.ignore)
+        self.candle_closed = False

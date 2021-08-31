@@ -1,5 +1,3 @@
-
-
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
 
@@ -25,14 +23,18 @@ class DataManager:
         self.client = client
         self.candlestick = None
 
-    def open_candlestick_socket(self, symbol: str = "btcusdt", maxlen: int = 21, interval: str = "1m"):
+    def open_candlestick_socket(
+        self, symbol: str = "btcusdt", maxlen: int = 21, interval: str = "1m"
+    ):
         """
         candlestick websocket을 열고 데이터를 받아 저장하는 함수
         """
         self.candlestick = CandlestickManager(maxlen=maxlen)
 
         # 소켓을 열기 이전의 candlestick 데이터를 받아 저장
-        init_candle = self.client.request_client.get_candlestick_data(symbol=symbol, limit=maxlen, interval=interval)
+        init_candle = self.client.request_client.get_candlestick_data(
+            symbol=symbol, limit=maxlen, interval=interval
+        )
         self.candlestick.init_candlestick(init_candle)
 
         def callback(data_type: "SubscribeMessageType", event: "any"):

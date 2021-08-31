@@ -32,4 +32,11 @@ class IndicatorManager:
         for ins in self.indicator_instance:
             name = ins.__class__.__name__
             res = ins.calc(data)
-            self.value_dict[name].append(res)
+            if data.candle_closed:
+                self.value_dict[name].append(res)
+            else:
+                try:
+                    self.value_dict[name].pop()
+                except:
+                    pass
+                self.value_dict[name].append(res)

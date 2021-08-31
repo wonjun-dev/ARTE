@@ -1,7 +1,7 @@
 import numpy as np
 
 from arte.strategy.core.base_strategy import BaseStrategy
-from arte.strategy.core.base_strategy import check_touch
+from arte.strategy.core.base_strategy import check_cross
 
 
 class BollingerTouch(BaseStrategy):
@@ -16,12 +16,15 @@ class BollingerTouch(BaseStrategy):
         # 전략 특화 초기화
         self.enter_cur_candle = False
         self.price_queue = None
-        self.past_price = None
         self.signals = {"TouchDirection": None, "Volatility": None, "StartFrom": None}
 
-
     def _make_signals(self, indicators: dict):
+        print(indicators)
+        bu = [v[0] for v in list(indicators["Bollinger"])]
+        bm = [v[0] for v in list(indicators["Bollinger"])]
+        bl = [v[0] for v in list(indicators["Bollinger"])]
 
+        self.signals["TouchDirection"] = self.__touch_direction(self.data.close, bu)
 
         # self.price_queue = self.data.close
         # self.__check_candle_update(self.price_queue)
@@ -40,24 +43,11 @@ class BollingerTouch(BaseStrategy):
         # else:
         #     order2
 
-    # 전략 특화 함수들
-    def __check_candle_update(self, price_deque):
-        if self.past_price is None:
-            self.past_price = np.array(list(price_deque))[:5]
-        else:
-            cur_price = np.array(list(price_deque)[:5])
-            diff = self.past_price - cur_price
+    def __touch_direction(self, current_price, line):
+        return check_cross(current_price, line, window=1)
 
-            if not np.all((diff == 0)):
-                self.enter_cur_candle = False
-                self.past_price = cur_price
-    
-    def __touch_direction(self, current_price, band_line):
-        pass
-
-    def __volatility(self, ):
+    def __volatility(self):
         pass
 
     def __start_from(self):
         pass
-
