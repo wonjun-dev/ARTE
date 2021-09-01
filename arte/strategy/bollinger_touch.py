@@ -28,7 +28,7 @@ class BollingerTouch(BaseStrategy):
         print(
             f"Signals: {self.signals}, FirstSignalThisCandle: {self.first_signal_this_candle}, EnterCurrentCandle: {self.enter_cur_candle}, Price: {self.current_price}, Idxs: {self.price_idxs}"
         )
-
+        
     def _make_signals(self, indicators: dict):
         assert self.patience >= 0
         # 볼밴에서 현재가 위치

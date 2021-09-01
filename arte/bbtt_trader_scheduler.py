@@ -1,3 +1,4 @@
+import traceback
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from arte.data.data_manager import DataManager
@@ -53,8 +54,8 @@ class BBTTTrader:
             data = self.data_manager.candlestick
             self.strategy_manager.run(data)
 
-        except:
-            print(f"error message")
+        except Exception:
+            traceback.print_exc()
 
     def run(self, maxlen: int = 21, interval: str = "1m", watch_interval: int = 2):
         """
