@@ -1,9 +1,13 @@
+import threading
+import requests
 
-
+from pyupbit import WebSocketManager
+from binance import ThreadedWebsocketManager
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
 
 from arte.data.candlestick_manager import CandlestickManager
+from arte.data.ticker_manager import TickerManager
 
 
 class DataManager:
@@ -60,6 +64,39 @@ class DataManager:
         self.client.sub_client.subscribe_candlestick_event(
             symbol=symbol, interval=interval, callback=callback, error_handler=error
         )
+
+    def open_upbit_ticker_socket(self, symbols):
+        self.upbit_ticker = TickerManager()
+
+        def upbit_ticker_subscribe():
+            while self.upbit_ticker_socket_state == True:
+                data = self.upbit_ticker_socket.get()
+                self.upbit_ticker.update_ticker_upbit(data)
+            self.upbit_ticker_socket.close()
+
+        self.upbit_ticker_socket = WebSocketManager("ticker", symbols)
+        self.upbit_ticker_socket_thread = threading.Thread(target=upbit_ticker_subscribe)
+        self.upbit_ticker_socket_state = True
+        self.upbit_ticker_socket_thread.start()
+
+    def open_binance_ticker_socket(self, symbols):
+        self.streams = [x.lower() + "@ticker" for x in symbols]
+        self.binance_ticker = TickerManager()
+
+        def callback(msg):
+            self.binance_ticker.update_ticker_binance(msg)
+
+        self.binance_ticker_socket = ThreadedWebsocketManager()
+        self.binance_ticker_socket.start()
+        self.binance_ticker_socket.start_multiplex_socket(callback=callback, streams=self.streams)
+
+    def get_usdt_to_kor(self):
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
+        }
+        url = "https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD"
+        exchange = requests.get(url, headers=headers).json()
+        return float(exchange[0]["basePrice"])
 
 
 if __name__ == "__main__":
