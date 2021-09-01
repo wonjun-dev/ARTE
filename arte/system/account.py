@@ -37,9 +37,17 @@ class Account:
                     positions[pos.symbol][pos.positionSide] = pos
         return positions
 
-    def update(self):
+    def _update_restapi(self):
         self._positions["USDT"] = self._get_usdt_balance()
         self._positions = self._get_positions(["ETHUSDT"])
+
+    def update(self, event):
+        self._positions["USDT"] = event.balances[0].crossWallet
+        for pos in event.positions:
+            if pos.positionSide == PositionSide.LONG:
+                self._positions[pos.symbol][pos.positionSide] = pos.amount
+            elif pos.positionSide == PositionSide.SHORT:
+                self._positions[pos.symbol][pos.positionSide] = pos.amount
 
     def __getitem__(self, key):
         return self._positions[key]
