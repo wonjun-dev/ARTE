@@ -9,6 +9,10 @@ class CrossDirection(Enum):
 
 
 class BaseStrategy(metaclass=ABCMeta):
+    """
+    BaseStrategy - IndicatorManager - Indicator
+    """
+
     def __init__(
         self,
         indicator_manager,

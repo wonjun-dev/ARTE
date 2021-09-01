@@ -9,7 +9,7 @@ class Bollinger(BaseIndicator):
         self.data_name = ["close"]
         self.data_value = {name: None for name in self.data_name}
 
-    def calc(self, data, timeperiod: int = 21, up: float = 2, dn: float = 2):
+    def calc(self, data, timeperiod: int = 21, up: float = 1.9, dn: float = 1.9):
         """
         Calucate Bollinger band
         Args:
