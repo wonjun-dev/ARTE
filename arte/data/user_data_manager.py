@@ -59,7 +59,7 @@ if __name__ == "__main__":
     from arte.system.account import Account
     from arte.client import Client
 
-    cli = Client("REAL")
+    cli = Client("TEST")
     acc = Account(cli.request_client)
     order_rec = OrderRecorder()
     udm = UserDataManager(cli, acc, order_rec)

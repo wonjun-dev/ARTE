@@ -9,7 +9,6 @@ class OrderRecorder:
         self.pair_dict = {}
 
     def get_event(self, event):
-        print(event.clientOrderId)
         if event.orderStatus == "NEW":
             self.pair_dict[event.clientOrderId] = {"beforeFill": event, "afterFill": None}
         elif event.orderStatus == "FILLED":

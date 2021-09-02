@@ -25,15 +25,6 @@ def get_timestamp():
     return int(time.time())  # * 1000)
 
 
-def _postprocess(method):
-    @wraps(method)
-    def _impl(self, *args, **kwargs):
-        order = method(self, *args, **kwargs)
-        return order
-
-    return _impl
-
-
 class OrderHandler:
     """
     "특정" 에셋을 위한 오더 핸들러
@@ -48,7 +39,6 @@ class OrderHandler:
         self.symbol = symbol
         self.manager = None
 
-    @_postprocess
     def _limit(self, order_side: OrderSide, position_side: PositionSide, price: float, quantity: float):
         result = self.request_client.post_order(
             symbol=self.symbol,
@@ -63,7 +53,6 @@ class OrderHandler:
         )
         return result
 
-    @_postprocess
     def _market(self, order_side: OrderSide, position_side: PositionSide, quantity: float):
         result = self.request_client.post_order(
             symbol=self.symbol,
@@ -76,7 +65,6 @@ class OrderHandler:
         )
         return result
 
-    @_postprocess
     def _stop_market(self, order_side: OrderSide, position_side: PositionSide, stop_price: float, quantity: float):
         result = self.request_client.post_order(
             symbol=self.symbol,
