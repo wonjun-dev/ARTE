@@ -14,4 +14,3 @@ class OrderRecorder:
             self.pair_dict[event.clientOrderId] = {"beforeFill": event, "afterFill": None}
         elif event.orderStatus == "FILLED":
             self.pair_dict[event.clientOrderId]["afterFill"] = event
-

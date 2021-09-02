@@ -6,10 +6,7 @@ from arte.strategy.core.base_strategy import CrossDirection
 
 class BollingerTouch(BaseStrategy):
     def __init__(
-        self,
-        indicator_manager,
-        buy_ratio: float = 0.1,
-        sell_ratio: float = 1.0,
+        self, indicator_manager, buy_ratio: float = 0.1, sell_ratio: float = 1.0,
     ):
         super().__init__(indicator_manager, buy_ratio, sell_ratio)
 
@@ -28,7 +25,7 @@ class BollingerTouch(BaseStrategy):
         print(
             f"Signals: {self.signals}, FirstSignalThisCandle: {self.first_signal_this_candle}, EnterCurrentCandle: {self.enter_cur_candle}, Price: {self.current_price}, Idxs: {self.price_idxs}"
         )
-        
+
     def _make_signals(self, indicators: dict):
         assert self.patience >= 0
         # 볼밴에서 현재가 위치

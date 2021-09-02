@@ -28,14 +28,13 @@ class StrategyManager:
     OrderHandler - StrategyManager - Strategy
     """
 
-    def __init__(self, order_handler, strategy, bot, max_order_count, verbose_bot=True):
+    def __init__(self, order_handler, strategy, bot, max_order_count):
         self.order_handler = order_handler
         self.account = self.order_handler.account
         self.strategy = strategy
         self.order_handler.manager = self
         self.strategy.manager = self
         self.bot = bot
-        self.verbose_bot = verbose_bot
 
         # state manage
         self.max_order_count = max_order_count
@@ -120,7 +119,7 @@ class StrategyManager:
 
             message = f"Order {order.clientOrderId}: {order.side} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
             print(message)
-            if self.verbose_bot:
+            if self.bot:
                 self.bot.sendMessage(message)
 
     @staticmethod

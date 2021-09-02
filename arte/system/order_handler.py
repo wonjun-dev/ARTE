@@ -29,8 +29,6 @@ def _postprocess(method):
     @wraps(method)
     def _impl(self, *args, **kwargs):
         order = method(self, *args, **kwargs)
-        # PrintBasic.print_obj(order)
-        self.account.update()
         return order
 
     return _impl
@@ -149,22 +147,6 @@ class OrderHandler:
     def _generate_order_id(self):
         _id = self.symbol + str(get_timestamp()) + f"-{secrets.token_hex(4)}"
         return _id
-
-    def update(self):
-        """
-        주 목적 - 리미트 주문이 filled 되는지를 검사하여 로컬에 반영
-        """
-        for o in self.order_list:
-            if o.type == "LIMIT":
-                if o.status == "NEW":
-                    result = self.request_client.get_order(self.symbol, origClientOrderId=o.clientOrderId)
-                    if o.status != result.status:
-                        print(
-                            f"""Status Changed - Order {result.clientOrderId}: {o.status} -> {result.status} /
-                            {result.side} {result.type} - {result.symbol} / Qty: {result.origQty}, Price: ${result.price}"""
-                        )
-                        o.status = result.status  # NEEDFIX: it should update whole instance
-                        self.account.update()
 
 
 if __name__ == "__main__":
