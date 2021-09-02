@@ -19,6 +19,7 @@ def _postprocess(method):
     def _impl(self, *args, **kwargs):
         order = method(self, *args, **kwargs)
         self._postprocess_order(order)
+        return order
 
     return _impl
 
