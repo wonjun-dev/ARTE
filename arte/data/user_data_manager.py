@@ -1,7 +1,7 @@
 import threading
 
-from binance_f import RequestClient
-from binance_f import SubscriptionClient
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from binance_f.constant.test import *
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
@@ -16,6 +16,7 @@ class UserDataManager:
         self.account = account
         self.order_recorder = order_recorder
         self.listen_key = None
+        self.sched = BackgroundScheduler()
 
     def open_user_data_socket(self):
         self.listen_key = self.client.request_client.start_user_data_stream()
@@ -40,12 +41,18 @@ class UserDataManager:
         self.client.sub_client.subscribe_user_data_event(
             listenKey=self.listen_key, callback=callback, error_handler=error
         )
+        self._schedule_keepalive()
 
     def _keepalive(self):
         self.client.request_client.keep_user_data_stream()
+        print("send put keepalive")
 
     def _close_listenkey(self):
         self.client.request_client.close_user_data_stream()
+
+    def _schedule_keepalive(self):
+        self.sched.add_job(self._keepalive, "interval", minutes=30, id="put_keepalive_userdata")
+        self.sched.start()
 
 
 if __name__ == "__main__":
