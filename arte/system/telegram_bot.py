@@ -32,6 +32,67 @@ class TelegramBot:
         self.updater.stop()
 
 
+class DominicManager(TelegramBot):
+    def __init__(self):
+        """
+        Simon information 추가해주기
+        """
+        name = "Dominic"
+        token = "1952844067:AAHo17k6QH2pU0UlHvtDBXVpZxNVr63KwYc"
+        id = -571188161
+        TelegramBot.__init__(self, name, token, id)
+        self.updater.stop()
+        self.trader = None
+
+    def add_handler(self, cmd: str, func, pass_args: bool):
+        """
+        add_handler wrapping
+        cmd : 봇에 전달할 명령어
+        func : 봇이 명령어를 전달받았을 때 실행 할 함수
+        pass_args : 실행 할 함수에 인자를 전달해야 할 때 true
+        """
+        self.updater.dispatcher.add_handler(CommandHandler(cmd, func, pass_args=pass_args))
+
+    def start(self):
+        """
+        Bot을 실행시킴
+        handler가 추가 된 후에 start해야함
+        """
+        self.sendMessage("Arbi Start!")
+        self.updater.start_polling()
+        self.updater.idle()
+
+    def bot_manager_setting(self):
+        """
+        bot add handler
+        """
+        if self.trader is not None:
+            self.add_handler("except", self.add_except_list, pass_args=True)
+            self.add_handler("cept", self.del_except_list, pass_args=True)
+            self.add_handler("threshold", self.adjust_threshold, pass_args=True)
+            self.start()
+
+    def adjust_threshold(self, update, context):
+        self.trader.threshold = float(context.args[0])
+        self.sendMessage("현재 알람 기준가 : " + str(self.trader.threshold))
+
+    def add_except_list(self, update, context):
+        """
+        runner라는 scheduler의 job을 pause
+        """
+        if context.args[0] not in self.trader.except_list:
+            self.trader.except_list.append(context.args[0])
+            self.sendMessage("현재 제외된 항목 : " + str(self.trader.except_list))
+
+    def del_except_list(self, update, context):
+        """
+        runner라는 scheduler의 job을 resume
+        """
+        if context.args[0] in self.trader.except_list:
+            self.trader.except_list.remove(context.args[0])
+            self.sendMessage("현재 제외된 항목 : " + str(self.trader.except_list))
+
+
 class SimonManager(TelegramBot):
     """
     하나의 봇(Simon)을 관리하기 위한 매니저
@@ -55,9 +116,7 @@ class SimonManager(TelegramBot):
         func : 봇이 명령어를 전달받았을 때 실행 할 함수
         pass_args : 실행 할 함수에 인자를 전달해야 할 때 true
         """
-        self.updater.dispatcher.add_handler(
-            CommandHandler(cmd, func, pass_args=pass_args)
-        )
+        self.updater.dispatcher.add_handler(CommandHandler(cmd, func, pass_args=pass_args))
 
     def start(self):
         """

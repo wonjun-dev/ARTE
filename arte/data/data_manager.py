@@ -3,6 +3,7 @@ import requests
 
 from pyupbit import WebSocketManager
 from binance import ThreadedWebsocketManager
+from upbit.client import Upbit
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
 
@@ -66,7 +67,7 @@ class DataManager:
         )
 
     def open_upbit_ticker_socket(self, symbols):
-        self.upbit_ticker = TickerManager()
+        self.upbit_ticker = TickerManager(symbols=symbols)
 
         def upbit_ticker_subscribe():
             while self.upbit_ticker_socket_state == True:
@@ -81,7 +82,7 @@ class DataManager:
 
     def open_binance_ticker_socket(self, symbols):
         self.streams = [x.lower() + "@ticker" for x in symbols]
-        self.binance_ticker = TickerManager()
+        self.binance_ticker = TickerManager(symbols=symbols)
 
         def callback(msg):
             self.binance_ticker.update_ticker_binance(msg)
@@ -97,6 +98,16 @@ class DataManager:
         url = "https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD"
         exchange = requests.get(url, headers=headers).json()
         return float(exchange[0]["basePrice"])
+
+    def get_closed_symbols(self):
+        client = Upbit("xou3PRNskZ2wzJls3emcvd0xx3lA1eWxvsj4U2yX", "Fo2VKAuEx9yNux6hTN8i3ovX9BAZcDKsmC5qaAt8")
+        resp = client.Account.Account_wallet()
+        closed_list = list()
+        for status in resp["result"]:
+            if status["wallet_state"] != "working":
+                closed_list.append(status["currency"])
+
+        return closed_list
 
 
 if __name__ == "__main__":
