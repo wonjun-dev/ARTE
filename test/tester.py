@@ -8,12 +8,12 @@ from arte.bbtt_trader_scheduler import BBTTTrader
 # configuration
 cfg = configparser.ConfigParser()
 cfg.read('test/config.ini')
-default_config = cfg['DEFAULT']
+config = cfg['TEST']
 
-mode = default_config['MODE']
-api_key = default_config['API_KEY']
-secret_key = default_config['SECRET_KEY']
-use_bot = default_config['USE_BOT']
+mode = config['MODE']
+api_key = config['API_KEY']
+secret_key = config['SECRET_KEY']
+use_bot = config['USE_BOT']
 
 def main():
     clients = Client(mode, api_key, secret_key)
