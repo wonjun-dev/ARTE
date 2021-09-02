@@ -129,7 +129,7 @@ class OrderHandler:
         return math.floor((usdt / price) * (10 ** unit_float)) / (10 ** unit_float)
 
     def _asset_ratio_to_quantity(self, position_side: PositionSide, ratio, unit_float=3):
-        asset_quantity = abs(self.account[self.symbol][position_side].positionAmt)
+        asset_quantity = abs(self.account[self.symbol][position_side])
         return math.floor((asset_quantity * ratio) * (10 ** unit_float)) / (10 ** unit_float)
 
     def _generate_order_id(self):

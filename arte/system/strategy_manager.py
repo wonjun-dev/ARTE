@@ -18,7 +18,8 @@ def _postprocess(method):
     @wraps(method)
     def _impl(self, *args, **kwargs):
         order = method(self, *args, **kwargs)
-        self._postprocess_order(order)
+        if order:
+            self._postprocess_order(order)
         return order
 
     return _impl
@@ -107,21 +108,20 @@ class StrategyManager:
         )
 
     def _postprocess_order(self, order):
-        if order:
-            if self._is_buy_or_sell(order) == "BUY":
-                self.order_count += 1
-                self.positionSize = float(Decimal(self.positionSize + order.origQty))
-                self.positionSide = order.positionSide
+        if self._is_buy_or_sell(order) == "BUY":
+            self.order_count += 1
+            self.positionSize = float(Decimal(self.positionSize + order.origQty))
+            self.positionSide = order.positionSide
 
-            elif self._is_buy_or_sell(order) == "SELL":
-                self.positionSize = float(Decimal(self.positionSize - order.origQty))
-                if self.positionSize == 0:
-                    self.initialize_position_info()
+        elif self._is_buy_or_sell(order) == "SELL":
+            self.positionSize = float(Decimal(self.positionSize - order.origQty))
+            if self.positionSize == 0:
+                self.initialize_position_info()
 
-            message = f"Order {order.clientOrderId}: {order.side} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
-            print(message)
-            if self.bot:
-                self.bot.sendMessage(message)
+        message = f"Order {order.clientOrderId}: {order.side} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
+        print(message)
+        if self.bot:
+            self.bot.sendMessage(message)
 
     @staticmethod
     def _is_buy_or_sell(order):
