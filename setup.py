@@ -28,6 +28,8 @@ setup(
         "websocket-client",
         "urllib3",
         "tzlocal<3.0",
+        "pyupbit",
+        "python-binance"
         # "ta-lib",
     ],
 )

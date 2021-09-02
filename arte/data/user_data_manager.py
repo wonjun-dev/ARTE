@@ -1,18 +1,22 @@
 import threading
 
-from binance_f import RequestClient
-from binance_f import SubscriptionClient
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from binance_f.constant.test import *
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
 from binance_f.base.printobject import *
 
+from arte.system.order_recorder import OrderRecorder
+
 
 class UserDataManager:
-    def __init__(self, client, account) -> None:
+    def __init__(self, client, account, order_recorder) -> None:
         self.client = client
         self.account = account
+        self.order_recorder = order_recorder
         self.listen_key = None
+        self.sched = BackgroundScheduler()
 
     def open_user_data_socket(self):
         self.listen_key = self.client.request_client.start_user_data_stream()
@@ -25,27 +29,8 @@ class UserDataManager:
                     self.account.update(event)
                     print("USDT: ", self.account["USDT"])
                     print("ETHUSDT: ", self.account["ETHUSDT"])
-                    # print("Event Type: ", event.eventType)
-                    # print("Event time: ", event.eventTime)
-                    # print("Transaction time: ", event.transactionTime)
-                    # print("=== Balances ===")
-                    # PrintMix.print_data(event.balances)
-                    # print("================")
-                    # print("=== Positions ===")
-                    # PrintMix.print_data(event.positions)
-                    # print("================")
                 elif event.eventType == "ORDER_TRADE_UPDATE":
-                    if event.orderStatus == "NEW":
-                        pass
-                        # self.order_handler.update_not_signed_order(event)  # update not signed order
-                    elif event.orderStatus == "FILLED":
-                        if event.side == "BUY":
-                            pass
-                            # self.order_handler.update_signed_order(event)  # update signed order
-                            # self.order_handler.delete_not_signed_order(event.clientOrderId)  # delete not signed order
-                        elif event.side == "SELL":
-                            pass
-                            # self.order_handler.delete_signed_order(event.clientOrderId)  # delete signed order
+                    self.order_recorder.get_event(event)
             elif event.eventType == "listenKeyExpired":
                 print("listenKey Expired, Reconnect Socket again.")
                 self.open_user_data_socket()
@@ -56,12 +41,18 @@ class UserDataManager:
         self.client.sub_client.subscribe_user_data_event(
             listenKey=self.listen_key, callback=callback, error_handler=error
         )
+        self._schedule_keepalive()
 
     def _keepalive(self):
         self.client.request_client.keep_user_data_stream()
+        print("send put keepalive")
 
     def _close_listenkey(self):
         self.client.request_client.close_user_data_stream()
+
+    def _schedule_keepalive(self):
+        self.sched.add_job(self._keepalive, "interval", minutes=30, id="put_keepalive_userdata")
+        self.sched.start()
 
 
 if __name__ == "__main__":
@@ -70,7 +61,8 @@ if __name__ == "__main__":
 
     cli = Client("TEST")
     acc = Account(cli.request_client)
-    udm = UserDataManager(cli, acc)
+    order_rec = OrderRecorder()
+    udm = UserDataManager(cli, acc, order_rec)
     udm.open_user_data_socket()
 
     for t in threading.enumerate():

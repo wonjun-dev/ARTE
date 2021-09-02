@@ -25,17 +25,6 @@ def get_timestamp():
     return int(time.time())  # * 1000)
 
 
-def _postprocess(method):
-    @wraps(method)
-    def _impl(self, *args, **kwargs):
-        order = method(self, *args, **kwargs)
-        # PrintBasic.print_obj(order)
-        self.account.update()
-        return order
-
-    return _impl
-
-
 class OrderHandler:
     """
     "특정" 에셋을 위한 오더 핸들러
@@ -50,7 +39,6 @@ class OrderHandler:
         self.symbol = symbol
         self.manager = None
 
-    @_postprocess
     def _limit(self, order_side: OrderSide, position_side: PositionSide, price: float, quantity: float):
         result = self.request_client.post_order(
             symbol=self.symbol,
@@ -65,7 +53,6 @@ class OrderHandler:
         )
         return result
 
-    @_postprocess
     def _market(self, order_side: OrderSide, position_side: PositionSide, quantity: float):
         result = self.request_client.post_order(
             symbol=self.symbol,
@@ -78,7 +65,6 @@ class OrderHandler:
         )
         return result
 
-    @_postprocess
     def _stop_market(self, order_side: OrderSide, position_side: PositionSide, stop_price: float, quantity: float):
         result = self.request_client.post_order(
             symbol=self.symbol,
@@ -143,28 +129,12 @@ class OrderHandler:
         return math.floor((usdt / price) * (10 ** unit_float)) / (10 ** unit_float)
 
     def _asset_ratio_to_quantity(self, position_side: PositionSide, ratio, unit_float=3):
-        asset_quantity = abs(self.account[self.symbol][position_side].positionAmt)
+        asset_quantity = abs(self.account[self.symbol][position_side])
         return math.floor((asset_quantity * ratio) * (10 ** unit_float)) / (10 ** unit_float)
 
     def _generate_order_id(self):
         _id = self.symbol + str(get_timestamp()) + f"-{secrets.token_hex(4)}"
         return _id
-
-    def update(self):
-        """
-        주 목적 - 리미트 주문이 filled 되는지를 검사하여 로컬에 반영
-        """
-        for o in self.order_list:
-            if o.type == "LIMIT":
-                if o.status == "NEW":
-                    result = self.request_client.get_order(self.symbol, origClientOrderId=o.clientOrderId)
-                    if o.status != result.status:
-                        print(
-                            f"""Status Changed - Order {result.clientOrderId}: {o.status} -> {result.status} /
-                            {result.side} {result.type} - {result.symbol} / Qty: {result.origQty}, Price: ${result.price}"""
-                        )
-                        o.status = result.status  # NEEDFIX: it should update whole instance
-                        self.account.update()
 
 
 if __name__ == "__main__":

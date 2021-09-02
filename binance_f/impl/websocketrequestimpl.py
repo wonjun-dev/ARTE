@@ -311,8 +311,8 @@ class WebsocketRequestImpl(object):
             time.sleep(0.01)
 
         def json_parse(json_wrapper):
-            print("event type: ", json_wrapper.get_string("e"))
-            print(json_wrapper)
+            # print("event type: ", json_wrapper.get_string("e"))
+            # print(json_wrapper)
             if json_wrapper.get_string("e") == "ACCOUNT_UPDATE":
                 result = AccountUpdate.json_parse(json_wrapper)
             elif json_wrapper.get_string("e") == "ORDER_TRADE_UPDATE":
@@ -326,6 +326,7 @@ class WebsocketRequestImpl(object):
         request.json_parser = json_parse
         request.update_callback = callback
         request.error_handler = error_handler
+        request.is_user_data_stream = True
 
         return request
 
