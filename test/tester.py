@@ -13,7 +13,7 @@ config = cfg['TEST']
 mode = config['MODE']
 api_key = config['API_KEY']
 secret_key = config['SECRET_KEY']
-use_bot = config['USE_BOT']
+use_bot = config.getboolean('USE_BOT')
 
 def main():
     clients = Client(mode, api_key, secret_key)
