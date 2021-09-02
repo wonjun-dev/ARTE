@@ -1,0 +1,5 @@
+[DEFAULT]
+MODE = TEST
+API_KEY = user api-key
+SECRET_KEY = user secret-key
+USE_BOT = False
