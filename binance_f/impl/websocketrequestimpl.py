@@ -326,6 +326,7 @@ class WebsocketRequestImpl(object):
         request.json_parser = json_parse
         request.update_callback = callback
         request.error_handler = error_handler
+        request.is_user_data_stream = True
 
         return request
 

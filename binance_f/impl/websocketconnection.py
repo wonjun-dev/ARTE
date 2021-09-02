@@ -14,6 +14,7 @@ from binance_f.exception.binanceapiexception import BinanceApiException
 from binance_f.impl.utils import *
 from binance_f.base.printobject import *
 from binance_f.model.constant import *
+
 # Key: ws, Value: connection
 websocket_connection_handler = dict()
 
@@ -50,10 +51,9 @@ class ConnectionState:
 
 def websocket_func(*args):
     connection_instance = args[0]
-    connection_instance.ws = websocket.WebSocketApp(connection_instance.url,
-                                                    on_message=on_message,
-                                                    on_error=on_error,
-                                                    on_close=on_close)
+    connection_instance.ws = websocket.WebSocketApp(
+        connection_instance.url, on_message=on_message, on_error=on_error, on_close=on_close
+    )
     global websocket_connection_handler
     websocket_connection_handler[connection_instance.ws] = connection_instance
     connection_instance.logger.info("[Sub][" + str(connection_instance.id) + "] Connecting...")
@@ -66,13 +66,13 @@ def websocket_func(*args):
 
 
 class WebsocketConnection:
-
     def __init__(self, api_key, secret_key, uri, watch_dog, request):
         self.__thread = None
         self.url = uri
         self.__api_key = api_key
         self.__secret_key = secret_key
         self.request = request
+        self.is_user_data_stream = self.request.is_user_data_stream
         self.__watch_dog = watch_dog
         self.delay_in_second = -1
         self.ws = None
@@ -91,8 +91,9 @@ class WebsocketConnection:
             self.ws.close()
             self.ws = None
         self.delay_in_second = delay_in_second
-        self.logger.warning("[Sub][" + str(self.id) + "] Reconnecting after "
-                            + str(self.delay_in_second) + " seconds later")
+        self.logger.warning(
+            "[Sub][" + str(self.id) + "] Reconnecting after " + str(self.delay_in_second) + " seconds later"
+        )
 
     def re_connect(self):
         if self.delay_in_second != 0:
@@ -131,13 +132,13 @@ class WebsocketConnection:
 
     def on_error(self, error_message):
         if self.request.error_handler is not None:
-            print('error')
+            print("error")
             exception = BinanceApiException(BinanceApiException.SUBSCRIPTION_ERROR, error_message)
             self.request.error_handler(exception)
         self.logger.error("[Sub][" + str(self.id) + "] " + str(error_message))
 
     def on_failure(self, error):
-        print('on_failure')
+        print("on_failure")
         self.on_error("Unexpected error: " + str(error))
         self.close_on_error()
 
@@ -169,8 +170,7 @@ class WebsocketConnection:
             if self.request.update_callback is not None:
                 self.request.update_callback(SubscribeMessageType.RESPONSE, res)
         except Exception as e:
-            self.on_error("Process error: " + str(e)
-                     + " You should capture the exception in your error handler")
+            self.on_error("Process error: " + str(e) + " You should capture the exception in your error handler")
 
     def __on_receive_payload(self, json_wrapper):
         res = None
@@ -184,18 +184,17 @@ class WebsocketConnection:
             if self.request.update_callback is not None:
                 self.request.update_callback(SubscribeMessageType.PAYLOAD, res)
         except Exception as e:
-            self.on_error("Process error: " + str(e)
-                     + " You should capture the exception in your error handler")
+            self.on_error("Process error: " + str(e) + " You should capture the exception in your error handler")
 
         if self.request.auto_close:
             self.close()
 
     def __process_ping_on_trading_line(self, ping_ts):
-        self.send("{\"op\":\"pong\",\"ts\":" + str(ping_ts) + "}")
+        self.send('{"op":"pong","ts":' + str(ping_ts) + "}")
         return
 
     def __process_ping_on_market_line(self, ping_ts):
-        self.send("{\"pong\":" + str(ping_ts) + "}")
+        self.send('{"pong":' + str(ping_ts) + "}")
         return
 
     def close_on_error(self):
