@@ -12,6 +12,8 @@ from arte.system.telegram_bot import DominicManager
 # from arte.indicator.core.indicator_manager import IndicatorManager
 from arte.indicator.kimp import Kimp
 
+import time
+
 
 class ArbiTrader:
     def __init__(self, client):
@@ -92,7 +94,7 @@ class ArbiTrader:
         self.runner = self.scheduler.add_job(self.mainloop, "interval", seconds=watch_interval)
         self.updating_exchange = self.scheduler.add_job(self.set_exchange_rate, "cron", minute="0")
         self.updating_closed_list = self.scheduler.add_job(self.update_closed_list, "cron", minute="0", second="1")
-        self.bot_runner = self.scheduler.add_job(self.bot_manager.bot_manager_setting)
+        self.bot_manager.bot_manager_setting()
         self.bot_m_runner = self.scheduler.add_job(self.bot_send)
         self.scheduler.start()
         # self.data_manager.open_candlestick_socket(symbol=self.symbol.lower(), maxlen=maxlen, interval=interval)
@@ -109,4 +111,6 @@ class ArbiTrader:
     def bot_send(self):
         while True:
             if len(self.message_list) != 0:
+                st = time.time()
                 self.bot_manager.sendMessage(self.message_list.popleft())
+                print(time.time() - st)

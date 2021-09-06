@@ -7,20 +7,20 @@ class TelegramBot:
     Telegram bot 들이 공통적으로 사용하는 모듈
     """
 
-    def __init__(self, name: str, token: str, id: int):
+    def __init__(self, name: str, token: str, id: int, start_message: str):
         """
         이름, 토큰, 채팅방 ID를 init
         """
         self.name = name
-        self.core = telegram.Bot(token)
         self.updater = Updater(token)
         self.id = id
+        self.start_message = start_message
 
     def sendMessage(self, text: str):
         """
         sendMessage 함수 wrapping
         """
-        self.core.sendMessage(chat_id=self.id, text=text)
+        self.updater.dispatcher.bot.sendMessage(chat_id=self.id, text=text)
 
     def stop(self):
         """
@@ -31,18 +31,13 @@ class TelegramBot:
         self.updater.job_queue.stop()
         self.updater.stop()
 
-
-class DominicManager(TelegramBot):
-    def __init__(self):
+    def start(self):
         """
-        Simon information 추가해주기
+        Bot을 실행시킴
+        handler가 추가 된 후에 start해야함
         """
-        name = "Dominic"
-        token = "1952844067:AAHo17k6QH2pU0UlHvtDBXVpZxNVr63KwYc"
-        id = -571188161
-        TelegramBot.__init__(self, name, token, id)
-        self.updater.stop()
-        self.trader = None
+        self.sendMessage(self.start_message)
+        self.updater.start_polling()
 
     def add_handler(self, cmd: str, func, pass_args: bool):
         """
@@ -53,14 +48,19 @@ class DominicManager(TelegramBot):
         """
         self.updater.dispatcher.add_handler(CommandHandler(cmd, func, pass_args=pass_args))
 
-    def start(self):
+
+class DominicManager(TelegramBot):
+    def __init__(self):
         """
-        Bot을 실행시킴
-        handler가 추가 된 후에 start해야함
+        Simon information 추가해주기
         """
-        self.sendMessage("Arbi Start!")
-        self.updater.start_polling()
-        self.updater.idle()
+        name = "Dominic"
+        token = "1952844067:AAHo17k6QH2pU0UlHvtDBXVpZxNVr63KwYc"
+        id = -571188161
+        start_message = "Arbi start!"
+        TelegramBot.__init__(self, name, token, id, start_message)
+        self.updater.stop()
+        self.trader = None
 
     def bot_manager_setting(self):
         """
@@ -105,27 +105,10 @@ class SimonManager(TelegramBot):
         name = "Simon"
         token = "1984595186:AAHw2pJq42mw21petFBrOtC-AfsXwrgT9iI"
         id = -441603329
-        TelegramBot.__init__(self, name, token, id)
+        start_message = "Arte start!"
+        TelegramBot.__init__(self, name, token, id, start_message)
         self.updater.stop()
         self.trader = None
-
-    def add_handler(self, cmd: str, func, pass_args: bool):
-        """
-        add_handler wrapping
-        cmd : 봇에 전달할 명령어
-        func : 봇이 명령어를 전달받았을 때 실행 할 함수
-        pass_args : 실행 할 함수에 인자를 전달해야 할 때 true
-        """
-        self.updater.dispatcher.add_handler(CommandHandler(cmd, func, pass_args=pass_args))
-
-    def start(self):
-        """
-        Bot을 실행시킴
-        handler가 추가 된 후에 start해야함
-        """
-        self.sendMessage("Arte Start!")
-        self.updater.start_polling()
-        self.updater.idle()
 
     def bot_manager_setting(self):
         """
