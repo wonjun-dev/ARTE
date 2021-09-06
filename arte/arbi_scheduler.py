@@ -26,7 +26,6 @@ class ArbiTrader:
         self.threshold = 2.5
         self.update_closed_list()
         self.higher_coins = []
-        self.message_list = deque()
 
         # init bot manager
         self.bot_manager = DominicManager()
@@ -75,7 +74,7 @@ class ArbiTrader:
                             + "현재 환율 : "
                             + str(self.exchange_rate)
                         )
-                        self.message_list.append(message1 + message2 + message3)
+                        self.bot_manager.send_message(message1 + message2 + message3)
                         print(self.higher_coins)
             else:
                 if keys in self.higher_coins:
@@ -95,11 +94,8 @@ class ArbiTrader:
         self.updating_exchange = self.scheduler.add_job(self.set_exchange_rate, "cron", minute="0")
         self.updating_closed_list = self.scheduler.add_job(self.update_closed_list, "cron", minute="0", second="1")
         self.bot_manager.bot_manager_setting()
-        self.bot_m_runner = self.scheduler.add_job(self.bot_send)
         self.scheduler.start()
         # self.data_manager.open_candlestick_socket(symbol=self.symbol.lower(), maxlen=maxlen, interval=interval)
-        # self.runner = self.scheduler.add_job(self.mainloop, "interval", seconds=watch_interval, id="mainloop")
-        # self.bot_runner = self.scheduler.add_job(self.bot_manager.bot_manager_setting)
         # self.scheduler.start()
 
     def set_exchange_rate(self):
@@ -107,10 +103,3 @@ class ArbiTrader:
 
     def update_closed_list(self):
         self.except_list = self.data_manager.get_closed_symbols()
-
-    def bot_send(self):
-        while True:
-            if len(self.message_list) != 0:
-                st = time.time()
-                self.bot_manager.sendMessage(self.message_list.popleft())
-                print(time.time() - st)
