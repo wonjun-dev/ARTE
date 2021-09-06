@@ -31,6 +31,7 @@ class UserDataManager:
                     print("ETHUSDT: ", self.account["ETHUSDT"])
                 elif event.eventType == "ORDER_TRADE_UPDATE":
                     self.order_recorder.get_event(event)
+                    self.order_recorder.update_csv(event)
             elif event.eventType == "listenKeyExpired":
                 print("listenKey Expired, Reconnect Socket again.")
                 self.open_user_data_socket()
@@ -69,4 +70,3 @@ if __name__ == "__main__":
         if t is threading.current_thread():
             continue
         t.join()
-
