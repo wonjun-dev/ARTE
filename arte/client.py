@@ -8,11 +8,13 @@ class Client:
             _g_api_key = api_key
             _g_secret_key = secret_key
             url = "https://testnet.binancefuture.com"
+            uri = "wss://stream.binancefuture.com/ws"
         elif mode == "REAL":
             _g_api_key = api_key
             _g_secret_key = secret_key
             url = "https://fapi.binance.com"  # production base url
+            uri = "wss://fstream.binance.com/ws"
 
         self.request_client = RequestClient(api_key=_g_api_key, secret_key=_g_secret_key, url=url)
         if not req_only:
-            self.sub_client = SubscriptionClient(api_key=_g_api_key, secret_key=_g_secret_key, url=url)
+            self.sub_client = SubscriptionClient(api_key=_g_api_key, secret_key=_g_secret_key, uri=uri)
