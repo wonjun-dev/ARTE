@@ -14,10 +14,7 @@ class BaseStrategy(metaclass=ABCMeta):
     """
 
     def __init__(
-        self,
-        indicator_manager,
-        buy_ratio: float = 0.1,
-        sell_ratio: float = 1.0,
+        self, indicator_manager, buy_ratio: float = 0.1, sell_ratio: float = 1.0,
     ):
         self.im = indicator_manager
         self.data = None
@@ -27,7 +24,6 @@ class BaseStrategy(metaclass=ABCMeta):
         self.manager = None
 
     def run(self, data):
-        self.data = data
         self.current_price = data.close[-1]
         indicators = self.im.update(data)
         signals = self._make_signals(indicators)

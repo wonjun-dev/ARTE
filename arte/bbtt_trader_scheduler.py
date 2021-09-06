@@ -61,7 +61,7 @@ class BBTTTrader:
         except Exception:
             traceback.print_exc()
 
-    def run(self, maxlen: int = 21, interval: str = "1m", watch_interval: int = 2):
+    def run(self, maxlen: int = 21, interval: str = "1m", watch_interval: float = 0.5):
         """
         mainloop를 watch_interval마다 실행시켜주는 함수
         """
