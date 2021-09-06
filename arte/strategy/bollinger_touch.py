@@ -19,12 +19,16 @@ class BollingerTouch(BaseStrategy):
         }
         self.enter_cur_candle = False
         self.first_signal_this_candle = False
+        self.candle_startTime = None
 
     def run(self, data):
+        self.data = data
+        self._check_candle_changed(self.data.startTime[-1])
         super().run(data)
         print(
             f"Signals: {self.signals}, FirstSignalThisCandle: {self.first_signal_this_candle}, EnterCurrentCandle: {self.enter_cur_candle}, Price: {self.current_price}, Idxs: {self.price_idxs}"
         )
+        print(f"Candle closed: {self.data.candle_closed}")
 
     def _make_signals(self, indicators: dict):
         assert self.patience >= 0
@@ -122,3 +126,16 @@ class BollingerTouch(BaseStrategy):
         self.signals["firstSignal"] = None
         self.signals["finalSignal"] = None
         self.first_signal_this_candle = False
+
+    def _check_candle_changed(self, candle_startTime):
+        if self.candle_startTime:
+            if self.candle_startTime != candle_startTime:
+                # if start time changed
+                self.candle_startTime = candle_startTime  # update start time
+                self.data.candle_closed = True  # override candle_closed flag
+            else:
+                # if start time is not changed
+                self.data.candle_closed = False  # override candle_closed flag
+        else:
+            # if self.candle_start_time == None / at the first time function called
+            self.candle_startTime = candle_startTime
