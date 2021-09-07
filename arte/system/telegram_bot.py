@@ -16,7 +16,7 @@ class TelegramBot:
         self.id = id
         self.start_message = start_message
 
-    def send_message(self, text: str):
+    def sendMessage(self, text: str):
         """
         sendMessage 함수 wrapping
         """
@@ -42,7 +42,7 @@ class TelegramBot:
         handler가 추가 된 후에 start해야함
         """
         self.updater.start_polling()
-        self.send_message(self.start_message)
+        self.sendMessage(self.start_message)
 
     def add_handler(self, cmd: str, func, pass_args: bool):
         """
@@ -79,7 +79,7 @@ class DominicManager(TelegramBot):
 
     def adjust_threshold(self, update, context):
         self.trader.threshold = float(context.args[0])
-        self.send_message("현재 알람 기준가 : " + str(self.trader.threshold))
+        self.sendMessage("현재 알람 기준가 : " + str(self.trader.threshold))
 
     def add_except_list(self, update, context):
         """
@@ -87,7 +87,7 @@ class DominicManager(TelegramBot):
         """
         if context.args[0] not in self.trader.except_list:
             self.trader.except_list.append(context.args[0])
-            self.send_message("현재 제외된 항목 : " + str(self.trader.except_list))
+            self.sendMessage("현재 제외된 항목 : " + str(self.trader.except_list))
 
     def del_except_list(self, update, context):
         """
@@ -95,7 +95,7 @@ class DominicManager(TelegramBot):
         """
         if context.args[0] in self.trader.except_list:
             self.trader.except_list.remove(context.args[0])
-            self.send_message("현재 제외된 항목 : " + str(self.trader.except_list))
+            self.sendMessage("현재 제외된 항목 : " + str(self.trader.except_list))
 
 
 class SimonManager(TelegramBot):

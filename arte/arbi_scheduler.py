@@ -74,7 +74,7 @@ class ArbiTrader:
                             + "현재 환율 : "
                             + str(self.exchange_rate)
                         )
-                        self.bot_manager.send_message(message1 + message2 + message3)
+                        self.bot_manager.sendMessage(message1 + message2 + message3)
                         print(self.higher_coins)
             else:
                 if keys in self.higher_coins:
