@@ -1,4 +1,5 @@
 import json
+import uuid
 from binance_f.impl.utils.timeservice import get_current_timestamp
 from binance_f.model import DepthStep
 
@@ -11,6 +12,7 @@ def aggregate_trade_channel(symbol):
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
 def mark_price_channel(symbol):
     channel = dict()
     channel["params"] = list()
@@ -19,13 +21,15 @@ def mark_price_channel(symbol):
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
 def continuous_kline_channel(pair, contract_type, interval):
     channel = dict()
     channel["params"] = list()
-    channel["params"].append(pair + '_' + contract_type + "@continuousKline_" + interval)
+    channel["params"].append(pair + "_" + contract_type + "@continuousKline_" + interval)
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
+
 
 def kline_channel(symbol, interval):
     channel = dict()
@@ -35,6 +39,7 @@ def kline_channel(symbol, interval):
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
 def trade_channel(symbol):
     channel = dict()
     channel["params"] = list()
@@ -42,6 +47,7 @@ def trade_channel(symbol):
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
+
 
 def symbol_miniticker_channel(symbol):
     channel = dict()
@@ -51,6 +57,7 @@ def symbol_miniticker_channel(symbol):
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
 def all_miniticker_channel():
     channel = dict()
     channel["params"] = list()
@@ -58,6 +65,7 @@ def all_miniticker_channel():
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
+
 
 def symbol_ticker_channel(symbol):
     channel = dict()
@@ -67,6 +75,7 @@ def symbol_ticker_channel(symbol):
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
 def all_ticker_channel():
     channel = dict()
     channel["params"] = list()
@@ -74,6 +83,7 @@ def all_ticker_channel():
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
+
 
 def symbol_bookticker_channel(symbol):
     channel = dict()
@@ -83,6 +93,7 @@ def symbol_bookticker_channel(symbol):
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
 def all_bookticker_channel():
     channel = dict()
     channel["params"] = list()
@@ -90,6 +101,7 @@ def all_bookticker_channel():
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
+
 
 def symbol_liquidation_channel(symbol):
     channel = dict()
@@ -99,6 +111,7 @@ def symbol_liquidation_channel(symbol):
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
 def all_liquidation_channel(symbol):
     channel = dict()
     channel["params"] = list()
@@ -106,6 +119,7 @@ def all_liquidation_channel(symbol):
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
+
 
 def book_depth_channel(symbol, limit, update_time):
     channel = dict()
@@ -115,6 +129,7 @@ def book_depth_channel(symbol, limit, update_time):
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
 def diff_depth_channel(symbol, update_time):
     channel = dict()
     channel["params"] = list()
@@ -122,7 +137,8 @@ def diff_depth_channel(symbol, update_time):
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
-    
+
+
 def user_data_channel(listenKey):
     channel = dict()
     channel["params"] = list()
@@ -130,6 +146,7 @@ def user_data_channel(listenKey):
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
+
 
 def all_mark_price_channel():
     channel = dict()
@@ -139,6 +156,7 @@ def all_mark_price_channel():
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
 def blvt_info_channel(symbol):
     channel = dict()
     channel["params"] = list()
@@ -146,6 +164,7 @@ def blvt_info_channel(symbol):
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
+
 
 def blvt_nav_kline_channel(symbol, interval):
     channel = dict()
@@ -155,6 +174,7 @@ def blvt_nav_kline_channel(symbol, interval):
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
 def composite_index_channel(symbol):
     channel = dict()
     channel["params"] = list()
@@ -162,3 +182,17 @@ def composite_index_channel(symbol):
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
+
+
+def upbit_ticker_channel(symbols):
+    channel = list()
+    ticket = dict()
+    ticket["ticket"] = str(uuid.uuid4())[:6]
+    channel.append(ticket)
+    datas = dict()
+    datas["type"] = "ticker"
+    datas["codes"] = symbols
+    channel.append(datas)
+
+    return json.dumps(channel)
+    # return '[{"ticket":"test"},{"type":"ticker","codes":["KRW-CPT","KRW-ADA"]}]'

@@ -1,3 +1,4 @@
+from binance_f.model.upbit_ticker import UpbitTicker
 import time
 from binance_f.impl.websocketrequest import WebsocketRequest
 from binance_f.impl.utils.channels import *
@@ -404,6 +405,26 @@ class WebsocketRequestImpl(object):
 
         def json_parse(json_wrapper):
             result = CompositeIndexEvent.json_parse(json_wrapper)
+            return result
+
+        request = WebsocketRequest()
+        request.subscription_handler = subscription_handler
+        request.json_parser = json_parse
+        request.update_callback = callback
+        request.error_handler = error_handler
+
+        return request
+
+    def subscribe_upbit_ticker_event(self, symbols, callback, error_handler=None):
+        check_should_not_none(symbols, "symbols")
+        check_should_not_none(callback, "callback")
+
+        def subscription_handler(connection):
+            connection.send(upbit_ticker_channel(symbols))
+            time.sleep(2)
+
+        def json_parse(json_wrapper):
+            result = UpbitTicker.json_parse(json_wrapper)
             return result
 
         request = WebsocketRequest()
