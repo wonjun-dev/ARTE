@@ -30,6 +30,8 @@ class RealizedPnl:
                 self.quantity + order.origQty
             )
             self.quantity = self.quantity + order.origQty
+            self.realized_pnl = 0
+            self.realized_pnl_rate = 0
         elif order.side == OrderSide.SELL:
             abs_pnl = (order.avgPrice - self.avg_price) * order.origQty
             self.realized_pnl = abs_pnl if is_long else -abs_pnl

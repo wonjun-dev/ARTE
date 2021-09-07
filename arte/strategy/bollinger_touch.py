@@ -6,7 +6,10 @@ from arte.strategy.core.base_strategy import CrossDirection
 
 class BollingerTouch(BaseStrategy):
     def __init__(
-        self, indicator_manager, buy_ratio: float = 0.1, sell_ratio: float = 1.0,
+        self,
+        indicator_manager,
+        buy_ratio: float = 0.15,
+        sell_ratio: float = 1.0,
     ):
         super().__init__(indicator_manager, buy_ratio, sell_ratio)
 

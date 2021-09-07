@@ -47,8 +47,13 @@ class BBTTTrader:
         # Init strategy
         INDICATORS = [Bollinger()]
         self.im = IndicatorManager(indicator_instance=INDICATORS)
-        self.strategy = BollingerTouch(indicator_manager=self.im)
-        self.strategy_manager = StrategyManager(self.oh, self.strategy, bot=self.bot_manager, max_order_count=3,)
+        self.strategy = BollingerTouch(indicator_manager=self.im, buy_ratio=0.15)
+        self.strategy_manager = StrategyManager(
+            self.oh,
+            self.strategy,
+            bot=self.bot_manager,
+            max_order_count=3,
+        )
 
     def mainloop(self):
         """주기적으로 실행되는 함수"""
@@ -61,7 +66,7 @@ class BBTTTrader:
         except Exception:
             traceback.print_exc()
 
-    def run(self, maxlen: int = 21, interval: str = "1m", watch_interval: float = 0.5):
+    def run(self, maxlen: int = 21, interval: str = "5m", watch_interval: float = 0.5):
         """
         mainloop를 watch_interval마다 실행시켜주는 함수
         """
