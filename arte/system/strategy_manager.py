@@ -8,6 +8,7 @@ import numpy as np
 
 from binance_f.model.constant import *
 from arte.system.order_handler import OrderHandler
+from arte.system.realized_pnl import RealizedPnl
 
 
 def trunc(values, decs=3):
@@ -43,6 +44,9 @@ class StrategyManager:
         self.order_count = 0
         self.positionSize = 0
         self.positionSide = PositionSide.INVALID
+
+        # PNL manager
+        self.pnl_manager = RealizedPnl("Bollinger")
 
     def run(self, data):
         self.strategy.run(data)
@@ -117,8 +121,9 @@ class StrategyManager:
             self.positionSize = float(Decimal(self.positionSize - order.origQty))
             if self.positionSize == 0:
                 self.initialize_position_info()
+        self.pnl_manager.proceeding(order)
 
-        message = f"Order {order.clientOrderId}: {order.side} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
+        message = f"Order {order.clientOrderId}: {order.side} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}, \n Realized_PNL : ${self.pnl_manager.realized_pnl}"
         print(message)
         if self.bot:
             self.bot.sendMessage(message)

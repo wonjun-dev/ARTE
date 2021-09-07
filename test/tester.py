@@ -7,13 +7,14 @@ from arte.bbtt_trader_scheduler import BBTTTrader
 
 # configuration
 cfg = configparser.ConfigParser()
-cfg.read('test/config.ini')
-config = cfg['TEST']
+cfg.read("test/config.ini")
+config = cfg["REAL"]
 
-mode = config['MODE']
-api_key = config['API_KEY']
-secret_key = config['SECRET_KEY']
-use_bot = config.getboolean('USE_BOT')
+mode = config["MODE"]
+api_key = config["API_KEY"]
+secret_key = config["SECRET_KEY"]
+use_bot = config.getboolean("USE_BOT")
+
 
 def main():
     clients = Client(mode, api_key, secret_key)
