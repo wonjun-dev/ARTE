@@ -145,10 +145,11 @@ class WebsocketConnection:
         self.close_on_error()
 
     def on_message(self, message):
+
         self.last_receive_time = get_current_timestamp()
-        json_wrapper = parse_json_from_string(message)
 
         if not self.is_upbit:
+            json_wrapper = parse_json_from_string(message)
             if json_wrapper.contain_key("status") and json_wrapper.get_string("status") != "ok":
                 error_code = json_wrapper.get_string_or_default("err-code", "Unknown error")
                 error_msg = json_wrapper.get_string_or_default("err-msg", "Unknown error")
@@ -162,7 +163,7 @@ class WebsocketConnection:
             else:
                 self.__on_receive_payload(json_wrapper)
         else:
-            print(json.loads(message.decode("utf-8")))
+            json_wrapper = parse_upbit_json_from_string(message)
 
     def __on_receive_response(self, json_wrapper):
         res = None

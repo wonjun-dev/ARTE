@@ -421,7 +421,7 @@ class WebsocketRequestImpl(object):
 
         def subscription_handler(connection):
             connection.send(upbit_ticker_channel(symbols))
-            time.sleep(2)
+            time.sleep(0.01)
 
         def json_parse(json_wrapper):
             result = UpbitTicker.json_parse(json_wrapper)
