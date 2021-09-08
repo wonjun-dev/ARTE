@@ -323,3 +323,11 @@ class SubscriptionClient(object):
     def subscribe_upbit_ticker_event(self, symbols, callback, error_handler=None):
         request = self.websocket_request_impl.subscribe_upbit_ticker_event(symbols, callback, error_handler)
         self.__create_upbit_connection(request)
+
+    def subscribe_upbit_trade_event(self, symbols, callback, error_handler=None):
+        request = self.websocket_request_impl.subscribe_upbit_trade_event(symbols, callback, error_handler)
+        self.__create_upbit_connection(request)
+
+    def subscribe_upbit_orderbook_event(self, symbols, callback, error_handler=None):
+        request = self.websocket_request_impl.subscribe_upbit_orderbook_event(symbols, callback, error_handler)
+        self.__create_upbit_connection(request)

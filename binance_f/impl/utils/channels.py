@@ -187,7 +187,7 @@ def composite_index_channel(symbol):
 def upbit_ticker_channel(symbols):
     channel = list()
     ticket = dict()
-    ticket["ticket"] = str(uuid.uuid4())[:6]
+    ticket["ticket"] = str(get_current_timestamp())
     channel.append(ticket)
     datas = dict()
     datas["type"] = "ticker"
@@ -195,4 +195,27 @@ def upbit_ticker_channel(symbols):
     channel.append(datas)
 
     return json.dumps(channel)
-    # return '[{"ticket":"test"},{"type":"ticker","codes":["KRW-CPT","KRW-ADA"]}]'
+
+
+def upbit_orderbook_channel(symbols):
+    channel = list()
+    ticket = dict()
+    ticket["ticket"] = str(get_current_timestamp())
+    channel.append(ticket)
+    datas = dict()
+    datas["type"] = "orderbook"
+    datas["codes"] = symbols
+    channel.append(datas)
+    return json.dumps(channel)
+
+
+def upbit_trade_channel(symbols):
+    channel = list()
+    ticket = dict()
+    ticket["ticket"] = str(get_current_timestamp())
+    channel.append(ticket)
+    datas = dict()
+    datas["type"] = "trade"
+    datas["codes"] = symbols
+    channel.append(datas)
+    return json.dumps(channel)

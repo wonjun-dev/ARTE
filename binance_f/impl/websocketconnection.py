@@ -164,6 +164,11 @@ class WebsocketConnection:
                 self.__on_receive_payload(json_wrapper)
         else:
             json_wrapper = parse_upbit_json_from_string(message)
+            try:
+                res = self.request.json_parser(json_wrapper)
+                self.request.update_callback(res)
+            except:
+                self.on_error("error in json_parser")
 
     def __on_receive_response(self, json_wrapper):
         res = None
