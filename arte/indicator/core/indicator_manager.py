@@ -1,42 +1,48 @@
-import numpy as np
 from collections import deque
+
+from arte.data.ticker_manager import TickerManager
+from arte.data.candlestick_manager import CandlestickManager
+
+from arte.indicator.bollinger import Bollinger
+from arte.indicator.premium import Premium
+
+
+class Indicator:
+    PREMIUM = "Premium"
+    BOLLINGER = "Bollinger"
+    ATR = "ATR"
 
 
 class IndicatorManager:
-    def __init__(self, indicator_instance: list, deque_maxlen: int = 50):
+    def __init__(self, indicators: list, deque_maxlen: int = 50):
         """
         Manage various indicators
         Args:
             indicator_instance: (list) list of indicator instance
             deque_maxlen: (int) maxlen of deque
         """
-        self.indicator_instance = indicator_instance
-        self.used_indicator = []
+
+        self.indicators = indicators
         self.value_dict = {}
 
-        for ins in indicator_instance:
-            name = ins.__class__.__name__
-            self.used_indicator.append(name)
-            self.value_dict[name] = deque(maxlen=deque_maxlen)
+        for indicator in self.indicators:
+            self.value_dict[indicator] = deque(maxlen=deque_maxlen)
 
-    def update(self, data):
-        self._update_value(data)
-        return self.value_dict
-
-    def _update_value(self, data):
-        """
-        Update indicator values.
-        Args:
-            price_queue: (deque)
-        """
-        for ins in self.indicator_instance:
-            name = ins.__class__.__name__
-            res = ins.calc(data)
-            if data.candle_closed:
-                self.value_dict[name].append(res)
+    def update_bollinger(self, candlestick):
+        if isinstance(candlestick, CandlestickManager):
+            result = Bollinger.calc(candlestick.close)
+            if candlestick.candle_closed:
+                self.value_dict[Indicator.BOLLINGER].append(result)
             else:
                 try:
-                    self.value_dict[name].pop()
+                    self.value_dict[Indicator.BOLLINGER].pop()
                 except:
                     pass
-                self.value_dict[name].append(res)
+                self.value_dict[Indicator.BOLLINGER].append(result)
+
+    def update_premium(self, upbit_ticker, binance_ticker, exchange_rate):
+        if isinstance(upbit_ticker, TickerManager) and isinstance(binance_ticker, TickerManager):
+            self.value_dict[Indicator.PREMIUM].append(Premium.calc(upbit_ticker, binance_ticker, exchange_rate))
+
+    def __getitem__(self, key):
+        return self.value_dict[key]

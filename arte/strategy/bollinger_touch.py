@@ -6,10 +6,7 @@ from arte.strategy.core.base_strategy import CrossDirection
 
 class BollingerTouch(BaseStrategy):
     def __init__(
-        self,
-        indicator_manager,
-        buy_ratio: float = 0.15,
-        sell_ratio: float = 1.0,
+        self, indicator_manager, buy_ratio: float = 0.15, sell_ratio: float = 1.0,
     ):
         super().__init__(indicator_manager, buy_ratio, sell_ratio)
 
@@ -24,8 +21,9 @@ class BollingerTouch(BaseStrategy):
         self.first_signal_this_candle = False
         self.candle_startTime = None
 
-    def run(self, data):
-        self.data = data
+    def run(self, **kwargs):
+        self.data = kwargs["candlestick"]
+        # self.data = data
         self._check_candle_changed(self.data.startTime[-1])
         super().run(data)
         print(

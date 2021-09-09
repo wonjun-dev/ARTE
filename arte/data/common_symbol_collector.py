@@ -3,7 +3,7 @@ from binance import Client
 from binance_f import RequestClient
 
 
-class GetCommonSymbol:
+class CommonSymbolCollector:
     def __init__(self):
         self.binance_spot_client = Client()
         self.binance_future_client = RequestClient()

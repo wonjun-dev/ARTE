@@ -17,7 +17,6 @@ class BaseStrategy(metaclass=ABCMeta):
         self, indicator_manager, buy_ratio: float = 0.1, sell_ratio: float = 1.0,
     ):
         self.im = indicator_manager
-        self.data = None
         self.BUY_RATIO = buy_ratio
         self.SELL_RATIO = sell_ratio
         self.current_price = None

@@ -48,8 +48,8 @@ class StrategyManager:
         # PNL manager
         self.pnl_manager = RealizedPnl("Bollinger")
 
-    def run(self, data):
-        self.strategy.run(data)
+    def run(self, **kwargs):
+        self.strategy.run(**kwargs)
 
     def initialize_position_info(self):
         self.order_count = 0

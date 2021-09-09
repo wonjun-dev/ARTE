@@ -63,6 +63,7 @@ class OrderHandler:
             newClientOrderId=self._generate_order_id(),
             newOrderRespType=OrderRespType.RESULT,
         )
+        print("market order done")
         return result
 
     def _stop_market(self, order_side: OrderSide, position_side: PositionSide, stop_price: float, quantity: float):
@@ -140,9 +141,39 @@ class OrderHandler:
 if __name__ == "__main__":
     from arte.client import Client
     from arte.system.account import Account
+    import threading
 
-    cl = Client(mode="TEST", req_only=True)
+    cl = Client(
+        mode="TEST",
+        api_key="0dcd28f57648b0a7d5ea2737487e3b3093d47935e67506b78291042d1dd2f9ea",
+        secret_key="b36dc15c333bd5950addaf92a0f9dc96d8ed59ea6835386c59a6e63e1ae26aa1",
+        req_only=True,
+    )
     oh = OrderHandler(cl.request_client, Account(cl.request_client), "ETHUSDT")
-    oh._market(OrderSide.BUY, PositionSide.SHORT, quantity=0.3)
+    # oh._market(OrderSide.BUY, PositionSide.SHORT, quantity=0.3)
     # oh._stop_market(OrderSide.SELL, PositionSide.LONG, stop_price=3050, quantity=0.032)
     # oh._limit(OrderSide.BUY, PositionSide.LONG, price=3120, quantity=0.05)
+
+    start = time.time()
+    thread = threading.Thread(target=oh._market, args=(OrderSide.SELL, PositionSide.SHORT, 0.03))
+    thread.start()
+    print("Elapsed Time: %s" % (time.time() - start))
+    thread.join()
+    print("Elapsed Time: %s" % (time.time() - start))
+
+    # from concurrent import futures
+
+    # executor = futures.ThreadPoolExecutor()
+    # start = time.time()
+    # future1 = executor.submit(oh._market, OrderSide.SELL, PositionSide.SHORT, 0.03)
+    # #future2 = executor.submit(oh._market, OrderSide.SELL, PositionSide.SHORT, 0.03)
+    # print("Elapsed Time: %s" % (time.time() - start))
+
+    # # res = future.result()
+    # # res = futures.as_completed(future).result()
+
+    # while True:
+    #     print("----------")
+    #     print(future1.running())
+    #     #print(future2.running())
+    #     time.sleep(0.1)
