@@ -59,6 +59,7 @@ class SubscriptionClient(object):
         if "upbit_uri" in kwargs:
             self.upbit_uri = kwargs["upbit_uri"]
         self.upbit_uri = "wss://api.upbit.com/websocket/v1"
+        self.spot_uri = "wss://stream.binance.com/ws"
         if "is_auto_connect" in kwargs:
             is_auto_connect = kwargs["is_auto_connect"]
         if "receive_limit_ms" in kwargs:
@@ -67,14 +68,19 @@ class SubscriptionClient(object):
             connection_delay_failure = kwargs["connection_delay_failure"]
         self.__watch_dog = WebSocketWatchDog(is_auto_connect, receive_limit_ms, connection_delay_failure)
 
-    def __create_connection(self, request):
-        connection = WebsocketConnection(self.__api_key, self.__secret_key, self.uri, self.__watch_dog, request)
-        self.connections.append(connection)
-        connection.connect()
-
-    def __create_upbit_connection(self, request):
+    def __create_connection(self, request, market="binance_future"):
+        isupbit = False
+        if market == "binance_future":
+            uri = self.uri
+        elif market == "binance_spot":
+            uri = self.spot_uri
+        elif market == "upbit":
+            uri = self.upbit_uri
+            isupbit = True
+        else:
+            uri = self.uri
         connection = WebsocketConnection(
-            self.__upbit_api_key, self.__upbit_secret_key, self.upbit_uri, self.__watch_dog, request, is_upbit=True
+            self.__api_key, self.__secret_key, uri, self.__watch_dog, request, is_upbit=isupbit
         )
         self.connections.append(connection)
         connection.connect()
@@ -322,12 +328,28 @@ class SubscriptionClient(object):
 
     def subscribe_upbit_ticker_event(self, symbols, callback, error_handler=None):
         request = self.websocket_request_impl.subscribe_upbit_ticker_event(symbols, callback, error_handler)
-        self.__create_upbit_connection(request)
+        self.__create_connection(request, market="upbit")
 
     def subscribe_upbit_trade_event(self, symbols, callback, error_handler=None):
         request = self.websocket_request_impl.subscribe_upbit_trade_event(symbols, callback, error_handler)
-        self.__create_upbit_connection(request)
+        self.__create_connection(request, market="upbit")
 
     def subscribe_upbit_orderbook_event(self, symbols, callback, error_handler=None):
         request = self.websocket_request_impl.subscribe_upbit_orderbook_event(symbols, callback, error_handler)
-        self.__create_upbit_connection(request)
+        self.__create_connection(request, market="upbit")
+
+    def subscribe_spot_ticker_event(self, symbol, callback, error_handler=None):
+        request = self.websocket_request_impl.subscribe_symbol_ticker_event(symbol, callback, error_handler)
+        self.__create_connection(request, market="binance_spot")
+
+    def subscribe_spot_all_ticker_event(self, callback, error_handler=None):
+        request = self.websocket_request_impl.subscribe_all_ticker_event(callback, error_handler)
+        self.__create_connection(request, market="binance_spot")
+
+    def subscribe_spot_multi_aggregate_trade_event(self, symbols, callback, error_handler=None):
+        request = self.websocket_request_impl.subscribe_multi_aggregate_trade_event(symbols, callback, error_handler)
+        self.__create_connection(request, market="binance_spot")
+
+    def subscribe_spot_multi_ticker_event(self, symbols, callback, error_handler=None):
+        request = self.websocket_request_impl.subscribe_multi_ticker_event(symbols, callback, error_handler)
+        self.__create_connection(request, market="binance_spot")

@@ -13,6 +13,16 @@ def aggregate_trade_channel(symbol):
     return json.dumps(channel)
 
 
+def aggregate_multi_trade_channel(symbols):
+    channel = dict()
+    channel["params"] = list()
+    for symbol in symbols:
+        channel["params"].append(symbol + "@aggTrade")
+    channel["id"] = get_current_timestamp()
+    channel["method"] = "SUBSCRIBE"
+    return json.dumps(channel)
+
+
 def mark_price_channel(symbol):
     channel = dict()
     channel["params"] = list()
@@ -75,6 +85,15 @@ def symbol_ticker_channel(symbol):
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
 
+
+def multi_ticker_channel(symbols):
+    channel = dict()
+    channel["params"] = list()
+    for symbol in symbols:
+        channel["params"].append(symbol + "@ticker")
+    channel["id"] = get_current_timestamp()
+    channel["method"] = "SUBSCRIBE"
+    return json.dumps(channel)
 
 def all_ticker_channel():
     channel = dict()
