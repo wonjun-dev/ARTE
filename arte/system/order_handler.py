@@ -27,64 +27,62 @@ def get_timestamp():
 
 class OrderHandler:
     """
-    "특정" 에셋을 위한 오더 핸들러
-    인스턴스를 만들때 symbol로 넣는 에셋 하나만을 거래합니다.
-    다수의 에셋을 거래하고 싶다면 여러개의 오더핸들러가 필요합니다.
     실제 헷지 모드 세팅에서만 작동하며, 가상의 원웨이 모드를 구성합니다. 
     """
 
-    def __init__(self, request_client, account, symbol: str):
+    def __init__(self, request_client, account):
         self.request_client = request_client
         self.account = account
-        self.symbol = symbol
         self.manager = None
 
-    def _limit(self, order_side: OrderSide, position_side: PositionSide, price: float, quantity: float):
+    def _limit(self, symbol: str, order_side: OrderSide, position_side: PositionSide, price: float, quantity: float):
         result = self.request_client.post_order(
-            symbol=self.symbol,
+            symbol=symbol,
             side=order_side,
             positionSide=position_side,
             ordertype=OrderType.LIMIT,
             price=float(price),
             quantity=quantity,
             timeInForce=TimeInForce.GTC,
-            newClientOrderId=self._generate_order_id(),
+            newClientOrderId=self._generate_order_id(symbol),
             newOrderRespType=OrderRespType.RESULT,
         )
         return result
 
-    def _market(self, order_side: OrderSide, position_side: PositionSide, quantity: float):
+    def _market(self, symbol: str, order_side: OrderSide, position_side: PositionSide, quantity: float):
         result = self.request_client.post_order(
-            symbol=self.symbol,
+            symbol=symbol,
             side=order_side,
             positionSide=position_side,
             ordertype=OrderType.MARKET,
             quantity=quantity,
-            newClientOrderId=self._generate_order_id(),
+            newClientOrderId=self._generate_order_id(symbol),
             newOrderRespType=OrderRespType.RESULT,
         )
         print("market order done")
         return result
 
-    def _stop_market(self, order_side: OrderSide, position_side: PositionSide, stop_price: float, quantity: float):
+    def _stop_market(
+        self, symbol: str, order_side: OrderSide, position_side: PositionSide, stop_price: float, quantity: float
+    ):
         result = self.request_client.post_order(
-            symbol=self.symbol,
+            symbol=symbol,
             side=order_side,
             positionSide=position_side,
             ordertype=OrderType.STOP_MARKET,
             stopPrice=stop_price,
             quantity=quantity,
-            newClientOrderId=self._generate_order_id(),
+            newClientOrderId=self._generate_order_id(symbol),
             newOrderRespType=OrderRespType.RESULT,
         )
         return result
 
-    def buy_limit(self, order_side: OrderSide, position_side: PositionSide, price, usdt=None, ratio=None):
+    def buy_limit(self, symbol: str, order_side: OrderSide, position_side: PositionSide, price, usdt=None, ratio=None):
         if bool(usdt) ^ bool(ratio):
             if ratio:
                 usdt = self.account["USDT"] * ratio
-            if self.manager.positionSide in [PositionSide.INVALID, position_side]:
-                return self._limit(order_side, position_side, price, self._usdt_to_quantity(usdt, price))
+            if self.manager.symbols_state[symbol]["positionSide"] in [PositionSide.INVALID, position_side]:
+                return self._limit(symbol, order_side, position_side, price, self._usdt_to_quantity(usdt, price))
             else:
                 print(
                     f"Cannot execute buy_{position_side}, you have already opened {self.manager.positionSide} position."
@@ -93,12 +91,12 @@ class OrderHandler:
         else:
             raise ValueError("You have to pass either quantity or ratio.")
 
-    def buy_market(self, order_side: OrderSide, position_side: PositionSide, price, usdt=None, ratio=None):
+    def buy_market(self, symbol: str, order_side: OrderSide, position_side: PositionSide, price, usdt=None, ratio=None):
         if bool(usdt) ^ bool(ratio):
             if ratio:
                 usdt = self.account["USDT"] * ratio
-            if self.manager.positionSide in [PositionSide.INVALID, position_side]:
-                return self._market(order_side, position_side, self._usdt_to_quantity(usdt, price))
+            if self.manager.symbols_state[symbol]["positionSide"] in [PositionSide.INVALID, position_side]:
+                return self._market(symbol, order_side, position_side, self._usdt_to_quantity(usdt, price))
             else:
                 print(
                     f"Cannot execute buy_{position_side}, you have already opened {self.manager.positionSide} position."
@@ -107,34 +105,38 @@ class OrderHandler:
         else:
             raise ValueError("You have to pass either quantity or ratio.")
 
-    def sell_limit(self, order_side: OrderSide, position_side: PositionSide, price, ratio):
-        if self.manager.positionSide == position_side:
-            return self._limit(order_side, position_side, price, self._asset_ratio_to_quantity(position_side, ratio))
+    def sell_limit(self, symbol: str, order_side: OrderSide, position_side: PositionSide, price, ratio):
+        if self.manager.symbols_state[symbol]["positionSide"] == position_side:
+            return self._limit(
+                symbol, order_side, position_side, price, self._asset_ratio_to_quantity(symbol, position_side, ratio)
+            )
         else:
             print(f"Cannot execute sell_{position_side}, you dont have any {position_side} position.")
             return None
 
-    def sell_market(self, order_side: OrderSide, position_side: PositionSide, ratio):
-        if self.manager.positionSide == position_side:
-            return self._market(order_side, position_side, self._asset_ratio_to_quantity(position_side, ratio))
+    def sell_market(self, symbol: str, order_side: OrderSide, position_side: PositionSide, ratio):
+        if self.manager.symbols_state[symbol]["positionSide"] == position_side:
+            return self._market(
+                symbol, order_side, position_side, self._asset_ratio_to_quantity(symbol, position_side, ratio)
+            )
         else:
             print(f"Cannot execute sell_{position_side}, you dont have any {position_side} position.")
             return None
 
-    def _get_ticker_price(self):
+    def _get_ticker_price(self, symbol: str):
         # temporary function
-        result = self.request_client.get_symbol_price_ticker(symbol=self.symbol)
+        result = self.request_client.get_symbol_price_ticker(symbol=symbol)
         return result[0].price
 
     def _usdt_to_quantity(self, usdt, price, unit_float=3):
         return math.floor((usdt / price) * (10 ** unit_float)) / (10 ** unit_float)
 
-    def _asset_ratio_to_quantity(self, position_side: PositionSide, ratio, unit_float=3):
-        asset_quantity = abs(self.account[self.symbol][position_side])
+    def _asset_ratio_to_quantity(self, symbol: str, position_side: PositionSide, ratio, unit_float=3):
+        asset_quantity = abs(self.account[symbol][position_side])
         return math.floor((asset_quantity * ratio) * (10 ** unit_float)) / (10 ** unit_float)
 
-    def _generate_order_id(self):
-        _id = self.symbol + str(get_timestamp()) + f"-{secrets.token_hex(4)}"
+    def _generate_order_id(self, symbol: str):
+        _id = symbol + str(get_timestamp()) + f"-{secrets.token_hex(4)}"
         return _id
 
 
@@ -155,7 +157,7 @@ if __name__ == "__main__":
     # oh._limit(OrderSide.BUY, PositionSide.LONG, price=3120, quantity=0.05)
 
     start = time.time()
-    thread = threading.Thread(target=oh._market, args=(OrderSide.SELL, PositionSide.SHORT, 0.03))
+    thread = threading.Thread(target=oh._market, args=("ETHUSDT", OrderSide.SELL, PositionSide.SHORT, 0.03))
     thread.start()
     print("Elapsed Time: %s" % (time.time() - start))
     thread.join()

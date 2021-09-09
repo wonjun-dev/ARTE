@@ -32,9 +32,9 @@ class Account:
                 if pos.symbol not in positions:
                     positions[pos.symbol] = dict()
                 if pos.positionSide == PositionSide.LONG:
-                    positions[pos.symbol][pos.positionSide] = pos
+                    positions[pos.symbol][pos.positionSide] = pos.positionAmt
                 elif pos.positionSide == PositionSide.SHORT:
-                    positions[pos.symbol][pos.positionSide] = pos
+                    positions[pos.symbol][pos.positionSide] = pos.positionAmt
         return positions
 
     def _update_restapi(self):

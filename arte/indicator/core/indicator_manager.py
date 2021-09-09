@@ -15,18 +15,13 @@ class Indicator:
 
 class IndicatorManager:
     def __init__(self, indicators: list, deque_maxlen: int = 50):
-        """
-        Manage various indicators
-        Args:
-            indicator_instance: (list) list of indicator instance
-            deque_maxlen: (int) maxlen of deque
-        """
-
         self.indicators = indicators
         self.value_dict = {}
-
         for indicator in self.indicators:
             self.value_dict[indicator] = deque(maxlen=deque_maxlen)
+
+    def __getitem__(self, key):
+        return self.value_dict[key]
 
     def update_bollinger(self, candlestick):
         if isinstance(candlestick, CandlestickManager):
@@ -44,5 +39,3 @@ class IndicatorManager:
         if isinstance(upbit_ticker, TickerManager) and isinstance(binance_ticker, TickerManager):
             self.value_dict[Indicator.PREMIUM].append(Premium.calc(upbit_ticker, binance_ticker, exchange_rate))
 
-    def __getitem__(self, key):
-        return self.value_dict[key]
