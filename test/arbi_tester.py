@@ -4,14 +4,15 @@ import configparser
 from arte.client import Client
 from arte.arbi_scheduler import ArbiTrader
 
+# configuration
 cfg = configparser.ConfigParser()
 cfg.read("test/config.ini")
-config = cfg["TEST"]
+config = cfg["REAL"]
 
 mode = config["MODE"]
 api_key = config["API_KEY"]
 secret_key = config["SECRET_KEY"]
-use_bot = config["USE_BOT"]
+use_bot = config.getboolean("USE_BOT")
 
 
 def main():
@@ -22,3 +23,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -1,2 +1,3 @@
-from arte.data.data_manager import DataManager
+from arte.data.socket_data_manager import SocketDataManager
+from arte.data.request_data_manager import RequestDataManager
 from arte.data.candlestick_manager import CandlestickManager
