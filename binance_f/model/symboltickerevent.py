@@ -1,5 +1,4 @@
 class SymbolTickerEvent:
-
     def __init__(self):
         self.eventType = ""
         self.eventTime = 0

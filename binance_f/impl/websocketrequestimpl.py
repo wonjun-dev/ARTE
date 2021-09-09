@@ -1,3 +1,6 @@
+from binance_f.model.upbit_orderbook import UpbitOrderbook
+from binance_f.model.upbit_trade import UpbitTrade
+from binance_f.model.upbit_ticker import UpbitTicker
 import time
 from binance_f.impl.websocketrequest import WebsocketRequest
 from binance_f.impl.utils.channels import *
@@ -20,6 +23,26 @@ class WebsocketRequestImpl(object):
 
         def subscription_handler(connection):
             connection.send(aggregate_trade_channel(symbol))
+            time.sleep(0.01)
+
+        def json_parse(json_wrapper):
+            result = AggregateTradeEvent.json_parse(json_wrapper)
+            return result
+
+        request = WebsocketRequest()
+        request.subscription_handler = subscription_handler
+        request.json_parser = json_parse
+        request.update_callback = callback
+        request.error_handler = error_handler
+
+        return request
+
+    def subscribe_multi_aggregate_trade_event(self, symbols, callback, error_handler=None):
+        check_should_not_none(symbols, "symbols")
+        check_should_not_none(callback, "callback")
+
+        def subscription_handler(connection):
+            connection.send(aggregate_multi_trade_channel(symbols))
             time.sleep(0.01)
 
         def json_parse(json_wrapper):
@@ -160,6 +183,26 @@ class WebsocketRequestImpl(object):
 
         return request
 
+    def subscribe_multi_ticker_event(self, symbols, callback, error_handler=None):
+        check_should_not_none(symbols, "symbol")
+        check_should_not_none(callback, "callback")
+
+        def subscription_handler(connection):
+            connection.send(multi_ticker_channel(symbols))
+            time.sleep(0.01)
+
+        def json_parse(json_wrapper):
+            result = SymbolTickerEvent.json_parse(json_wrapper)
+            return result
+
+        request = WebsocketRequest()
+        request.subscription_handler = subscription_handler
+        request.json_parser = json_parse
+        request.update_callback = callback
+        request.error_handler = error_handler
+
+        return request
+
     def subscribe_all_ticker_event(self, callback, error_handler=None):
         check_should_not_none(callback, "callback")
 
@@ -172,7 +215,7 @@ class WebsocketRequestImpl(object):
             data_list = json_wrapper.convert_2_array()
             for item in data_list.get_items():
                 ticker_event_obj = SymbolTickerEvent.json_parse(item)
-            result.append(ticker_event_obj)
+                result.append(ticker_event_obj)
             return result
 
         request = WebsocketRequest()
@@ -404,6 +447,66 @@ class WebsocketRequestImpl(object):
 
         def json_parse(json_wrapper):
             result = CompositeIndexEvent.json_parse(json_wrapper)
+            return result
+
+        request = WebsocketRequest()
+        request.subscription_handler = subscription_handler
+        request.json_parser = json_parse
+        request.update_callback = callback
+        request.error_handler = error_handler
+
+        return request
+
+    def subscribe_upbit_ticker_event(self, symbols, callback, error_handler=None):
+        check_should_not_none(symbols, "symbols")
+        check_should_not_none(callback, "callback")
+
+        def subscription_handler(connection):
+            connection.send(upbit_ticker_channel(symbols))
+            time.sleep(0.01)
+
+        def json_parse(json_wrapper):
+            result = UpbitTicker.json_parse(json_wrapper)
+            return result
+
+        request = WebsocketRequest()
+        request.subscription_handler = subscription_handler
+        request.json_parser = json_parse
+        request.update_callback = callback
+        request.error_handler = error_handler
+
+        return request
+
+    def subscribe_upbit_trade_event(self, symbols, callback, error_handler=None):
+        check_should_not_none(symbols, "symbols")
+        check_should_not_none(callback, "callback")
+
+        def subscription_handler(connection):
+            connection.send(upbit_trade_channel(symbols))
+            time.sleep(0.01)
+
+        def json_parse(json_wrapper):
+            result = UpbitTrade.json_parse(json_wrapper)
+            return result
+
+        request = WebsocketRequest()
+        request.subscription_handler = subscription_handler
+        request.json_parser = json_parse
+        request.update_callback = callback
+        request.error_handler = error_handler
+
+        return request
+
+    def subscribe_upbit_orderbook_event(self, symbols, callback, error_handler=None):
+        check_should_not_none(symbols, "symbols")
+        check_should_not_none(callback, "callback")
+
+        def subscription_handler(connection):
+            connection.send(upbit_orderbook_channel(symbols))
+            time.sleep(0.01)
+
+        def json_parse(json_wrapper):
+            result = UpbitOrderbook.json_parse(json_wrapper)
             return result
 
         request = WebsocketRequest()

@@ -1,6 +1,8 @@
 from collections import deque
 
 from arte.data.ticker_manager import TickerManager
+from arte.data.trade_manager import TradeManager
+
 from arte.data.candlestick_manager import CandlestickManager
 
 from arte.indicator.bollinger import Bollinger
@@ -36,6 +38,6 @@ class IndicatorManager:
                 self.value_dict[Indicator.BOLLINGER].append(result)
 
     def update_premium(self, upbit_ticker, binance_ticker, exchange_rate):
-        if isinstance(upbit_ticker, TickerManager) and isinstance(binance_ticker, TickerManager):
+        if isinstance(upbit_ticker, TradeManager) and isinstance(binance_ticker, TradeManager):
             self.value_dict[Indicator.PREMIUM].append(Premium.calc(upbit_ticker, binance_ticker, exchange_rate))
 

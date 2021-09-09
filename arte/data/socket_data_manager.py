@@ -1,12 +1,9 @@
-import threading
-
-from pyupbit import WebSocketManager
-from binance import ThreadedWebsocketManager
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
 
 from arte.data.candlestick_manager import CandlestickManager
 from arte.data.ticker_manager import TickerManager
+from arte.data.trade_manager import TradeManager
 
 
 class SocketDataManager:
@@ -40,27 +37,84 @@ class SocketDataManager:
             symbol=symbol, interval=interval, callback=callback, error_handler=error
         )
 
+    def open_upbit_trade_socket(self, symbols):
+        self.upbit_trade = TradeManager(symbols=symbols)
+
+        def callback(event):
+            self.upbit_trade.update_trade(event)
+            # print(self.upbit_trade.price)
+
+        def error(e: "BinanceApiException"):
+            """
+            서버에서 error가 수신되었을 떄 실행되는 함수
+            """
+            print(e.error_code + e.error_message)
+
+        self.client.sub_client.subscribe_upbit_trade_event(symbols=symbols, callback=callback, error_handler=error)
+
     def open_upbit_ticker_socket(self, symbols):
         self.upbit_ticker = TickerManager(symbols=symbols)
 
-        def subscribe_upbit_ticker():
-            while self.upbit_ticker_socket_state == True:
-                data = self.upbit_ticker_socket.get()
-                self.upbit_ticker.update_ticker_upbit(data)
-            self.upbit_ticker_socket.close()
+        def callback(event):
+            self.upbit_ticker.update_ticker(event)
+            # print(self.upbit_ticker.price)
 
-        self.upbit_ticker_socket = WebSocketManager("ticker", symbols)
-        self.upbit_ticker_socket_thread = threading.Thread(target=subscribe_upbit_ticker)
-        self.upbit_ticker_socket_state = True
-        self.upbit_ticker_socket_thread.start()
+        def error(e: "BinanceApiException"):
+            """
+            서버에서 error가 수신되었을 떄 실행되는 함수
+            """
+            print(e.error_code + e.error_message)
 
-    def open_binance_ticker_socket(self, symbols):
-        self.streams = [x.lower() + "@ticker" for x in symbols]
-        self.binance_ticker = TickerManager(symbols=symbols)
+        self.client.sub_client.subscribe_upbit_ticker_event(symbols=symbols, callback=callback, error_handler=error)
 
-        def callback(msg):
-            self.binance_ticker.update_ticker_binance(msg)
+    def open_binanace_spot_trade_socket(self, symbols):
+        symbols = [symbol.lower() for symbol in symbols]
+        self.binance_spot_trade = TradeManager(symbols=symbols)
 
-        self.binance_ticker_socket = ThreadedWebsocketManager()
-        self.binance_ticker_socket.start()
-        self.binance_ticker_socket.start_multiplex_socket(callback=callback, streams=self.streams)
+        def callback(data_type: "SubscribeMessageType", event: "any"):
+            """
+            서버에서 데이터가 수신되었을 때 실행되는 callback 함수
+            """
+            if data_type == SubscribeMessageType.RESPONSE:
+                print("Event ID: ", event)
+            elif data_type == SubscribeMessageType.PAYLOAD:
+                self.binance_spot_trade.update_trade(event)
+                # print(self.binance_spot_trade.price)
+            else:
+                print("Unknown Data:")
+
+        def error(e: "BinanceApiException"):
+            """
+            서버에서 error가 수신되었을 떄 실행되는 함수
+            """
+            print(e.error_code + e.error_message)
+
+        self.client.sub_client.subscribe_spot_multi_aggregate_trade_event(
+            symbols=symbols, callback=callback, error_handler=error
+        )
+
+    def open_binanace_spot_ticker_socket(self, symbols):
+        symbols = [symbol.lower() for symbol in symbols]
+        self.binance_spot_ticker = TickerManager(symbols=symbols)
+
+        def callback(data_type: "SubscribeMessageType", event: "any"):
+            """
+            서버에서 데이터가 수신되었을 때 실행되는 callback 함수
+            """
+            if data_type == SubscribeMessageType.RESPONSE:
+                print("Event ID: ", event)
+            elif data_type == SubscribeMessageType.PAYLOAD:
+                self.binance_spot_ticker.update_ticker(event)
+                # print(self.binance_spot_ticker.price)
+            else:
+                print("Unknown Data:")
+
+        def error(e: "BinanceApiException"):
+            """
+            서버에서 error가 수신되었을 떄 실행되는 함수
+            """
+            print(e.error_code + e.error_message)
+
+        self.client.sub_client.subscribe_spot_multi_ticker_event(
+            symbols=symbols, callback=callback, error_handler=error
+        )

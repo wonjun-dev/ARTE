@@ -60,13 +60,14 @@ def websocket_func(*args):
     connection_instance.delay_in_second = -1
     connection_instance.ws.on_open = on_open
     connection_instance.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+    # connection_instance.ws.run_forever()
     connection_instance.logger.info("[Sub][" + str(connection_instance.id) + "] Connection event loop down")
     if connection_instance.state == ConnectionState.CONNECTED:
         connection_instance.state = ConnectionState.IDLE
 
 
 class WebsocketConnection:
-    def __init__(self, api_key, secret_key, uri, watch_dog, request):
+    def __init__(self, api_key, secret_key, uri, watch_dog, request, is_upbit=False):
         self.__thread = None
         self.url = uri
         self.__api_key = api_key
@@ -82,6 +83,7 @@ class WebsocketConnection:
         global connection_id
         connection_id += 1
         self.id = connection_id
+        self.is_upbit = is_upbit
 
     def in_delay_connection(self):
         return self.delay_in_second != -1
@@ -143,21 +145,30 @@ class WebsocketConnection:
         self.close_on_error()
 
     def on_message(self, message):
-        self.last_receive_time = get_current_timestamp()
-        json_wrapper = parse_json_from_string(message)
 
-        if json_wrapper.contain_key("status") and json_wrapper.get_string("status") != "ok":
-            error_code = json_wrapper.get_string_or_default("err-code", "Unknown error")
-            error_msg = json_wrapper.get_string_or_default("err-msg", "Unknown error")
-            self.on_error(error_code + ": " + error_msg)
-        elif json_wrapper.contain_key("err-code") and json_wrapper.get_int("err-code") != 0:
-            error_code = json_wrapper.get_string_or_default("err-code", "Unknown error")
-            error_msg = json_wrapper.get_string_or_default("err-msg", "Unknown error")
-            self.on_error(error_code + ": " + error_msg)
-        elif json_wrapper.contain_key("result") and json_wrapper.contain_key("id"):
-            self.__on_receive_response(json_wrapper)
+        self.last_receive_time = get_current_timestamp()
+
+        if not self.is_upbit:
+            json_wrapper = parse_json_from_string(message)
+            if json_wrapper.contain_key("status") and json_wrapper.get_string("status") != "ok":
+                error_code = json_wrapper.get_string_or_default("err-code", "Unknown error")
+                error_msg = json_wrapper.get_string_or_default("err-msg", "Unknown error")
+                self.on_error(error_code + ": " + error_msg)
+            elif json_wrapper.contain_key("err-code") and json_wrapper.get_int("err-code") != 0:
+                error_code = json_wrapper.get_string_or_default("err-code", "Unknown error")
+                error_msg = json_wrapper.get_string_or_default("err-msg", "Unknown error")
+                self.on_error(error_code + ": " + error_msg)
+            elif json_wrapper.contain_key("result") and json_wrapper.contain_key("id"):
+                self.__on_receive_response(json_wrapper)
+            else:
+                self.__on_receive_payload(json_wrapper)
         else:
-            self.__on_receive_payload(json_wrapper)
+            json_wrapper = parse_upbit_json_from_string(message)
+            try:
+                res = self.request.json_parser(json_wrapper)
+                self.request.update_callback(res)
+            except:
+                self.on_error("error in json_parser")
 
     def __on_receive_response(self, json_wrapper):
         res = None
