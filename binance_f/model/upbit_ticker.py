@@ -1,18 +1,18 @@
 class UpbitTicker:
     def __init__(self):
         self.type = None
-        self.code = None
+        self.symbol = None
         self.opening_price = 0
         self.high_price = 0
         self.low_price = 0
-        self.trade_price = 0
+        self.lastPrice = 0
         self.prev_closing_price = 0
         self.change = None
         self.change_price = 0
         self.signed_change_price = 0
         self.change_rate = 0
         self.signed_change_rate = 0
-        self.trade_volume = 0
+        self.lastQty = 0
         self.acc_trade_volume = 0
         self.acc_trade_volume_24h = 0
         self.acc_trade_price = 0
@@ -40,18 +40,18 @@ class UpbitTicker:
     def json_parse(json_data):
         result = UpbitTicker()
         result.type = json_data.get_string("type")
-        result.code = json_data.get_string("code")
+        result.symbol = json_data.get_string("code")
         result.opening_price = json_data.get_float("opening_price")
         result.high_price = json_data.get_float("high_price")
         result.low_price = json_data.get_float("low_price")
-        result.trade_price = json_data.get_float("trade_price")
+        result.lastPrice = json_data.get_float("trade_price")
         result.prev_closing_price = json_data.get_float("prev_closing_price")
         result.change = json_data.get_string("change")
         result.change_price = json_data.get_float("change_price")
         result.signed_change_price = json_data.get_float("signed_change_price")
         result.change_rate = json_data.get_float("change_rate")
         result.signed_change_rate = json_data.get_float("signed_change_rate")
-        result.trade_volume = json_data.get_float("trade_volume")
+        result.lastQty = json_data.get_float("trade_volume")
         result.acc_trade_volume = json_data.get_float("acc_trade_volume")
         result.acc_trade_volume_24h = json_data.get_float("acc_trade_volume_24h")
         result.acc_trade_price = json_data.get_float("acc_trade_price")

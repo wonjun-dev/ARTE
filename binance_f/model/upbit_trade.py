@@ -1,9 +1,12 @@
+from binance_f.model.exchangeinformation import Symbol
+
+
 class UpbitTrade:
     def __init__(self):
         self.type = None
-        self.code = None
-        self.trade_price = 0
-        self.trade_volume = 0
+        self.symbol = ""
+        self.price = 0
+        self.qty = 0
         self.ask_bid = None
         self.prev_closing_price = 0
         self.change = None
@@ -19,9 +22,9 @@ class UpbitTrade:
     def json_parse(json_data):
         result = UpbitTrade()
         result.type = json_data.get_string("type")
-        result.code = json_data.get_string("code")
-        result.trade_price = json_data.get_float("trade_price")
-        result.trade_volume = json_data.get_float("trade_volume")
+        result.symbol = json_data.get_string("code")
+        result.price = json_data.get_float("trade_price")
+        result.qty = json_data.get_float("trade_volume")
         result.ask_bid = json_data.get_string("ask_bid")
         result.prev_closing_price = json_data.get_float("prev_closing_price")
         result.change = json_data.get_string("change")
