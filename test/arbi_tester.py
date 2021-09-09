@@ -3,6 +3,7 @@ import configparser
 
 from arte.client import Client
 from arte.arbi_scheduler import ArbiTrader
+from arte.system.telegram_bot import DominicBot
 
 # configuration
 cfg = configparser.ConfigParser()
@@ -17,10 +18,14 @@ use_bot = config.getboolean("USE_BOT")
 
 def main():
     clients = Client(mode, api_key, secret_key)
-    trader = ArbiTrader(clients)
+
+    if use_bot:
+        bot = DominicBot()
+        trader = ArbiTrader(clients, bot=bot)
+    else:
+        trader = ArbiTrader(clients)
     trader.run()
 
 
 if __name__ == "__main__":
     main()
-

@@ -11,7 +11,6 @@ from arte.data.common_symbol_collector import CommonSymbolCollector
 from arte.system.strategy_manager import StrategyManager
 from arte.system.account import Account
 from arte.system import OrderHandler
-from arte.system.telegram_bot import DominicManager
 
 from arte.indicator import IndicatorManager
 from arte.indicator import Indicator
@@ -40,7 +39,7 @@ class ArbiTrader:
 
         # Init Order Handler
         self.account = Account(client.request_client)
-        self.oh = OrderHandler(client.request_client, self.account, symbol="BTCUSDT")  # need to fix!
+        self.oh = OrderHandler(client.request_client, self.account)
 
         # Init strategy
         self.im = IndicatorManager(indicators=[Indicator.PREMIUM])
@@ -59,6 +58,7 @@ class ArbiTrader:
                 binance_ticker=self.socket_data_manager.binance_spot_trade,
                 exchange_rate=self.exchange_rate,
                 except_list=self.except_list,
+                bot=self.bot,
             )
 
         except Exception:

@@ -54,7 +54,7 @@ class TelegramBot:
         self.updater.dispatcher.add_handler(CommandHandler(cmd, func, pass_args=pass_args))
 
 
-class DominicManager(TelegramBot):
+class DominicBot(TelegramBot):
     def __init__(self):
         """
         Simon information 추가해주기
@@ -78,8 +78,8 @@ class DominicManager(TelegramBot):
             self.start()
 
     def adjust_threshold(self, update, context):
-        self.trader.threshold = float(context.args[0])
-        self.sendMessage("현재 알람 기준가 : " + str(self.trader.threshold))
+        self.trader.strategy.premium_threshold = float(context.args[0])
+        self.sendMessage("현재 알람 기준가 : " + str(self.trader.strategy.premium_threshold))
 
     def add_except_list(self, update, context):
         """
@@ -98,7 +98,7 @@ class DominicManager(TelegramBot):
             self.sendMessage("현재 제외된 항목 : " + str(self.trader.except_list))
 
 
-class SimonManager(TelegramBot):
+class SimonBot(TelegramBot):
     """
     하나의 봇(Simon)을 관리하기 위한 매니저
     """

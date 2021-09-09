@@ -17,6 +17,7 @@ class ArbitrageBasic(BaseStrategy):
         self.binance_ticker = kwargs["binance_ticker"]
         self.exchange_rate = kwargs["exchange_rate"]
         self.except_list = kwargs["except_list"]
+        self.bot = kwargs["bot"]
         self.im.update_premium(self.upbit_ticker, self.binance_ticker, self.exchange_rate)
         self._make_signals()
 
@@ -35,6 +36,16 @@ class ArbitrageBasic(BaseStrategy):
             if p_rate > self.premium_threshold:
                 if (pure_symbol not in self.except_list) and (symbol not in self.premium_assets):
                     self.premium_assets.append(symbol)
+                    message1 = "[***" + pure_symbol + "***] :\n 현재 김프 " + str(premium_dict[symbol]) + "%\n"
+                    message2 = "현재 Upbit 가격 :" + str(self.upbit_ticker.price["KRW-" + pure_symbol]) + "\n"
+                    message3 = (
+                        "현재 Binance 가격 :"
+                        + str(self.binance_ticker.price[symbol] * self.exchange_rate)
+                        + "\n"
+                        + "현재 환율 : "
+                        + str(self.exchange_rate)
+                    )
+                    self.bot.sendMessage(message1 + message2 + message3)
             else:
                 if symbol in self.premium_assets:
                     self.premium_assets.remove(symbol)
