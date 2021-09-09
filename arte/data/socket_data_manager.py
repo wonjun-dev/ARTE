@@ -1,8 +1,3 @@
-from arte.data.trade_manager import TradeManager
-import threading
-
-from pyupbit import WebSocketManager
-from binance import ThreadedWebsocketManager
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
 
@@ -73,6 +68,7 @@ class SocketDataManager:
         self.client.sub_client.subscribe_upbit_ticker_event(symbols=symbols, callback=callback, error_handler=error)
 
     def open_binanace_spot_trade_socket(self, symbols):
+        symbols = [symbol.lower() for symbol in symbols]
         self.binance_spot_trade = TradeManager(symbols=symbols)
 
         def callback(data_type: "SubscribeMessageType", event: "any"):
@@ -98,6 +94,7 @@ class SocketDataManager:
         )
 
     def open_binanace_spot_ticker_socket(self, symbols):
+        symbols = [symbol.lower() for symbol in symbols]
         self.binance_spot_ticker = TickerManager(symbols=symbols)
 
         def callback(data_type: "SubscribeMessageType", event: "any"):

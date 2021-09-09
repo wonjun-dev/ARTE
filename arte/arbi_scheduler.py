@@ -55,8 +55,8 @@ class ArbiTrader:
     def mainloop(self):
         try:
             self.strategy_manager.run(
-                upbit_ticker=self.socket_data_manager.upbit_ticker,
-                binance_ticker=self.socket_data_manager.binance_ticker,
+                upbit_ticker=self.socket_data_manager.upbit_trade,
+                binance_ticker=self.socket_data_manager.binance_spot_trade,
                 exchange_rate=self.exchange_rate,
                 except_list=self.except_list,
             )
@@ -65,8 +65,8 @@ class ArbiTrader:
             traceback.print_exc()
 
     def run(self, watch_interval: float = 0.5):
-        self.socket_data_manager.open_upbit_ticker_socket(symbols=self.upbit_symbols)
-        self.socket_data_manager.open_binance_ticker_socket(symbols=self.binance_symbols)
+        self.socket_data_manager.open_upbit_trade_socket(symbols=self.upbit_symbols)
+        self.socket_data_manager.open_binanace_spot_trade_socket(symbols=self.binance_symbols)
 
         self.scheduler.add_job(self.mainloop, "interval", seconds=watch_interval)
         self.scheduler.add_job(self.get_exchange_rate, "cron", minute="0")

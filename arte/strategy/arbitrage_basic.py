@@ -9,7 +9,7 @@ class ArbitrageBasic(BaseStrategy):
 
     def __init__(self, indicator_manager, buy_ratio: float = 0.15, sell_ratio: float = 1.0):
         super().__init__(indicator_manager, buy_ratio, sell_ratio)
-        self.premium_threshold = 0.5
+        self.premium_threshold = 2.5
         self.premium_assets = []
 
     def run(self, **kwargs):
