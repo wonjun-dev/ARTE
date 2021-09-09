@@ -40,7 +40,7 @@ class StrategyManager:
         self.account = self.order_handler.account
         self.strategy = strategy
         self.order_handler.manager = self
-        # self.strategy.manager = self
+        self.strategy.manager = self
         self.bot = bot
         self.max_order_count = max_order_count
 
