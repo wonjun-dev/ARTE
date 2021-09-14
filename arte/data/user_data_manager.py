@@ -28,10 +28,9 @@ class UserDataManager:
                 if event.eventType == "ACCOUNT_UPDATE":
                     self.account.update(event)
                     print("USDT: ", self.account["USDT"])
-                    print("ETHUSDT: ", self.account["ETHUSDT"])
+                    # print("ETHUSDT: ", self.account["ETHUSDT"])
                 elif event.eventType == "ORDER_TRADE_UPDATE":
                     self.order_recorder.get_event(event)
-                    self.order_recorder.update_csv(event)
             elif event.eventType == "listenKeyExpired":
                 print("listenKey Expired, Reconnect Socket again.")
                 self.open_user_data_socket()

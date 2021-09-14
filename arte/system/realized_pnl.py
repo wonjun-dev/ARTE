@@ -2,57 +2,135 @@ from binance_f.model.constant import *
 
 
 class RealizedPnl:
-    def __init__(self, strategy_name):
-        self.strategy_name = strategy_name
-        self.position_side = None
-        self.avg_price = 0
-        self.quantity = 0
+    def __init__(self):
+        # pnl managing dict (key: symbol, value: pnl data dict -> data_dict)
+        self.pnl_dict = {}
 
-        self.realized_pnl = 0
-        self.realized_pnl_rate = 0
+    def proceeding(self, event):
+        if event.symbol not in self.pnl_dict.keys():
+            # if symbol of event not in pnl_dict
+            data_dict = {}
+            data_dict["position_side"] = None
+            data_dict["avg_price"] = 0
+            data_dict["quantity"] = 0
+            data_dict["realized_pnl"] = 0
+            data_dict["realized_pnl_rate"] = 0
+            data_dict["total_realized_pnl"] = 0
+            data_dict["winrate_pnl"] = 0
+            data_dict["win_count"] = 0
+            data_dict["total_count"] = 0
+            data_dict["current_commission"] = 0
+            data_dict["real_profit"] = 0
+            data_dict["real_profit_rate"] = 0
+            data_dict["total_real_profit"] = 0
+            data_dict["winrate_profit"] = 0
+            data_dict["win_count_profit"] = 0
+            # add data for pnl_dict -> key: event.symbol, value: data_dict
+            self.pnl_dict[event.symbol] = data_dict
 
-        self.total_realized_pnl = 0
+        if event.positionSide == PositionSide.LONG:
+            self.pnl_dict[event.symbol]["position_side"] = PositionSide.LONG
+            if event.side == OrderSide.BUY:
+                # long position open
+                self.pnl_dict[event.symbol]["avg_price"] = (
+                    self.pnl_dict[event.symbol]["avg_price"] * self.pnl_dict[event.symbol]["quantity"]
+                    + event.avgPrice * event.origQty
+                ) / (self.pnl_dict[event.symbol]["quantity"] + event.origQty)
+                self.pnl_dict[event.symbol]["quantity"] += event.origQty
+                self.pnl_dict[event.symbol]["realized_pnl"] = 0
+                self.pnl_dict[event.symbol]["realized_pnl_rate"] = 0
+                self.pnl_dict[event.symbol]["current_commission"] += event.commissionAmount
 
-        self.winrate = 0
-        self.win_count = 0
-        self.total_count = 0
+            elif event.side == OrderSide.SELL:
+                # long position close
+                abs_pnl = (event.avgPrice - self.pnl_dict[event.symbol]["avg_price"]) * event.origQty
+                self.pnl_dict[event.symbol]["realized_pnl"] = abs_pnl
+                self.pnl_dict[event.symbol]["realized_pnl_rate"] = (
+                    self.pnl_dict[event.symbol]["realized_pnl"] / self.pnl_dict[event.symbol]["avg_price"]
+                )
 
-    def proceeding(self, order):
-        if order.positionSide == PositionSide.LONG:
-            self.position_side = PositionSide.LONG
-            is_long = True
-        elif order.positionSide == PositionSide.SHORT:
-            self.position_side = PositionSide.SHORT
-            is_long = False
+                self.pnl_dict[event.symbol]["total_realized_pnl"] += self.pnl_dict[event.symbol]["realized_pnl"]
+                self.pnl_dict[event.symbol]["total_count"] += 1
+                if self.pnl_dict[event.symbol]["realized_pnl"] > 0:
+                    self.pnl_dict[event.symbol]["win_count"] += 1
+                self.pnl_dict[event.symbol]["winrate_pnl"] = (
+                    self.pnl_dict[event.symbol]["win_count"] / self.pnl_dict[event.symbol]["total_count"]
+                )
 
-        if order.side == OrderSide.BUY:
-            self.avg_price = (self.avg_price * self.quantity + order.avgPrice * order.origQty) / (
-                self.quantity + order.origQty
-            )
-            self.quantity = self.quantity + order.origQty
-            self.realized_pnl = 0
-            self.realized_pnl_rate = 0
-        elif order.side == OrderSide.SELL:
-            abs_pnl = (order.avgPrice - self.avg_price) * order.origQty
-            self.realized_pnl = abs_pnl if is_long else -abs_pnl
-            self.realized_pnl_rate = self.realized_pnl / self.avg_price
+                self.pnl_dict[event.symbol]["current_commission"] += event.commissionAmount
 
-            self.total_realized_pnl += self.realized_pnl
-            self.total_count += 1
-            if self.realized_pnl > 0:
-                self.win_count += 1
-            self.winrate = self.win_count / self.total_count
+                self.pnl_dict[event.symbol]["real_profit"] = self.pnl_dict[event.symbol]["realized_pnl"] - (
+                    self.pnl_dict[event.symbol]["current_commission"]
+                    * (event.origQty / self.pnl_dict[event.symbol]["quantity"])
+                )
+                self.pnl_dict[event.symbol]["real_profit_rate"] = (
+                    self.pnl_dict[event.symbol]["real_profit"] / self.pnl_dict[event.symbol]["avg_price"]
+                )
+                self.pnl_dict[event.symbol]["total_real_profit"] += self.pnl_dict[event.symbol]["real_profit"]
 
-            print(self.realized_pnl, self.realized_pnl_rate, self.winrate, self.avg_price)
-            if self.quantity == order.origQty:
-                self.close_position()
+                if self.pnl_dict[event.symbol]["real_profit"] > 0:
+                    self.pnl_dict[event.symbol]["win_count_profit"] += 1
+                self.pnl_dict[event.symbol]["winrate_profit"] = (
+                    self.pnl_dict[event.symbol]["win_count_profit"] / self.pnl_dict[event.symbol]["total_count"]
+                )
+                self.pnl_dict[event.symbol]["current_commission"] -= self.pnl_dict[event.symbol][
+                    "current_commission"
+                ] * (event.origQty / self.pnl_dict[event.symbol]["quantity"])
 
-    def close_position(self):
-        self.position_side = None
-        self.avg_price = 0
-        self.quantity = 0
+                self.pnl_dict[event.symbol]["quantity"] = self.pnl_dict[event.symbol]["quantity"] - event.origQty
 
-        self.realized_pnl = 0
-        self.realized_pnl_rate = 0
+        elif event.positionSide == PositionSide.SHORT:
+            self.pnl_dict[event.symbol]["position_side"] = PositionSide.SHORT
+            if event.side == OrderSide.BUY:
+                # short position close
 
-    # 다 팔때 초기화하기
+                abs_pnl = (event.avgPrice - self.pnl_dict[event.symbol]["avg_price"]) * event.origQty
+                self.pnl_dict[event.symbol]["realized_pnl"] = -abs_pnl
+                self.pnl_dict[event.symbol]["realized_pnl_rate"] = (
+                    self.pnl_dict[event.symbol]["realized_pnl"] / self.pnl_dict[event.symbol]["avg_price"]
+                )
+
+                self.pnl_dict[event.symbol]["total_realized_pnl"] += self.pnl_dict[event.symbol]["realized_pnl"]
+                self.pnl_dict[event.symbol]["total_count"] += 1
+                if self.pnl_dict[event.symbol]["realized_pnl"] > 0:
+                    self.pnl_dict[event.symbol]["win_count"] += 1
+                self.pnl_dict[event.symbol]["winrate_pnl"] = (
+                    self.pnl_dict[event.symbol]["win_count"] / self.pnl_dict[event.symbol]["total_count"]
+                )
+
+                self.pnl_dict[event.symbol]["current_commission"] += event.commissionAmount
+
+                self.pnl_dict[event.symbol]["real_profit"] = self.pnl_dict[event.symbol]["realized_pnl"] - (
+                    self.pnl_dict[event.symbol]["current_commission"]
+                    * (event.origQty / self.pnl_dict[event.symbol]["quantity"])
+                )
+                self.pnl_dict[event.symbol]["real_profit_rate"] = (
+                    self.pnl_dict[event.symbol]["real_profit"] / self.pnl_dict[event.symbol]["avg_price"]
+                )
+                self.pnl_dict[event.symbol]["total_real_profit"] += self.pnl_dict[event.symbol]["real_profit"]
+
+                if self.pnl_dict[event.symbol]["real_profit"] > 0:
+                    self.pnl_dict[event.symbol]["win_count_profit"] += 1
+                self.pnl_dict[event.symbol]["winrate_profit"] = (
+                    self.pnl_dict[event.symbol]["win_count_profit"] / self.pnl_dict[event.symbol]["total_count"]
+                )
+                self.pnl_dict[event.symbol]["current_commission"] -= self.pnl_dict[event.symbol][
+                    "current_commission"
+                ] * (event.origQty / self.pnl_dict[event.symbol]["quantity"])
+
+                self.pnl_dict[event.symbol]["quantity"] = self.pnl_dict[event.symbol]["quantity"] - event.origQty
+
+            elif event.side == OrderSide.SELL:
+                # short position open
+                self.pnl_dict[event.symbol]["avg_price"] = (
+                    self.pnl_dict[event.symbol]["avg_price"] * self.pnl_dict[event.symbol]["quantity"]
+                    + event.avgPrice * event.origQty
+                ) / (self.pnl_dict[event.symbol]["quantity"] + event.origQty)
+                self.pnl_dict[event.symbol]["quantity"] += event.origQty
+                self.pnl_dict[event.symbol]["realized_pnl"] = 0
+                self.pnl_dict[event.symbol]["realized_pnl_rate"] = 0
+                self.pnl_dict[event.symbol]["current_commission"] += event.commissionAmount
+
+    def close_position(self, symbol: str):
+        # reset when all position closed
+        del self.pnl_dict[symbol]
