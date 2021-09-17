@@ -118,3 +118,29 @@ class SocketDataManager:
         self.client.sub_client.subscribe_spot_multi_ticker_event(
             symbols=symbols, callback=callback, error_handler=error
         )
+
+    def open_binanace_future_trade_socket(self, symbols):
+        symbols = [symbol.lower() for symbol in symbols]
+        self.binance_future_trade = TradeManager(symbols=symbols)
+
+        def callback(data_type: "SubscribeMessageType", event: "any"):
+            """
+            서버에서 데이터가 수신되었을 때 실행되는 callback 함수
+            """
+            if data_type == SubscribeMessageType.RESPONSE:
+                print("Event ID: ", event)
+            elif data_type == SubscribeMessageType.PAYLOAD:
+                self.binance_future_trade.update_trade(event)
+                # print(self.binance_spot_trade.price)
+            else:
+                print("Unknown Data:")
+
+        def error(e: "BinanceApiException"):
+            """
+            서버에서 error가 수신되었을 떄 실행되는 함수
+            """
+            print(e.error_code + e.error_message)
+
+        self.client.sub_client.subscribe_future_multi_aggregate_trade_event(
+            symbols=symbols, callback=callback, error_handler=error
+        )

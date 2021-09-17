@@ -1,24 +1,18 @@
 import traceback
 from apscheduler.schedulers.blocking import BlockingScheduler
-from collections import deque
-
-import binance
-from binance.streams import BinanceSocketManager
 
 from arte.data import SocketDataManager
 from arte.data import RequestDataManager
 from arte.data.common_symbol_collector import CommonSymbolCollector
+
 from arte.system.strategy_manager import StrategyManager
 from arte.system.account import Account
 from arte.system import OrderHandler
 
 from arte.indicator import IndicatorManager
 from arte.indicator import Indicator
-from arte.indicator.premium import Premium
 
 from arte.strategy import ArbitrageBasic
-
-import time
 
 
 class ArbiTrader:
@@ -54,8 +48,9 @@ class ArbiTrader:
     def mainloop(self):
         try:
             self.strategy_manager.run(
-                upbit_ticker=self.socket_data_manager.upbit_trade,
-                binance_ticker=self.socket_data_manager.binance_spot_trade,
+                upbit_price=self.socket_data_manager.upbit_trade,
+                binance_spot_price=self.socket_data_manager.binance_spot_trade,
+                binance_future_price=self.socket_data_manager.binance_future_trade,
                 exchange_rate=self.exchange_rate,
                 except_list=self.except_list,
                 bot=self.bot,
@@ -67,12 +62,15 @@ class ArbiTrader:
     def run(self, watch_interval: float = 0.5):
         self.socket_data_manager.open_upbit_trade_socket(symbols=self.upbit_symbols)
         self.socket_data_manager.open_binanace_spot_trade_socket(symbols=self.binance_symbols)
+        self.socket_data_manager.open_binanace_future_trade_socket(symbols=self.binance_symbols)
 
         self.scheduler.add_job(self.mainloop, "interval", seconds=watch_interval)
         self.scheduler.add_job(self.get_exchange_rate, "cron", minute="0")
         self.scheduler.add_job(self.update_closed_list, "cron", minute="0", second="1")
         if self.bot:
             self.bot.bot_manager_setting()
+
+        self.strategy.initialize_strategy(self.binance_symbols, self.except_list)
         self.scheduler.start()
 
     def get_exchange_rate(self):

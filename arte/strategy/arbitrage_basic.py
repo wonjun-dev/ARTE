@@ -1,5 +1,68 @@
+from collections import deque
+
+from transitions import Machine
+
 from arte.indicator import Indicator
 from arte.strategy.core.base_strategy import BaseStrategy
+
+
+def _symbolize_upbit(symbol):
+    return "KRW-" + symbol.upper()
+
+
+def _symbolize_binance(symbol):
+    return symbol.lower() + "usdt"
+
+
+class SignalState:
+
+    states = ["idle", "stg_1", "stg_order"]
+
+    def __init__(self, symbol, manager):
+        self.symbol = symbol
+        self.manager = manager
+
+        transitions = [
+            {"trigger": "proceed", "source": "idle", "dest": "stg_1", "conditions": "premium_over_threshold"},
+            {
+                "trigger": "proceed",
+                "source": "stg_1",
+                "dest": "stg_order",
+                "conditions": "upbit_price_up",
+                "after": "go_order",
+            },
+            {"trigger": "initialize", "source": "*", "dest": "idle", "before": "print_end"},
+        ]
+        m = Machine(
+            model=self,
+            states=SignalState.states,
+            transitions=transitions,
+            initial="idle",
+            after_state_change="auto_proceed",
+        )
+
+    def print_end(self, **kwargs):
+        print(f"From {self.state} go back to Idle state.")
+
+    def auto_proceed(self, **kwargs):
+        if not self.state == "idle":
+            if not self.proceed(**kwargs):
+                self.initialize()
+
+    def premium_over_threshold(self, **kwargs):
+        premium = kwargs["premium"]
+        criteria_premium = kwargs["criteria_premium"]
+        return premium > criteria_premium * 1.2
+
+    def upbit_price_up(self, **kwargs):
+        price_q = kwargs["price_q"]
+        change_rate = (price_q[-1] - price_q[-40]) / price_q[-40]  # price change rate in 20 sec
+        return change_rate > 1.03
+
+    def go_order(self, **kwargs):
+        print("Passed all signals, Ordering start...")
+        self.manager.buy_long_market(price=kwargs["future_price"][self.symbol], usdt=100)
+        self.initialize()
 
 
 class ArbitrageBasic(BaseStrategy):
@@ -8,76 +71,53 @@ class ArbitrageBasic(BaseStrategy):
     """
 
     def __init__(self, indicator_manager, buy_ratio: float = 0.15, sell_ratio: float = 1.0):
-        super().__init__(indicator_manager, buy_ratio, sell_ratio)
+        self.im = indicator_manager
+        self.BUY_RATIO = buy_ratio
+        self.SELL_RATIO = sell_ratio
+        self.manager = None
+
         self.premium_threshold = 2.5
         self.premium_assets = []
+        self.asset_signals = {}
+        self.q_maxlen = 100
+        self.init_price_counter = 0
+        self.dict_price_q = {}
 
     def run(self, **kwargs):
-        self.upbit_ticker = kwargs["upbit_ticker"]
-        self.binance_ticker = kwargs["binance_ticker"]
+        self.upbit_price = kwargs["upbit_price"]
+        self.binance_spot_price = kwargs["binance_spot_price"]
+        self.binance_future_price = kwargs["binance_future_price"]
         self.exchange_rate = kwargs["exchange_rate"]
         self.except_list = kwargs["except_list"]
         self.bot = kwargs["bot"]
-        self.im.update_premium(self.upbit_ticker, self.binance_ticker, self.exchange_rate)
-        self._make_signals()
+        self.im.update_premium(self.upbit_price, self.binance_spot_price, self.exchange_rate)
 
-    def _make_signals(self):
-        """
-        Cond 1. 업비트 프리미엄이 일정 값 이상
-        Cond 2. 바이낸스 가격 하락으로 인한것이 아닌 업비트 가격 상승으로 인한 것일 것
-
-        필요 값
-        - 업비트/바이낸스 프리미엄
-        - 업비트 가격, 바이낸스 가격
-        """
-        premium_dict = self.im[Indicator.PREMIUM][-1]
-        for symbol, p_rate in premium_dict.items():
+    def initialize_strategy(self, common_binance_symbols, except_list):
+        self.except_list = except_list
+        self.pure_symbols_wo_excepted = []
+        for symbol in common_binance_symbols:
             pure_symbol = symbol[:-4]
-            if p_rate > self.premium_threshold:
-                if (pure_symbol not in self.except_list) and (symbol not in self.premium_assets):
-                    self.premium_assets.append(symbol)
-                    message1 = "[***" + pure_symbol + "***] :\n 현재 김프 " + str(premium_dict[symbol]) + "%\n"
-                    message2 = "현재 Upbit 가격 :" + str(self.upbit_ticker.price["KRW-" + pure_symbol]) + "\n"
-                    message3 = (
-                        "현재 Binance 가격 :"
-                        + str(self.binance_ticker.price[symbol] * self.exchange_rate)
-                        + "\n"
-                        + "현재 환율 : "
-                        + str(self.exchange_rate)
-                    )
-                    self.bot.sendMessage(message1 + message2 + message3)
-            else:
-                if symbol in self.premium_assets:
-                    self.premium_assets.remove(symbol)
-        print(self.premium_assets)
+            if pure_symbol not in self.except_list:
+                self.pure_symbols_wo_excepted.append(pure_symbol)
 
-    def _order(self, signals: dict):
-        """
-        - 시그널이 True일때, Buy Long
-        - 업비트 프리미엄이 기준값 이하로 하락하면 Sell Long
-        """
-        pass
+        for symbol in self.pure_symbols_wo_excepted:
+            self.asset_signals[symbol] = SignalState(symbol=symbol + "usdt", manager=self.manager)
+            self.dict_price_q[symbol] = deque(maxlen=self.q_maxlen)
 
-    # def update_higher_coins(self, kimp_dict):
-    #     for keys in kimp_dict:
-    #         if kimp_dict[keys] > self.threshold:
-    #             if keys[:-4] not in self.except_list:
-    #                 if keys not in self.higher_coins:
-    #                     self.higher_coins.append(keys)
-    #                     message1 = "[***" + keys[:-4] + "***] :\n 현재 김프 " + str(kimp_dict[keys]) + "%\n"
-    #                     message2 = (
-    #                         "현재 Upbit 가격 :" + str(self.data_manager.upbit_ticker.trade_price["KRW-" + keys[:-4]]) + "\n"
-    #                     )
-    #                     message3 = (
-    #                         "현재 Binance 가격 :"
-    #                         + str(self.data_manager.binance_ticker.trade_price[keys] * self.exchange_rate)
-    #                         + "\n"
-    #                         + "현재 환율 : "
-    #                         + str(self.exchange_rate)
-    #                     )
-    #                     self.bot.sendMessage(message1 + message2 + message3)
-    #                     print(self.higher_coins)
-    #         else:
-    #             if keys in self.higher_coins:
-    #                 self.higher_coins.remove(keys)
-    #                 print(self.higher_coins)
+    def run_strategy(self):
+        premium_dict = self.im[Indicator.PREMIUM][-1]
+        btc_premium = premium_dict["btcusdt"]
+
+        for symbol in self.pure_symbols_wo_excepted:
+            self.dict_price_q[symbol].append(self.upbit_price.price[_symbolize_upbit(symbol)])
+            self.init_price_counter += 1
+
+        if self.init_price_counter == self.q_maxlen:
+            for symbol in self.pure_symbols_wo_excepted:
+                bi_full_symbol = _symbolize_binance(symbol)
+                self.asset_signals[symbol].proceed(
+                    premium=premium_dict[bi_full_symbol],
+                    criteria_premium=btc_premium,
+                    price_q=self.dict_price_q[symbol],
+                    future_price=self.binance_future_price.price[bi_full_symbol],
+                )
