@@ -1,4 +1,5 @@
 import threading
+import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -28,7 +29,7 @@ class UserDataManager:
                 if event.eventType == "ACCOUNT_UPDATE":
                     self.account.update(event)
                     print("USDT: ", self.account["USDT"])
-                    # print("ETHUSDT: ", self.account["ETHUSDT"])
+                    print("ETHUSDT: ", self.account["ETHUSDT"])
                 elif event.eventType == "ORDER_TRADE_UPDATE":
                     self.order_recorder.get_event(event)
             elif event.eventType == "listenKeyExpired":
@@ -42,6 +43,7 @@ class UserDataManager:
             listenKey=self.listen_key, callback=callback, error_handler=error
         )
         self._schedule_keepalive()
+        time.sleep(0.3)  # for socket initialize integrity
 
     def _keepalive(self):
         self.client.request_client.keep_user_data_stream()

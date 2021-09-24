@@ -1,19 +1,5 @@
-"""
-OrderManager의 역할
-1. 함수 하나로 사용하는 쉬운 오더 (파라미터를 최소화 시키는 방식 - 코딩 실수를 막기 위해)
-2. 신청된 오더들을 기록 (오더 리스트)
-3. 신청된 오더가 체결된 경우를 체크 (메인루프 안에서 정기적으로 확인 및 갱신)
-4. 체결된 오더의 기록
-
-나머지는 다 이미 api화가 되어있는듯?
-- 오더 취소
-- 포지션 / 밸런스 계산 및 시각화
-- 레버리지 / 마진 변화
-"""
-from binance_f.model.diffdepthevent import Order
 import math
 import time
-from functools import wraps
 import secrets
 
 from binance_f.constant.test import *
@@ -59,7 +45,6 @@ class OrderHandler:
             newClientOrderId=self._generate_order_id(symbol),
             newOrderRespType=OrderRespType.RESULT,
         )
-        print("market order done")
         return result
 
     def _stop_market(

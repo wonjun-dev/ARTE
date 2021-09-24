@@ -1,24 +1,14 @@
 import traceback
 from apscheduler.schedulers.blocking import BlockingScheduler
-from collections import deque
-
-import binance
-from binance.streams import BinanceSocketManager
 
 from arte.data import SocketDataManager
 from arte.data import RequestDataManager
 from arte.data.common_symbol_collector import CommonSymbolCollector
-from arte.system.strategy_manager import StrategyManager
-from arte.system.account import Account
-from arte.system import OrderHandler
 
-from arte.indicator import IndicatorManager
-from arte.indicator import Indicator
-from arte.indicator.premium import Premium
+from arte.system.trade_manager import TradeManager
+
 
 from arte.strategy import ArbitrageBasic
-
-import time
 
 
 class ArbiTrader:
@@ -37,14 +27,8 @@ class ArbiTrader:
             self.bot = kwargs["bot"]
             self.bot.trader = self
 
-        # Init Order Handler
-        self.account = Account(client.request_client)
-        self.oh = OrderHandler(client.request_client, self.account)
-
-        # Init strategy
-        self.im = IndicatorManager(indicators=[Indicator.PREMIUM])
-        self.strategy = ArbitrageBasic(indicator_manager=self.im)
-        self.strategy_manager = StrategyManager(self.oh, self.strategy, self.bot, max_order_count=3)
+        self.tm = TradeManager(client=self.client)
+        self.strategy = ArbitrageBasic(trade_manager=self.tm)
 
         # Init required data
         self.except_list = self.request_data_manager.get_closed_symbols()
@@ -53,18 +37,18 @@ class ArbiTrader:
 
     def mainloop(self):
         try:
-            self.strategy_manager.run(
+            self.strategy.update(
                 upbit_ticker=self.socket_data_manager.upbit_trade,
                 binance_ticker=self.socket_data_manager.binance_spot_trade,
                 exchange_rate=self.exchange_rate,
                 except_list=self.except_list,
-                bot=self.bot,
             )
+            self.strategy.run()
 
         except Exception:
             traceback.print_exc()
 
-    def run(self, watch_interval: float = 0.5):
+    def start(self, watch_interval: float = 0.5):
         self.socket_data_manager.open_upbit_trade_socket(symbols=self.upbit_symbols)
         self.socket_data_manager.open_binanace_spot_trade_socket(symbols=self.binance_symbols)
 

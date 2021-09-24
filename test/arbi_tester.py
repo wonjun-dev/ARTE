@@ -24,7 +24,7 @@ def main():
         trader = ArbiTrader(clients, bot=bot)
     else:
         trader = ArbiTrader(clients)
-    trader.run()
+    trader.start()
 
 
 if __name__ == "__main__":
