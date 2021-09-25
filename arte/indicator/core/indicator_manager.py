@@ -16,7 +16,7 @@ class Indicator:
 
 
 class IndicatorManager:
-    def __init__(self, indicators: list, deque_maxlen: int = 50):
+    def __init__(self, indicators: list, deque_maxlen: int = 100):
         self.indicators = indicators
         self.value_dict = {}
         for indicator in self.indicators:

@@ -48,9 +48,11 @@ class ArbiTrader:
         except Exception:
             traceback.print_exc()
 
-    def start(self, watch_interval: float = 0.5):
+    def start(self, watch_interval: float = 1.0):
         self.socket_data_manager.open_upbit_trade_socket(symbols=self.upbit_symbols)
         self.socket_data_manager.open_binanace_spot_trade_socket(symbols=self.binance_symbols)
+
+        self.strategy.initialize(self.binance_symbols, self.except_list)
 
         self.scheduler.add_job(self.mainloop, "interval", seconds=watch_interval)
         self.scheduler.add_job(self.get_exchange_rate, "cron", minute="0")
