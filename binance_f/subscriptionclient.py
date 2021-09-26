@@ -353,3 +353,7 @@ class SubscriptionClient(object):
     def subscribe_spot_multi_ticker_event(self, symbols, callback, error_handler=None):
         request = self.websocket_request_impl.subscribe_multi_ticker_event(symbols, callback, error_handler)
         self.__create_connection(request, market="binance_spot")
+
+    def subscribe_future_multi_aggregate_trade_event(self, symbols, callback, error_handler=None):
+        request = self.websocket_request_impl.subscribe_multi_aggregate_trade_event(symbols, callback, error_handler)
+        self.__create_connection(request)

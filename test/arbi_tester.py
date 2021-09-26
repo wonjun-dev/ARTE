@@ -1,6 +1,5 @@
 import configparser
 
-
 from arte.client import Client
 from arte.arbi_scheduler import ArbiTrader
 from arte.system.telegram_bot import DominicBot

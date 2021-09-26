@@ -126,13 +126,12 @@ class ArbitrageBasic:
         self.dict_premium_q = {}
 
     def update(self, **kwargs):
-        self.upbit_ticker = kwargs["upbit_ticker"]
-        self.binance_ticker = kwargs["binance_ticker"]
-        print(self.upbit_ticker.price, self.binance_ticker.price)
-
+        self.upbit_price = kwargs["upbit_price"]
+        self.binance_spot_price = kwargs["binance_spot_price"]
+        self.binance_future_price = kwargs["binance_future_price"]
         self.exchange_rate = kwargs["exchange_rate"]
         self.except_list = kwargs["except_list"]
-        self.im.update_premium(self.upbit_ticker, self.binance_ticker, self.exchange_rate)
+        self.im.update_premium(self.upbit_price, self.binance_spot_price, self.exchange_rate)
 
     def initialize(self, common_binance_symbols, except_list):
         self.except_list = except_list
@@ -150,18 +149,18 @@ class ArbitrageBasic:
     def run(self):
         print(len(self.im[Indicator.PREMIUM][-1].keys()))
         print(len(self.pure_symbols_wo_excepted))
-        # btc_premium = self.im[Indicator.PREMIUM][-1]["BTCUSDT"]
+        btc_premium = self.im[Indicator.PREMIUM][-1]["BTCUSDT"]
 
-        # for symbol in self.pure_symbols_wo_excepted:
-        #     self.dict_price_q[symbol].append(self.upbit_ticker.price[_symbolize_upbit(symbol)])
-        #     self.dict_premium_q[symbol].append(self.im[Indicator.PREMIUM][-1][_symbolize_binance(symbol, upper=True)])
-        #     self.init_price_counter += 1
+        for symbol in self.pure_symbols_wo_excepted:
+            self.dict_price_q[symbol].append(self.upbit_price.price[_symbolize_upbit(symbol)])
+            self.dict_premium_q[symbol].append(self.im[Indicator.PREMIUM][-1][_symbolize_binance(symbol, upper=True)])
+            self.init_price_counter += 1
 
-        # if self.init_price_counter == self.q_maxlen:
-        #     for symbol in self.pure_symbols_wo_excepted:
-        #         self.asset_signals[symbol].proceed(
-        #             premium_q=self.dict_premium_q[symbol],
-        #             criteria_premium=btc_premium,
-        #             price_q=self.dict_price_q[symbol],
-        #             future_price=self.binance_ticker.price[_symbolize_binance(symbol)],
-        #         )
+        if self.init_price_counter == self.q_maxlen:
+            for symbol in self.pure_symbols_wo_excepted:
+                self.asset_signals[symbol].proceed(
+                    premium_q=self.dict_premium_q[symbol],
+                    criteria_premium=btc_premium,
+                    price_q=self.dict_price_q[symbol],
+                    future_price=self.binance_future_price.price[_symbolize_binance(symbol)],
+                )

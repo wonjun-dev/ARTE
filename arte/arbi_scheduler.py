@@ -38,8 +38,9 @@ class ArbiTrader:
     def mainloop(self):
         try:
             self.strategy.update(
-                upbit_ticker=self.socket_data_manager.upbit_trade,
-                binance_ticker=self.socket_data_manager.binance_spot_trade,
+                upbit_price=self.socket_data_manager.upbit_trade,
+                binance_spot_price=self.socket_data_manager.binance_spot_trade,
+                binance_future_price=self.socket_data_manager.binance_future_trade,
                 exchange_rate=self.exchange_rate,
                 except_list=self.except_list,
             )
@@ -51,6 +52,7 @@ class ArbiTrader:
     def start(self, watch_interval: float = 1.0):
         self.socket_data_manager.open_upbit_trade_socket(symbols=self.upbit_symbols)
         self.socket_data_manager.open_binanace_spot_trade_socket(symbols=self.binance_symbols)
+        self.socket_data_manager.open_binanace_future_trade_socket(symbols=self.binance_symbols)
 
         self.strategy.initialize(self.binance_symbols, self.except_list)
 
