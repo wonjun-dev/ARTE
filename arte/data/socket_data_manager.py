@@ -74,6 +74,9 @@ class SocketDataManager:
         symbols = [symbol.lower() for symbol in symbols]
         self.binance_spot_trade = TradeManager(symbols=symbols)
 
+        # init_spot_trade = self.client.request_client.get_all_spot_price_ticker()
+        # self.binance_spot_trade.init_trade(init_spot_trade)
+
         def callback(data_type: "SubscribeMessageType", event: "any"):
             """
             서버에서 데이터가 수신되었을 때 실행되는 callback 함수
@@ -125,6 +128,9 @@ class SocketDataManager:
     def open_binanace_future_trade_socket(self, symbols):
         symbols = [symbol.lower() for symbol in symbols]
         self.binance_future_trade = TradeManager(symbols=symbols)
+
+        init_mark_prices = self.client.request_client.get_all_mark_price()
+        self.binance_future_trade.init_trade(init_mark_prices)
 
         def callback(data_type: "SubscribeMessageType", event: "any"):
             """
