@@ -1,5 +1,6 @@
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
+from binance import Client
 
 from arte.data.candlestick_manager import CandlestickManager
 from arte.data.ticker_manager import TickerManager
@@ -74,8 +75,9 @@ class SocketDataManager:
         symbols = [symbol.lower() for symbol in symbols]
         self.binance_spot_trade = TradeManager(symbols=symbols)
 
-        # init_spot_trade = self.client.request_client.get_all_spot_price_ticker()
-        # self.binance_spot_trade.init_trade(init_spot_trade)
+        spot_client = Client()
+        init_spot_trade = spot_client.get_all_tickers()
+        self.binance_spot_trade.init_trade(init_spot_trade, is_future=False)
 
         def callback(data_type: "SubscribeMessageType", event: "any"):
             """
@@ -154,4 +156,3 @@ class SocketDataManager:
         self.client.sub_client.subscribe_future_multi_aggregate_trade_event(
             symbols=symbols, callback=callback, error_handler=error
         )
-
