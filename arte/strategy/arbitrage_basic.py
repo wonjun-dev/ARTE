@@ -32,7 +32,7 @@ class SignalState:
                 "trigger": "proceed",
                 "source": "buy_state",
                 "dest": "buy_order_state",
-                "conditions": ["premium_overshoot", "upbit_price_up"],
+                "conditions": ["premium_overshoot_min", "upbit_price_up"],
                 "after": "buy_long",
             },
             {
@@ -78,6 +78,11 @@ class SignalState:
         change_rate = (premium_q[-1] - premium_q[0]) / premium_q[0]
         return change_rate > 1.3
 
+    def premium_overshoot_min(self, **kwargs):
+        premium_q = kwargs["premium_q"]
+        change_rate = premium_q[-1] / (min(premium_q[0:-1]))
+        return change_rate > 1.4
+
     def upbit_price_up(self, **kwargs):
         price_q = kwargs["price_q"]
         change_rate = (price_q[-1] - price_q[0]) / price_q[0]  # price change rate in 20 sec
@@ -85,7 +90,7 @@ class SignalState:
 
     def buy_long(self, **kwargs):
         print("Passed all signals, Order Buy long")
-        # self.tm.buy_long_market(symbol=self.symbol, price=kwargs["future_price"][self.symbol], usdt=10)
+        self.tm.buy_long_market(symbol=self.symbol, price=kwargs["future_price"][self.symbol], usdt=10)
         self.is_open = True
         self.premium_at_buy = kwargs["premium_q"][-1]
         self.price_at_buy = kwargs["future_price"][self.symbol]  # temp val - it need to change to result of order
@@ -101,7 +106,7 @@ class SignalState:
 
     def sell_long(self, **kwargs):
         print("Passed all signals, Order Sell long")
-        # self.tm.sell_long_market(symbol=self.symbol, ratio=1)
+        self.tm.sell_long_market(symbol=self.symbol, ratio=1)
         self.is_open = False
         self.premium_at_buy = None
         self.price_at_buy = None
@@ -147,8 +152,9 @@ class ArbitrageBasic:
             self.dict_premium_q[symbol] = deque(maxlen=self.q_maxlen)
 
     def run(self):
-        print(len(self.im[Indicator.PREMIUM][-1].keys()))
-        print(len(self.pure_symbols_wo_excepted))
+        # print(len(self.im[Indicator.PREMIUM][-1].keys()))
+        # print(len(self.pure_symbols_wo_excepted))
+        print(self.binance_future_price.price)
         btc_premium = self.im[Indicator.PREMIUM][-1]["BTCUSDT"]
 
         for symbol in self.pure_symbols_wo_excepted:

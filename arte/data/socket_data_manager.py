@@ -87,7 +87,7 @@ class SocketDataManager:
                 print("Event ID: ", event)
             elif data_type == SubscribeMessageType.PAYLOAD:
                 self.binance_spot_trade.update_trade(event)
-                print(self.binance_spot_trade.price)
+                # print(self.binance_spot_trade.price)
             else:
                 print("Unknown Data:")
 
@@ -142,7 +142,7 @@ class SocketDataManager:
                 print("Event ID: ", event)
             elif data_type == SubscribeMessageType.PAYLOAD:
                 self.binance_future_trade.update_trade(event)
-                print(self.binance_future_trade.price)
+                # print(self.binance_future_trade.price)
 
             else:
                 print("Unknown Data:")

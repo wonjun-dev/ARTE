@@ -7,7 +7,7 @@ from arte.system.telegram_bot import DominicBot
 # configuration
 cfg = configparser.ConfigParser()
 cfg.read("test/config.ini")
-config = cfg["REAL"]
+config = cfg["REAL_JAEHAN"]
 
 mode = config["MODE"]
 api_key = config["API_KEY"]
