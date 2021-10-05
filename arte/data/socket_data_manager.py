@@ -6,6 +6,8 @@ from arte.data.candlestick_manager import CandlestickManager
 from arte.data.ticker_manager import TickerManager
 from arte.data.trade_manager import TradeManager
 
+import datetime
+
 
 class SocketDataManager:
     def __init__(self, client) -> None:
@@ -87,7 +89,7 @@ class SocketDataManager:
                 print("Event ID: ", event)
             elif data_type == SubscribeMessageType.PAYLOAD:
                 self.binance_spot_trade.update_trade(event)
-                # print(self.binance_spot_trade.price)
+                # print(f"{self.binance_spot_trade.price}",)
             else:
                 print("Unknown Data:")
 
