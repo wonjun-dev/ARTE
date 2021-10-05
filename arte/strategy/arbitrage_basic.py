@@ -81,16 +81,16 @@ class SignalState:
     def premium_overshoot_min(self, **kwargs):
         premium_q = kwargs["premium_q"]
         change_rate = premium_q[-1] / (min(premium_q[0:-1]))
-        return change_rate > 1.3
+        return change_rate > 1.1
 
     def upbit_price_up(self, **kwargs):
         price_q = kwargs["price_q"]
         change_rate = (price_q[-1] - price_q[0]) / price_q[0]  # price change rate in 20 sec
-        return change_rate > 1.03
+        return change_rate > 1.01
 
     def buy_long(self, **kwargs):
         print("Passed all signals, Order Buy long")
-        self.tm.buy_long_market(symbol=self.symbol, price=kwargs["future_price"][self.symbol], usdt=10)
+        self.tm.buy_long_market(symbol=self.symbol, price=kwargs["future_price"], usdt=100)
         self.is_open = True
         self.premium_at_buy = kwargs["premium_q"][-1]
         self.price_at_buy = kwargs["future_price"][self.symbol]  # temp val - it need to change to result of order
@@ -106,7 +106,7 @@ class SignalState:
 
     def sell_long(self, **kwargs):
         print("Passed all signals, Order Sell long")
-        self.tm.sell_long_market(symbol=self.symbol, ratio=1)
+        self.tm.sell_long_market(symbol=self.symbol, price=kwargs["future_price"], ratio=1)
         self.is_open = False
         self.premium_at_buy = None
         self.price_at_buy = None
@@ -154,7 +154,8 @@ class ArbitrageBasic:
     def run(self):
         # print(len(self.im[Indicator.PREMIUM][-1].keys()))
         # print(len(self.pure_symbols_wo_excepted))
-        print(self.binance_future_price.price)
+        # print(self.binance_future_price.price)
+        print(self.im[Indicator.PREMIUM][-1])
         btc_premium = self.im[Indicator.PREMIUM][-1]["BTCUSDT"]
 
         for symbol in self.pure_symbols_wo_excepted:
@@ -170,3 +171,4 @@ class ArbitrageBasic:
                     price_q=self.dict_price_q[symbol],
                     future_price=self.binance_future_price.price[_symbolize_binance(symbol)],
                 )
+        print(self.tm.account)
