@@ -81,7 +81,7 @@ class SignalState:
     def premium_overshoot_min(self, **kwargs):
         premium_q = kwargs["premium_q"]
         change_rate = premium_q[-1] / (min(premium_q[0:-1]))
-        return change_rate > 1.4
+        return change_rate > 1.3
 
     def upbit_price_up(self, **kwargs):
         price_q = kwargs["price_q"]
