@@ -39,6 +39,8 @@ class TestDataLoader:
             self.upbit_ohlcv_list[symbol] = self.upbit_ohlcv[symbol].to_dict("records")
             self.binance_ohlcv_list[symbol] = self.binance_ohlcv[symbol].to_dict("records")
 
+        print("Complete Data Loading")
+
     def init_upbit_test_loader(self):
         for symbol in self.symbols:
             trade_df = self.load_trade_data(symbol, is_upbit=True)
@@ -112,7 +114,7 @@ class TestDataLoader:
         if is_upbit:
             market_path = "upbit"
         else:
-            market_path = "binance"
+            market_path = "binance_spot"
 
         trade_dataframe_list = []
         current_date = self.start_date
@@ -156,3 +158,13 @@ class TestDataLoader:
             return True
         else:
             return False
+
+    def get_counter(self):
+        td = self.end_current_time - self.current_time
+        counter = td / timedelta(milliseconds=250)
+        return int(counter)
+
+    def load_next_by_counter(self, counter):
+        for symbol in self.symbols:
+            self.upbit_trade.price[symbol] = self.upbit_ohlcv_list[symbol][counter]["close"]
+            self.binance_trade.price[symbol] = self.binance_ohlcv_list[symbol][counter]["close"]

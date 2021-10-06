@@ -6,10 +6,6 @@ from arte.indicator import IndicatorManager
 from arte.indicator import Indicator
 
 
-def _symbolize_upbit(pure_symbol):
-    return "KRW-" + pure_symbol.upper()
-
-
 def _symbolize_binance(pure_symbol, upper=False):
     bsymbol = pure_symbol.lower() + "usdt"
     if upper:
@@ -42,7 +38,7 @@ class SignalState:
                 "conditions": ["premium_decrease"],
                 "after": "sell_long",
             },
-            {"trigger": "initialize", "source": "*", "dest": "idle", "before": "print_end"},
+            {"trigger": "initialize", "source": "*", "dest": "idle"},  # , "before": "print_end"},
         ]
         m = Machine(
             model=self,
@@ -73,28 +69,28 @@ class SignalState:
     #     criteria_premium = kwargs["criteria_premium"]
     #     return premium > criteria_premium * 1.2
 
-    def premium_overshoot(self, **kwargs):
-        premium_q = kwargs["premium_q"]
-        change_rate = (premium_q[-1] - premium_q[0]) / premium_q[0]
-        return change_rate > 1.3
+    # def premium_overshoot(self, **kwargs):
+    #     premium_q = kwargs["premium_q"]
+    #     change_rate = (premium_q[-1] - premium_q[0]) / premium_q[0]
+    #     return change_rate > 1.1
 
     def premium_overshoot_min(self, **kwargs):
-        premium_q = kwargs["premium_q"]
+        premium_q = list(kwargs["premium_q"])
         change_rate = premium_q[-1] / (min(premium_q[0:-1]))
-        return change_rate > 1.1
+        return change_rate > 1.03
 
     def upbit_price_up(self, **kwargs):
         price_q = kwargs["price_q"]
-        change_rate = (price_q[-1] - price_q[0]) / price_q[0]  # price change rate in 20 sec
+        change_rate = price_q[-1] / price_q[0]  # price change rate in 20 sec
         return change_rate > 1.01
 
     def buy_long(self, **kwargs):
+        self.initialize()
         print("Passed all signals, Order Buy long")
         self.tm.buy_long_market(symbol=self.symbol, price=kwargs["future_price"], usdt=100)
         self.is_open = True
         self.premium_at_buy = kwargs["premium_q"][-1]
-        self.price_at_buy = kwargs["future_price"][self.symbol]  # temp val - it need to change to result of order
-        self.initialize()
+        self.price_at_buy = kwargs["future_price"]  # temp val - it need to change to result of order
 
     # Sell logic and ordering
     def premium_decrease(self, **kwargs):
@@ -105,12 +101,12 @@ class SignalState:
     #     return kwargs["future_price"][self.symbol] > self.price_at_buy
 
     def sell_long(self, **kwargs):
+        self.initialize()
         print("Passed all signals, Order Sell long")
         self.tm.sell_long_market(symbol=self.symbol, price=kwargs["future_price"], ratio=1)
         self.is_open = False
         self.premium_at_buy = None
         self.price_at_buy = None
-        self.initialize()
 
 
 class ArbitrageBasic:
@@ -125,7 +121,7 @@ class ArbitrageBasic:
         self.premium_threshold = 3
         self.premium_assets = []
         self.asset_signals = {}
-        self.q_maxlen = 60
+        self.q_maxlen = 240
         self.init_price_counter = 0
         self.dict_price_q = {}
         self.dict_premium_q = {}
@@ -138,15 +134,14 @@ class ArbitrageBasic:
         self.except_list = kwargs["except_list"]
         self.im.update_premium(self.upbit_price, self.binance_spot_price, self.exchange_rate)
 
-    def initialize(self, common_binance_symbols, except_list):
+    def initialize(self, common_symbols, except_list):
         self.except_list = except_list
-        self.pure_symbols_wo_excepted = []
-        for symbol in common_binance_symbols:
-            pure_symbol = symbol[:-4]
-            if pure_symbol not in self.except_list:
-                self.pure_symbols_wo_excepted.append(pure_symbol)
+        self.symbols_wo_excepted = []
+        for symbol in common_symbols:
+            if symbol not in self.except_list:
+                self.symbols_wo_excepted.append(symbol)
 
-        for symbol in self.pure_symbols_wo_excepted:
+        for symbol in self.symbols_wo_excepted:
             self.asset_signals[symbol] = SignalState(symbol=_symbolize_binance(symbol), tm=self.tm)
             self.dict_price_q[symbol] = deque(maxlen=self.q_maxlen)
             self.dict_premium_q[symbol] = deque(maxlen=self.q_maxlen)
@@ -158,19 +153,18 @@ class ArbitrageBasic:
         # print(self.upbit_price.price)
         # print(self.binance_spot_price.price)
         # print(self.im[Indicator.PREMIUM][-1])
-        btc_premium = self.im[Indicator.PREMIUM][-1]["BTCUSDT"]
+        btc_premium = self.im[Indicator.PREMIUM][-1]["BTC"]
 
-        for symbol in self.pure_symbols_wo_excepted:
-            self.dict_price_q[symbol].append(self.upbit_price.price[_symbolize_upbit(symbol)])
-            self.dict_premium_q[symbol].append(self.im[Indicator.PREMIUM][-1][_symbolize_binance(symbol, upper=True)])
+        for symbol in self.symbols_wo_excepted:
+            self.dict_price_q[symbol].append(self.upbit_price.price[symbol])
+            self.dict_premium_q[symbol].append(self.im[Indicator.PREMIUM][-1][symbol])
             self.init_price_counter += 1
 
-        if self.init_price_counter == self.q_maxlen:
-            for symbol in self.pure_symbols_wo_excepted:
+        if self.init_price_counter >= self.q_maxlen:
+            for symbol in self.symbols_wo_excepted:
                 self.asset_signals[symbol].proceed(
                     premium_q=self.dict_premium_q[symbol],
                     criteria_premium=btc_premium,
                     price_q=self.dict_price_q[symbol],
-                    future_price=self.binance_future_price.price[_symbolize_binance(symbol)],
+                    future_price=self.binance_future_price.price[symbol],
                 )
-        print(self.tm.account)

@@ -1,6 +1,8 @@
 import traceback
 import time
 
+from tqdm import tqdm
+
 from arte.data.common_symbol_collector import CommonSymbolCollector
 
 from arte.test_system.test_data_loader import TestDataLoader
@@ -11,7 +13,7 @@ from arte.strategy import ArbitrageBasic
 
 class TestMainloop:
     def __init__(self):
-        self.test_data_manager = TestDataLoader("D:\\12days\\data")
+        self.test_data_manager = TestDataLoader("C:\\Projects\\data")
         self.symbol_collector = CommonSymbolCollector()
 
         self.tm = TestTradeManager(init_usdt=1000, max_order_count=3)
@@ -39,12 +41,17 @@ class TestMainloop:
         self.test_data_manager.init_test_data_loader(symbols, start_date, end_date)
         self.strategy.initialize(symbols, self.except_list)
 
-        while 1:
-            if self.test_data_manager.load_next() == False:
-                break
+        # while 1:
+        #     if self.test_data_manager.load_next() == False:
+        #         break
+        #     self.mainloop()
+
+        for i in tqdm(range(self.test_data_manager.get_counter()), ncols=100):
+            self.test_data_manager.load_next_by_counter(i)
             self.mainloop()
 
 
 if __name__ == "__main__":
     test_main_loop = TestMainloop()
-    test_main_loop.start(["EOS", "BTC"], "2021-10-04", "2021-10-04")
+    test_main_loop.start(["EOS", "BTC"], "2021-10-01", "2021-10-04")
+

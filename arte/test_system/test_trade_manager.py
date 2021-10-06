@@ -8,15 +8,17 @@ from arte.test_system.test_account import TestAccount
 from arte.test_system.test_order_handler import TestOrderHandler
 from arte.system.order_recorder import OrderRecorder
 
+import time
+
 
 def _process_order(method):
     @wraps(method)
-    def _impl(self, *args, **kwargs):
-        args = list(args)
-        args[0] = args[0].upper()
-        if args[0] not in self.symbols_state:
-            self.symbols_state[args[0]] = self._init_symbol_state()
-        order = method(self, *args, **kwargs)
+    def _impl(self, **kwargs):
+        print(kwargs)
+        kwargs["symbol"] = kwargs["symbol"].upper()
+        if kwargs["symbol"] not in self.symbols_state:
+            self.symbols_state[kwargs["symbol"]] = self._init_symbol_state()
+        order = method(self, **kwargs)
         if order:
             self._postprocess_order(order)
         return order
@@ -95,8 +97,8 @@ class TestTradeManager:
 if __name__ == "__main__":
 
     tm = TestTradeManager(init_usdt=1000, max_order_count=3)
-    tm.buy_long_market("ethusdt", price=2783, usdt=100)
-    tm.sell_long_market("ethusdt", price=2700, ratio=0.5)
+    tm.buy_long_market(symbol="ethusdt", price=2783, usdt=100)
+    tm.sell_long_market(symbol="ethusdt", price=2700, ratio=0.5)
     # tm.buy_short_market("ethusdt", price=2783, usdt=100)
     # tm.sell_short_market("ethusdt", price=2700, ratio=1)
 
