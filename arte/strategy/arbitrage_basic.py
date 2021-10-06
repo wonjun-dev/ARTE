@@ -155,7 +155,9 @@ class ArbitrageBasic:
         # print(len(self.im[Indicator.PREMIUM][-1].keys()))
         # print(len(self.pure_symbols_wo_excepted))
         # print(self.binance_future_price.price)
-        print(self.im[Indicator.PREMIUM][-1])
+        # print(self.upbit_price.price)
+        # print(self.binance_spot_price.price)
+        # print(self.im[Indicator.PREMIUM][-1])
         btc_premium = self.im[Indicator.PREMIUM][-1]["BTCUSDT"]
 
         for symbol in self.pure_symbols_wo_excepted:

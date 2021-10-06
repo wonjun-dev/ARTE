@@ -3,12 +3,12 @@ import os
 from datetime import datetime, timedelta
 
 from arte.data.trade_manager import TradeManager
-from grouping import make_group
+from arte.test_system.grouping import make_group
 
 
 class TestDataLoader:
-    def __init__(self):
-        self.root_data_path = os.getcwd()
+    def __init__(self, root_data_path):
+        self.root_data_path = root_data_path
         self.upbit_ohlcv = dict()
         self.binance_ohlcv = dict()
 
@@ -22,8 +22,11 @@ class TestDataLoader:
         self.end_date = datetime.strptime(end_date, "%Y-%m-%d")
         self.freq = freq
 
-        self.upbit_trade = TradeManager(symbols=self.symbols)
-        self.binance_trade = TradeManager(symbols=self.symbols)
+        self.upbit_symbols = ["KRW-" + symbol for symbol in symbols]
+        self.binance_symbols = [symbol + "USDT" for symbol in symbols]
+
+        self.upbit_trade = TradeManager(symbols=self.upbit_symbols)
+        self.binance_trade = TradeManager(symbols=self.binance_symbols)
 
         self.init_upbit_test_loader()
         self.init_binance_test_loader()
@@ -145,8 +148,8 @@ class TestDataLoader:
         if self.current_time < self.end_current_time:
             for symbol in self.symbols:
 
-                self.upbit_trade.price[symbol.upper()] = self.upbit_ohlcv_list[symbol][self.count]["close"]
-                self.binance_trade.price[symbol.upper()] = self.binance_ohlcv_list[symbol][self.count]["close"]
+                self.upbit_trade.price["KRW-" + symbol.upper()] = self.upbit_ohlcv_list[symbol][self.count]["close"]
+                self.binance_trade.price[symbol.upper() + "USDT"] = self.binance_ohlcv_list[symbol][self.count]["close"]
 
             self.count += 1
             self.current_time += timedelta(milliseconds=250)
