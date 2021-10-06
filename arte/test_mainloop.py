@@ -17,13 +17,12 @@ class TestMainloop:
         self.tm = TestTradeManager(init_usdt=1000, max_order_count=3)
         self.strategy = ArbitrageBasic(trade_manager=self.tm)
 
-        # self.upbit_symbols, self.binance_symbols = self.symbol_collector.get_future_symbol()
+        # self.common_symbols = self.symbol_collector.get_future_symbol()
         self.except_list = []
         self.exchange_rate = 1188.7
 
     def mainloop(self):
         try:
-            # print(self.test_data_manager.current_time)
             self.strategy.update(
                 upbit_price=self.test_data_manager.upbit_trade,
                 binance_spot_price=self.test_data_manager.binance_trade,
@@ -38,15 +37,12 @@ class TestMainloop:
 
     def start(self, symbols, start_date, end_date):
         self.test_data_manager.init_test_data_loader(symbols, start_date, end_date)
-        usdt_symbol = [symbol + "USDT" for symbol in symbols]
-        self.strategy.initialize(usdt_symbol, self.except_list)
+        self.strategy.initialize(symbols, self.except_list)
 
-        cur_t = time.time()
         while 1:
             if self.test_data_manager.load_next() == False:
                 break
             self.mainloop()
-        print(time.time() - cur_t)
 
 
 if __name__ == "__main__":

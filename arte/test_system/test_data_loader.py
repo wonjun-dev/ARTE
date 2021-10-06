@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from datetime import datetime, timedelta
 
-from arte.data.trade_manager import TradeManager
+from arte.data.trade_parser import TradeParser
 from arte.test_system.grouping import make_group
 
 
@@ -17,16 +17,16 @@ class TestDataLoader:
 
     def init_test_data_loader(self, symbols, start_date, end_date, freq="250ms"):
 
-        self.symbols = [symbol.lower() for symbol in symbols]
+        self.symbols = [symbol.upper() for symbol in symbols]
         self.start_date = datetime.strptime(start_date, "%Y-%m-%d")
         self.end_date = datetime.strptime(end_date, "%Y-%m-%d")
         self.freq = freq
 
-        self.upbit_symbols = ["KRW-" + symbol for symbol in symbols]
-        self.binance_symbols = [symbol + "USDT" for symbol in symbols]
+        # self.upbit_symbols = ["KRW-" + symbol for symbol in symbols]
+        # self.binance_symbols = [symbol + "USDT" for symbol in symbols]
 
-        self.upbit_trade = TradeManager(symbols=self.upbit_symbols)
-        self.binance_trade = TradeManager(symbols=self.binance_symbols)
+        self.upbit_trade = TradeParser(symbols=self.symbols)
+        self.binance_trade = TradeParser(symbols=self.symbols)
 
         self.init_upbit_test_loader()
         self.init_binance_test_loader()
@@ -121,8 +121,8 @@ class TestDataLoader:
             file_path = os.path.join(
                 self.root_data_path,
                 market_path,
-                symbol.upper(),
-                f"{symbol.upper()}-"
+                symbol,
+                f"{symbol}-"
                 + "{0:04d}-{1:02d}-{2:02d}.csv".format(current_date.year, current_date.month, current_date.day),
             )
 
@@ -148,8 +148,8 @@ class TestDataLoader:
         if self.current_time < self.end_current_time:
             for symbol in self.symbols:
 
-                self.upbit_trade.price["KRW-" + symbol.upper()] = self.upbit_ohlcv_list[symbol][self.count]["close"]
-                self.binance_trade.price[symbol.upper() + "USDT"] = self.binance_ohlcv_list[symbol][self.count]["close"]
+                self.upbit_trade.price[symbol] = self.upbit_ohlcv_list[symbol][self.count]["close"]
+                self.binance_trade.price[symbol] = self.binance_ohlcv_list[symbol][self.count]["close"]
 
             self.count += 1
             self.current_time += timedelta(milliseconds=250)
