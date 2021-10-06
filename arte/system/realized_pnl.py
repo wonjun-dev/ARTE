@@ -133,4 +133,12 @@ class RealizedPnl:
 
     def close_position(self, symbol: str):
         # reset when all position closed
-        del self.pnl_dict[symbol]
+        self.pnl_dict[symbol]["position_side"] = None
+        self.pnl_dict[symbol]["avg_price"] = 0
+        self.pnl_dict[symbol]["quantity"] = 0
+        self.pnl_dict[symbol]["realized_pnl"] = 0
+        self.pnl_dict[symbol]["realized_pnl_rate"] = 0
+        self.pnl_dict[symbol]["winrate_pnl"] = 0
+        self.pnl_dict[symbol]["real_profit"] = 0
+        self.pnl_dict[symbol]["real_profit_rate"] = 0
+        self.pnl_dict[symbol]["winrate_profit"] = 0
