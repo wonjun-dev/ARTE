@@ -33,7 +33,7 @@ class ArbiTrader:
         # Init required data
         self.except_list = self.request_data_manager.get_closed_symbols()
         self.exchange_rate = self.request_data_manager.get_usdt_to_kor()
-        self.upbit_symbols, self.binance_symbols = self.symbol_collector.get_future_symbol()
+        self.common_symbols = self.symbol_collector.get_future_symbol()
 
     def mainloop(self):
         try:
@@ -50,11 +50,11 @@ class ArbiTrader:
             traceback.print_exc()
 
     def start(self, watch_interval: float = 1.0):
-        self.socket_data_manager.open_upbit_trade_socket(symbols=self.upbit_symbols)
-        self.socket_data_manager.open_binanace_spot_trade_socket(symbols=self.binance_symbols)
-        self.socket_data_manager.open_binanace_future_trade_socket(symbols=self.binance_symbols)
+        self.socket_data_manager.open_upbit_trade_socket(symbols=self.common_symbols)
+        self.socket_data_manager.open_binanace_spot_trade_socket(symbols=self.common_symbols)
+        self.socket_data_manager.open_binanace_future_trade_socket(symbols=self.common_symbols)
 
-        self.strategy.initialize(self.binance_symbols, self.except_list)
+        self.strategy.initialize(self.common_symbols, self.except_list)
 
         self.scheduler.add_job(self.mainloop, "interval", seconds=watch_interval)
         self.scheduler.add_job(self.get_exchange_rate, "cron", minute="0")

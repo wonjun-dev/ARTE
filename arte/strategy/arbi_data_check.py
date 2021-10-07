@@ -12,6 +12,7 @@ class ArbitrageDataChecker:
     """
 
     def __init__(self, trade_manager):
+        self.tm = trade_manager
         self.im = IndicatorManager(indicators=[Indicator.PREMIUM])
         logging.basicConfig(filename=os.path.join("..", "btc_log.log"))
         self.mylogger = logging.getLogger("DataChecker")

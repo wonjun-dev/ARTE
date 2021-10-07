@@ -1,10 +1,11 @@
+import binance
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
 from binance import Client
 
-from arte.data.candlestick_manager import CandlestickManager
-from arte.data.ticker_manager import TickerManager
-from arte.data.trade_manager import TradeManager
+from arte.data.candlestick_parser import CandlestickParser
+from arte.data.ticker_parser import TickerParser
+from arte.data.trade_parser import TradeParser
 
 import datetime
 
@@ -16,11 +17,14 @@ class SocketDataManager:
     def unsubscribe_all(self):
         self.client.sub_client.unsubscribe_all()
 
-    def open_candlestick_socket(self, symbol: str = "btcusdt", maxlen: int = 21, interval: str = "1m"):
-        self.candlestick = CandlestickManager(maxlen=maxlen)
+    def open_candlestick_socket(self, symbol: str = "BTC", maxlen: int = 21, interval: str = "1m"):
+        self.candlestick = CandlestickParser(maxlen=maxlen)
+        binance_symbol = symbol.lower() + "usdt"
 
         # 소켓을 열기 이전의 candlestick 데이터를 받아 저장
-        init_candle = self.client.request_client.get_candlestick_data(symbol=symbol, limit=maxlen, interval=interval)
+        init_candle = self.client.request_client.get_candlestick_data(
+            symbol=binance_symbol, limit=maxlen, interval=interval
+        )
         self.candlestick.init_candlestick(init_candle)
 
         def callback(data_type: "SubscribeMessageType", event: "any"):
@@ -40,14 +44,15 @@ class SocketDataManager:
 
         # candlestick 데이터를 받는 socket 열기
         self.client.sub_client.subscribe_candlestick_event(
-            symbol=symbol, interval=interval, callback=callback, error_handler=error
+            symbol=binance_symbol, interval=interval, callback=callback, error_handler=error
         )
 
     def open_upbit_trade_socket(self, symbols):
-        self.upbit_trade = TradeManager(symbols=symbols)
+        self.upbit_trade = TradeParser(symbols=symbols)
+        upbit_symbol = ["KRW-" + symbol for symbol in symbols]
 
         def callback(event):
-            self.upbit_trade.update_trade(event)
+            self.upbit_trade.update_trade_upbit(event)
             # print(self.upbit_trade.price)
 
         def error(e: "BinanceApiException"):
@@ -56,13 +61,14 @@ class SocketDataManager:
             """
             print(e.error_code + e.error_message)
 
-        self.client.sub_client.subscribe_upbit_trade_event(symbols=symbols, callback=callback, error_handler=error)
+        self.client.sub_client.subscribe_upbit_trade_event(symbols=upbit_symbol, callback=callback, error_handler=error)
 
     def open_upbit_ticker_socket(self, symbols):
-        self.upbit_ticker = TickerManager(symbols=symbols)
+        self.upbit_ticker = TickerParser(symbols=symbols)
+        upbit_symbol = ["KRW-" + symbol for symbol in symbols]
 
         def callback(event):
-            self.upbit_ticker.update_ticker(event)
+            self.upbit_ticker.update_ticker_upbit(event)
             # print(self.upbit_ticker.price)
 
         def error(e: "BinanceApiException"):
@@ -71,11 +77,14 @@ class SocketDataManager:
             """
             print(e.error_code + e.error_message)
 
-        self.client.sub_client.subscribe_upbit_ticker_event(symbols=symbols, callback=callback, error_handler=error)
+        self.client.sub_client.subscribe_upbit_ticker_event(
+            symbols=upbit_symbol, callback=callback, error_handler=error
+        )
 
     def open_binanace_spot_trade_socket(self, symbols):
-        symbols = [symbol.lower() for symbol in symbols]
-        self.binance_spot_trade = TradeManager(symbols=symbols)
+        # symbols = [symbol.lower() for symbol in symbols]
+        self.binance_spot_trade = TradeParser(symbols=symbols)
+        binance_symbol = [symbol.lower() + "usdt" for symbol in symbols]
 
         spot_client = Client()
         init_spot_trade = spot_client.get_all_tickers()
@@ -88,7 +97,7 @@ class SocketDataManager:
             if data_type == SubscribeMessageType.RESPONSE:
                 print("Event ID: ", event)
             elif data_type == SubscribeMessageType.PAYLOAD:
-                self.binance_spot_trade.update_trade(event)
+                self.binance_spot_trade.update_trade_binance(event)
                 # print(f"{self.binance_spot_trade.price}",)
             else:
                 print("Unknown Data:")
@@ -100,12 +109,13 @@ class SocketDataManager:
             print(e.error_code + e.error_message)
 
         self.client.sub_client.subscribe_spot_multi_aggregate_trade_event(
-            symbols=symbols, callback=callback, error_handler=error
+            symbols=binance_symbol, callback=callback, error_handler=error
         )
 
     def open_binanace_spot_ticker_socket(self, symbols):
-        symbols = [symbol.lower() for symbol in symbols]
-        self.binance_spot_ticker = TickerManager(symbols=symbols)
+        # symbols = [symbol.lower() for symbol in symbols]
+        self.binance_spot_ticker = TickerParser(symbols=symbols)
+        binance_symbol = [symbol.lower() + "usdt" for symbol in symbols]
 
         def callback(data_type: "SubscribeMessageType", event: "any"):
             """
@@ -114,7 +124,7 @@ class SocketDataManager:
             if data_type == SubscribeMessageType.RESPONSE:
                 print("Event ID: ", event)
             elif data_type == SubscribeMessageType.PAYLOAD:
-                self.binance_spot_ticker.update_ticker(event)
+                self.binance_spot_ticker.update_ticker_binance(event)
                 # print(self.binance_spot_ticker.price)
             else:
                 print("Unknown Data:")
@@ -126,12 +136,13 @@ class SocketDataManager:
             print(e.error_code + e.error_message)
 
         self.client.sub_client.subscribe_spot_multi_ticker_event(
-            symbols=symbols, callback=callback, error_handler=error
+            symbols=binance_symbol, callback=callback, error_handler=error
         )
 
     def open_binanace_future_trade_socket(self, symbols):
-        symbols = [symbol.lower() for symbol in symbols]
-        self.binance_future_trade = TradeManager(symbols=symbols)
+        # symbols = [symbol.lower() for symbol in symbols]
+        self.binance_future_trade = TradeParser(symbols=symbols)
+        binance_symbol = [symbol.lower() + "usdt" for symbol in symbols]
 
         init_mark_prices = self.client.request_client.get_all_mark_price()
         self.binance_future_trade.init_trade(init_mark_prices)
@@ -143,7 +154,7 @@ class SocketDataManager:
             if data_type == SubscribeMessageType.RESPONSE:
                 print("Event ID: ", event)
             elif data_type == SubscribeMessageType.PAYLOAD:
-                self.binance_future_trade.update_trade(event)
+                self.binance_future_trade.update_trade_binance(event)
                 # print(self.binance_future_trade.price)
 
             else:
@@ -156,5 +167,5 @@ class SocketDataManager:
             print(e.error_code + e.error_message)
 
         self.client.sub_client.subscribe_future_multi_aggregate_trade_event(
-            symbols=symbols, callback=callback, error_handler=error
+            symbols=binance_symbol, callback=callback, error_handler=error
         )

@@ -1,7 +1,7 @@
 from collections import deque
 
 
-class CandlestickManager:
+class CandlestickParser:
     """
     Class CandlestickManager
         Candlestick data를 관리하는 함수. 각 data들을 deque로 관리함
@@ -45,12 +45,8 @@ class CandlestickManager:
             self.numTrades.append(float(init_candle[index_candlestick].numTrades))
             self.quoteAssetVolume.append(float(init_candle[index_candlestick].quoteAssetVolume))
             self.ignore.append(float(init_candle[index_candlestick].ignore))
-            self.takerBuyBaseAssetVolume.append(
-                float(init_candle[index_candlestick].takerBuyBaseAssetVolume)
-            )
-            self.takerBuyQuoteAssetVolume.append(
-                float(init_candle[index_candlestick].takerBuyQuoteAssetVolume)
-            )
+            self.takerBuyBaseAssetVolume.append(float(init_candle[index_candlestick].takerBuyBaseAssetVolume))
+            self.takerBuyQuoteAssetVolume.append(float(init_candle[index_candlestick].takerBuyQuoteAssetVolume))
             self.candle_closed = False
 
     def update_candlestick(self, event):

@@ -1,4 +1,4 @@
-class TickerManager:
+class TickerParser:
     def __init__(self, symbols):
 
         # self.event_time = dict()
@@ -6,15 +6,15 @@ class TickerManager:
         # self.change_price_percent = dict()
         self.price = dict()
         for symbol in symbols:
-            self.price[symbol.upper()] = None
+            self.price[symbol] = None
         # self.trade_quantity = dict()
         # self.open = dict()
         # self.high = dict()
         # self.low = dict()
         # self.volume = dict()
 
-    def update_ticker(self, event):
-        symbol = event.symbol
+    def update_ticker_upbit(self, event):
+        symbol = event.symbol[4:]
         self.price[symbol] = event.lastPrice
         # self.event_time[symbol] = msg["timestamp"]
         # self.change_price[symbol] = msg["signed_change_price"]
@@ -25,3 +25,7 @@ class TickerManager:
         # self.high[symbol] = msg["high_price"]
         # self.low[symbol] = msg["low_price"]
         # self.volume[symbol] = msg["acc_trade_volume"]
+
+    def update_ticker_binance(self, event):
+        symbol = event.symbol[:-4]
+        self.price[symbol] = event.lastPrice
