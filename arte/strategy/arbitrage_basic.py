@@ -5,6 +5,8 @@ from transitions import Machine
 from arte.indicator import IndicatorManager
 from arte.indicator import Indicator
 
+from arte.system.utils import Timer
+
 
 def _symbolize_binance(pure_symbol, upper=False):
     bsymbol = pure_symbol.lower() + "usdt"
@@ -38,6 +40,13 @@ class SignalState:
                 "conditions": ["premium_decrease"],
                 "after": "sell_long",
             },
+            {
+                "trigger": "proceed",
+                "source": "sell_state",
+                "dest": "sell_order_state",
+                "conditions": ["check_timeup"],
+                "after": "sell_long",
+            },
             {"trigger": "initialize", "source": "*", "dest": "idle"},  # , "before": "print_end"},
         ]
         m = Machine(
@@ -51,6 +60,7 @@ class SignalState:
         self.is_open = False
         self.premium_at_buy = None
         self.price_at_buy = None
+        self.timer = Timer()
 
     def print_end(self, **kwargs):
         print(f"From {self.state} go back to Idle state.")
@@ -69,11 +79,6 @@ class SignalState:
     #     criteria_premium = kwargs["criteria_premium"]
     #     return premium > criteria_premium * 1.2
 
-    # def premium_overshoot(self, **kwargs):
-    #     premium_q = kwargs["premium_q"]
-    #     change_rate = (premium_q[-1] - premium_q[0]) / premium_q[0]
-    #     return change_rate > 1.1
-
     def premium_overshoot_min(self, **kwargs):
         premium_q = list(kwargs["premium_q"])
         change_rate = premium_q[-1] / (min(premium_q[0:-1]))
@@ -91,11 +96,15 @@ class SignalState:
         self.is_open = True
         self.premium_at_buy = kwargs["premium_q"][-1]
         self.price_at_buy = kwargs["future_price"]  # temp val - it need to change to result of order
+        self.timer.start(kwargs["current_time"], "300s")
 
     # Sell logic and ordering
     def premium_decrease(self, **kwargs):
         premium_q = kwargs["premium_q"]
         return premium_q[-1] < (self.premium_at_buy * 0.9)
+
+    def check_timeup(self, **kwargs):
+        return self.timer.check_timeup(kwargs["current_time"])
 
     # def high_price(self, **kwargs):
     #     return kwargs["future_price"][self.symbol] > self.price_at_buy
@@ -168,4 +177,5 @@ class ArbitrageBasic:
                     criteria_premium=btc_premium,
                     price_q=self.dict_price_q[symbol],
                     future_price=self.binance_future_price.price[symbol],
+                    current_time=self.current_time,
                 )

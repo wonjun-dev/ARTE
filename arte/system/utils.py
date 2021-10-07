@@ -9,5 +9,5 @@ class Timer:
         self.start_time = start_time
         self.finish_time = self.start_time + pd.Timedelta(target_interval)
 
-    def check_finish(self, current_time):
+    def check_timeup(self, current_time):
         return True if current_time >= self.finish_time else False

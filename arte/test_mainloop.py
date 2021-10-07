@@ -31,6 +31,7 @@ class TestMainloop:
                 binance_future_price=self.test_data_manager.binance_trade,
                 exchange_rate=self.exchange_rate,
                 except_list=self.except_list,
+                current_time=self.test_data_manager.current_time,
             )
             self.strategy.run()
 
@@ -53,5 +54,5 @@ class TestMainloop:
 
 if __name__ == "__main__":
     test_main_loop = TestMainloop()
-    test_main_loop.start(["EOS", "BTC", "ETH"], "2021-09-24", "2021-10-04")
+    test_main_loop.start(["EOS", "BTC", "ETH"], "2021-10-01", "2021-10-04")
 
