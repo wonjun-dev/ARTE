@@ -38,6 +38,8 @@ class TestDataLoader:
             self.upbit_ohlcv_list[symbol] = self.upbit_ohlcv[symbol].to_dict("records")
             self.binance_ohlcv_list[symbol] = self.binance_ohlcv[symbol].to_dict("records")
 
+        self.exchange_rate_df = pd.read_csv(os.path.join(self.root_data_path, "market_index.csv"), index_col=0)
+        # self.exchange_rate = float(self.exchange_rate_df.loc[start_date].value)
         print("Complete Data Loading")
 
     def init_upbit_test_loader(self):
@@ -62,7 +64,8 @@ class TestDataLoader:
         temp_upbit_ohlcv["trade_num"] = gp["trade_num"].sum()
 
         temp_upbit_ohlcv.fillna(
-            dict.fromkeys(temp_upbit_ohlcv.columns.tolist(), temp_upbit_ohlcv.close.ffill()), inplace=True,
+            dict.fromkeys(temp_upbit_ohlcv.columns.tolist(), temp_upbit_ohlcv.close.ffill()),
+            inplace=True,
         )
 
         start_stamp = pd.to_datetime(current_date)
@@ -106,7 +109,8 @@ class TestDataLoader:
         temp_binance_ohlcv["trade_num"] = gp["trade_num"].sum()
 
         temp_binance_ohlcv.fillna(
-            dict.fromkeys(temp_binance_ohlcv.columns.tolist(), temp_binance_ohlcv.close.ffill()), inplace=True,
+            dict.fromkeys(temp_binance_ohlcv.columns.tolist(), temp_binance_ohlcv.close.ffill()),
+            inplace=True,
         )
 
         start_stamp = pd.to_datetime(current_date)
@@ -154,7 +158,7 @@ class TestDataLoader:
         return output_df
 
     def load_next(self):
-
+        self.load_exchange_rate()
         if self.current_time < self.end_current_time:
             for symbol in self.symbols:
 
@@ -173,6 +177,17 @@ class TestDataLoader:
         return int(counter)
 
     def load_next_by_counter(self, counter):
+        self.load_exchange_rate()
         for symbol in self.symbols:
             self.upbit_trade.price[symbol] = self.upbit_ohlcv_list[symbol][counter]["close"]
             self.binance_trade.price[symbol] = self.binance_ohlcv_list[symbol][counter]["close"]
+
+        self.current_time += timedelta(milliseconds=self.ohlcv_interval)
+
+    def load_exchange_rate(self):
+        temp_time = self.current_time
+
+        if temp_time.hour + temp_time.minute + temp_time.second + temp_time.microsecond == 0:
+            while temp_time.strftime("%Y-%m-%d") not in self.exchange_rate_df.index:
+                temp_time -= timedelta(days=1)
+            self.exchange_rate = float(self.exchange_rate_df.loc[temp_time.strftime("%Y-%m-%d")].value.replace(",", ""))
