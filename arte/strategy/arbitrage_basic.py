@@ -121,7 +121,7 @@ class ArbitrageBasic:
         self.premium_threshold = 3
         self.premium_assets = []
         self.asset_signals = {}
-        self.q_maxlen = 240
+        self.q_maxlen = 60
         self.init_price_counter = 0
         self.dict_price_q = {}
         self.dict_premium_q = {}

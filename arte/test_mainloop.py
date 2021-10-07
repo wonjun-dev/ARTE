@@ -38,7 +38,7 @@ class TestMainloop:
             traceback.print_exc()
 
     def start(self, symbols, start_date, end_date):
-        self.test_data_manager.init_test_data_loader(symbols, start_date, end_date)
+        self.test_data_manager.init_test_data_loader(symbols, start_date, end_date, ohlcv_interval=1000)
         self.strategy.initialize(symbols, self.except_list)
 
         # while 1:
@@ -53,5 +53,5 @@ class TestMainloop:
 
 if __name__ == "__main__":
     test_main_loop = TestMainloop()
-    test_main_loop.start(["EOS", "BTC"], "2021-10-01", "2021-10-04")
+    test_main_loop.start(["EOS", "BTC", "ETH"], "2021-09-24", "2021-10-04")
 

@@ -34,7 +34,7 @@ class TestDataLoader:
         self.end_current_time = pd.to_datetime(end_date) + timedelta(days=1)
         self.count = 0
 
-        for symbol in tqdm(self.symbols):
+        for symbol in tqdm(self.symbols, ncols=100):
             self.upbit_ohlcv_list[symbol] = self.upbit_ohlcv[symbol].to_dict("records")
             self.binance_ohlcv_list[symbol] = self.binance_ohlcv[symbol].to_dict("records")
 
@@ -42,7 +42,7 @@ class TestDataLoader:
 
     def init_upbit_test_loader(self):
 
-        for symbol in tqdm(self.symbols):
+        for symbol in tqdm(self.symbols, ncols=100):
             ohlcv_list = []
 
             current_date = self.start_date
@@ -62,8 +62,7 @@ class TestDataLoader:
         temp_upbit_ohlcv["trade_num"] = gp["trade_num"].sum()
 
         temp_upbit_ohlcv.fillna(
-            dict.fromkeys(temp_upbit_ohlcv.columns.tolist(), temp_upbit_ohlcv.close.ffill()),
-            inplace=True,
+            dict.fromkeys(temp_upbit_ohlcv.columns.tolist(), temp_upbit_ohlcv.close.ffill()), inplace=True,
         )
 
         start_stamp = pd.to_datetime(current_date)
@@ -87,7 +86,7 @@ class TestDataLoader:
         return temp_upbit_ohlcv
 
     def init_binance_test_loader(self):
-        for symbol in tqdm(self.symbols):
+        for symbol in tqdm(self.symbols, ncols=100):
             ohlcv_list = []
 
             current_date = self.start_date
@@ -107,8 +106,7 @@ class TestDataLoader:
         temp_binance_ohlcv["trade_num"] = gp["trade_num"].sum()
 
         temp_binance_ohlcv.fillna(
-            dict.fromkeys(temp_binance_ohlcv.columns.tolist(), temp_binance_ohlcv.close.ffill()),
-            inplace=True,
+            dict.fromkeys(temp_binance_ohlcv.columns.tolist(), temp_binance_ohlcv.close.ffill()), inplace=True,
         )
 
         start_stamp = pd.to_datetime(current_date)
