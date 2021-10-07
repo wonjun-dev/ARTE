@@ -39,7 +39,7 @@ class TestDataLoader:
             self.binance_ohlcv_list[symbol] = self.binance_ohlcv[symbol].to_dict("records")
 
         self.exchange_rate_df = pd.read_csv(os.path.join(self.root_data_path, "market_index.csv"), index_col=0)
-        # self.exchange_rate = float(self.exchange_rate_df.loc[start_date].value)
+        self.load_exchange_rate()
         print("Complete Data Loading")
 
     def init_upbit_test_loader(self):
