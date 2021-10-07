@@ -132,6 +132,7 @@ class ArbitrageBasic:
         self.binance_future_price = kwargs["binance_future_price"]
         self.exchange_rate = kwargs["exchange_rate"]
         self.except_list = kwargs["except_list"]
+        self.current_time = kwargs["current_time"]
         self.im.update_premium(self.upbit_price, self.binance_spot_price, self.exchange_rate)
 
     def initialize(self, common_symbols, except_list):

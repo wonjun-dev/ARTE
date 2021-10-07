@@ -176,3 +176,4 @@ class TestDataLoader:
         for symbol in self.symbols:
             self.upbit_trade.price[symbol] = self.upbit_ohlcv_list[symbol][counter]["close"]
             self.binance_trade.price[symbol] = self.binance_ohlcv_list[symbol][counter]["close"]
+        self.current_time += timedelta(milliseconds=self.ohlcv_interval)
