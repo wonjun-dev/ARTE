@@ -96,7 +96,7 @@ class SignalState:
         self.is_open = True
         self.premium_at_buy = kwargs["premium_q"][-1]
         self.price_at_buy = kwargs["future_price"]  # temp val - it need to change to result of order
-        self.timer.start(kwargs["current_time"], "300s")
+        self.timer.start(kwargs["current_time"], "600s")
 
     # Sell logic and ordering
     def premium_decrease(self, **kwargs):

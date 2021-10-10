@@ -16,12 +16,11 @@ class TestMainloop:
         self.test_data_manager = TestDataLoader("C:\\Projects\\data")
         self.symbol_collector = CommonSymbolCollector()
 
-        self.tm = TestTradeManager(init_usdt=1000, max_order_count=3)
+        self.tm = TestTradeManager(init_usdt=400, max_order_count=3)
         self.strategy = ArbitrageBasic(trade_manager=self.tm)
 
         # self.common_symbols = self.symbol_collector.get_future_symbol()
         self.except_list = []
-        self.exchange_rate = 1188.7
 
     def mainloop(self):
         try:
@@ -29,7 +28,7 @@ class TestMainloop:
                 upbit_price=self.test_data_manager.upbit_trade,
                 binance_spot_price=self.test_data_manager.binance_trade,
                 binance_future_price=self.test_data_manager.binance_trade,
-                exchange_rate=self.exchange_rate,
+                exchange_rate=self.test_data_manager.exchange_rate,
                 except_list=self.except_list,
                 current_time=self.test_data_manager.current_time,
             )

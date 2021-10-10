@@ -1,0 +1,68 @@
+aiohttp==3.7.4.post0
+appdirs==1.4.4
+APScheduler==3.6.3
+-e git+https://github.com/wonjun-dev/arte.git@94430d6b513fc3c51c1626a3bc67a36e7ad51e4a#egg=arte
+async-timeout==3.0.1
+attrs @ file:///tmp/build/80754af9/attrs_1620827162558/work
+black==19.10b0
+bravado==11.0.3
+bravado-core==5.17.0
+cachetools==4.2.2
+certifi==2021.5.30
+cffi==1.14.6
+chardet==4.0.0
+charset-normalizer==2.0.4
+click @ file:///tmp/build/80754af9/click_1621604852318/work
+colorama==0.4.4
+dateparser==1.0.0
+gevent==21.8.0
+greenlet==1.1.1
+grequests==0.6.0
+idna==3.2
+importlib-metadata @ file:///C:/ci/importlib-metadata_1617877477759/work
+jsonpointer==2.1
+jsonref==0.2
+jsonschema==3.2.0
+monotonic==1.6
+msgpack==1.0.2
+multidict==5.1.0
+mypy-extensions==0.4.3
+numpy @ file:///D:/bld/numpy_1629092210914/work
+pandas==1.3.2
+pathspec==0.7.0
+pycparser==2.20
+PyJWT==2.1.0
+pyrsistent==0.18.0
+python-binance==1.0.12
+python-dateutil==2.8.2
+python-telegram-bot==13.7
+pytz==2021.1
+pyupbit==0.2.19
+PyYAML==5.4.1
+regex @ file:///C:/ci/regex_1628063427816/work
+requests==2.26.0
+rfc3987==1.3.8
+simplejson==3.17.5
+six==1.16.0
+strict-rfc3339==0.7
+swagger-spec-validator==2.7.3
+TA-Lib @ file:///D:/bld/ta-lib_1618425611257/work
+toml @ file:///tmp/build/80754af9/toml_1616166611790/work
+tornado==6.1
+tqdm==4.62.3
+transitions==0.8.9
+typed-ast @ file:///C:/ci/typed-ast_1624953797214/work
+typing-extensions @ file:///tmp/build/80754af9/typing_extensions_1624965014186/work
+tzdata==2021.1
+tzlocal==2.1
+ujson==4.1.0
+upbit-client==1.2.0.4
+urllib3==1.26.6
+webcolors==1.11.1
+websocket-client==1.2.1
+websockets==9.1
+wincertstore==0.2
+yarl==1.6.3
+zipp @ file:///tmp/build/80754af9/zipp_1625570634446/work
+zope.event==4.5.0
+zope.interface==5.4.0
