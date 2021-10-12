@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from arte.data.common_symbol_collector import CommonSymbolCollector
 
-from arte.test_system.test_data_loader import TestDataLoader
+from arte.data.test_data_loader import TestDataLoader
 from arte.test_system.test_trade_manager import TestTradeManager
 
 from arte.strategy import ArbitrageBasic
@@ -53,4 +53,3 @@ class TestMainloop:
 if __name__ == "__main__":
     test_main_loop = TestMainloop()
     test_main_loop.start(["EOS", "BTC", "ETH"], "2021-10-01", "2021-10-04")
-
