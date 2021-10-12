@@ -28,6 +28,7 @@ class ArbiTrader:
             self.bot.trader = self
 
         self.tm = TradeManager(client=self.client)
+        self.tm.environment = self
         self.strategy = ArbitrageBasic(trade_manager=self.tm)
 
         # Init required data

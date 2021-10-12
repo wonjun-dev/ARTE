@@ -92,7 +92,7 @@ class SignalState:
     def buy_long(self, **kwargs):
         self.initialize()
         print("Passed all signals, Order Buy long")
-        self.tm.buy_long_market(symbol=self.symbol, price=kwargs["future_price"], usdt=100)
+        self.tm.buy_long_market(symbol=self.symbol, usdt=100)
         self.is_open = True
         self.premium_at_buy = kwargs["premium_q"][-1]
         self.price_at_buy = kwargs["future_price"]  # temp val - it need to change to result of order
@@ -112,7 +112,7 @@ class SignalState:
     def sell_long(self, **kwargs):
         self.initialize()
         print("Passed all signals, Order Sell long")
-        self.tm.sell_long_market(symbol=self.symbol, price=kwargs["future_price"], ratio=1)
+        self.tm.sell_long_market(symbol=self.symbol, ratio=1)
         self.is_open = False
         self.premium_at_buy = None
         self.price_at_buy = None

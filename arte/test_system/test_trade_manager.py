@@ -31,7 +31,10 @@ class TestTradeManager:
         self.account = TestAccount(init_balance=init_usdt)
         self.order_handler = TestOrderHandler(self.account)
         self.order_recorder = OrderRecorder()
+
+        # Updating Backtest Environment
         self.test_current_time = None
+        self.future_prices = None
 
         self.bot = None
         if "bot" in kwargs:
@@ -46,22 +49,26 @@ class TestTradeManager:
         return dict(order_count=0, positionSize=0, positionSide=PositionSide.INVALID)
 
     @_process_order
-    def buy_long_market(self, symbol, price, usdt=None, ratio=None):
+    def buy_long_market(self, symbol, usdt=None, ratio=None):
         if self.symbols_state[symbol]["order_count"] < self.max_order_count:
-            return self.order_handler.open_long_market(symbol=symbol, price=price, usdt=usdt, ratio=ratio)
+            return self.order_handler.open_long_market(
+                symbol=symbol, price=self.future_prices[symbol[:-4]], usdt=usdt, ratio=ratio
+            )
 
     @_process_order
-    def buy_short_market(self, symbol, price, usdt=None, ratio=None):
+    def buy_short_market(self, symbol, usdt=None, ratio=None):
         if self.symbols_state[symbol]["order_count"] < self.max_order_count:
-            return self.order_handler.open_short_market(symbol=symbol, price=price, usdt=usdt, ratio=ratio)
+            return self.order_handler.open_short_market(
+                symbol=symbol, price=self.future_prices[symbol[:-4]], usdt=usdt, ratio=ratio
+            )
 
     @_process_order
-    def sell_long_market(self, symbol, price, ratio):
-        return self.order_handler.close_long_market(symbol=symbol, price=price, ratio=ratio)
+    def sell_long_market(self, symbol, ratio):
+        return self.order_handler.close_long_market(symbol=symbol, price=self.future_prices[symbol[:-4]], ratio=ratio)
 
     @_process_order
-    def sell_short_market(self, symbol, price, ratio):
-        return self.order_handler.close_short_market(symbol=symbol, price=price, ratio=ratio)
+    def sell_short_market(self, symbol, ratio):
+        return self.order_handler.close_short_market(symbol=symbol, price=self.future_prices[symbol[:-4]], ratio=ratio)
 
     def _postprocess_order(self, order):
         symbol = order.symbol
@@ -98,6 +105,10 @@ class TestTradeManager:
             return "SELL"
         else:
             raise ValueError("Cannot check order is buy or sell")
+
+    def update(self, test_current_time, future_prices):
+        self.test_current_time = test_current_time
+        self.future_prices = future_prices
 
 
 if __name__ == "__main__":
