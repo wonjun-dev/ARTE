@@ -4,7 +4,7 @@ from tqdm import tqdm
 from datetime import datetime, timedelta
 
 from arte.data.trade_parser import TradeParser
-from arte.test_system.grouping import make_group
+from arte.system.utils import Grouping
 
 
 class TestDataLoader:
@@ -15,6 +15,8 @@ class TestDataLoader:
 
         self.upbit_ohlcv_list = dict()
         self.binance_ohlcv_list = dict()
+
+        self.grouping = Grouping()
 
     def init_test_data_loader(self, symbols, start_date, end_date, ohlcv_interval=250):
 
@@ -58,7 +60,7 @@ class TestDataLoader:
             self.upbit_ohlcv[symbol].reset_index(drop=True, inplace=True)
 
     def upbit_convert_to_ohlcv(self, upbit_trade_df, current_date):
-        gp = make_group(upbit_trade_df, freq=self.freq)
+        gp = self.grouping.make_group(upbit_trade_df, freq=self.freq)
         temp_upbit_ohlcv = gp["price"].ohlc()
         temp_upbit_ohlcv["volume"] = gp["quantity"].sum()
         temp_upbit_ohlcv["trade_num"] = gp["trade_num"].sum()
@@ -103,7 +105,7 @@ class TestDataLoader:
             self.binance_ohlcv[symbol].reset_index(drop=True, inplace=True)
 
     def binance_convert_to_ohlcv(self, binance_trade_df, current_date):
-        gp = make_group(binance_trade_df, freq=self.freq)
+        gp = self.grouping.make_group(binance_trade_df, freq=self.freq)
         temp_binance_ohlcv = gp["price"].ohlc()
         temp_binance_ohlcv["volume"] = gp["quantity"].sum()
         temp_binance_ohlcv["trade_num"] = gp["trade_num"].sum()
