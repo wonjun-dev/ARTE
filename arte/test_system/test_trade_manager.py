@@ -31,6 +31,7 @@ class TestTradeManager:
         self.account = TestAccount(init_balance=init_usdt)
         self.order_handler = TestOrderHandler(self.account)
         self.order_recorder = OrderRecorder()
+        self.test_current_time = None
 
         self.bot = None
         if "bot" in kwargs:
@@ -78,7 +79,12 @@ class TestTradeManager:
             if self.symbols_state[symbol]["positionSize"] == 0:
                 self.symbols_state[symbol] = self._init_symbol_state()
 
+        self._process_order_record(order)
         # message = f"Order {order.clientOrderId}: {order.side} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
+
+    def _process_order_record(self, order):
+        # self.order_recorder.get_event_test_order(order, self.test_current_time)
+        pass
 
     @staticmethod
     def _is_buy_or_sell(order):
