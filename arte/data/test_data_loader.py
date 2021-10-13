@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from pandas.core.frame import DataFrame
 from tqdm import tqdm
 from datetime import datetime, timedelta
 
@@ -104,7 +105,7 @@ class TestDataLoader:
             self.upbit_ohlcv[symbol] = pd.concat(ohlcv_list)
             self.upbit_ohlcv[symbol].reset_index(drop=True, inplace=True)
 
-    def upbit_convert_to_ohlcv(self, upbit_trade_df, current_date):
+    def upbit_convert_to_ohlcv(self, upbit_trade_df: DataFrame, current_date: datetime):
         """
         current_date의 upbit trade 데이터를 ohlcv 데이터로 가공.
         """
@@ -155,7 +156,7 @@ class TestDataLoader:
             self.binance_ohlcv[symbol] = pd.concat(ohlcv_list)
             self.binance_ohlcv[symbol].reset_index(drop=True, inplace=True)
 
-    def binance_convert_to_ohlcv(self, binance_trade_df, current_date):
+    def binance_convert_to_ohlcv(self, binance_trade_df: DataFrame, current_date: datetime):
         """
         current_date의 binance trade 데이터를 ohlcv 데이터로 가공.
         """
@@ -189,7 +190,7 @@ class TestDataLoader:
 
         return temp_binance_ohlcv
 
-    def load_trade_data(self, symbol, current_date, is_upbit):
+    def load_trade_data(self, symbol: str, current_date: datetime, is_upbit: bool):
         """
         특정 symbol의 current_data의 trade data csv를 읽어오는 함수
         """
@@ -239,7 +240,7 @@ class TestDataLoader:
         counter = td / timedelta(milliseconds=self.ohlcv_interval)
         return int(counter)
 
-    def load_next_by_counter(self, counter):
+    def load_next_by_counter(self, counter: int):
         """
         current time에 해당하는 가격을 binance_trade, upbit_trade에 업데이트하고
         current_time을 한 timedelta 이후로 미루는 함수
