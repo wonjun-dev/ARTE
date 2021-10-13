@@ -1,5 +1,19 @@
 class TickerParser:
-    def __init__(self, symbols):
+    """
+    Class TickerParser
+        Ticker data를 관리하는 모듈. 각 data들을 dictionary 형태로 관리.
+
+    Attributes:
+        price : 현재 Ticker의 price 값을 저장하고 있는 dictionary. ( key : pure symbol, value : price) (ex : {"BTC":10000, "ETH":21342})
+
+    Functions:
+        __init__ : Class 선언 시 pure symbol의 list 입력 필요 (ex : ["BTC", "EOS", "ETH"])
+        update_ticker_upbit : upbit 소켓의 callback message를 받아 price 값을 업데이트
+        update_ticker_binance : binance 소켓의 callback message를 받아 price 값을 업데이트
+
+    """
+
+    def __init__(self, symbols: list):
 
         # self.event_time = dict()
         # self.change_price = dict()
