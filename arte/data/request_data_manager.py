@@ -2,6 +2,19 @@ import requests
 
 
 class RequestDataManager:
+    """
+    Class RequestDataManager
+        Request를 통해 data를 받아오는 함수들을 관리하는 모듈
+
+    Attributes:
+        client : upbit, binance-spot, binance-future의 client 정보를 담은 클래스
+
+    Functions:
+        get_usdt_to_kor : 두나무 API에서 제공하는 현재 실시간 환율을 받아오는 함수
+        get_closed_symbols : Upbit에서 현재 입출금이 지원되지 않는 암호화폐의 list를 받아오는 함수
+
+    """
+
     def __init__(self, client) -> None:
         self.client = client
 
