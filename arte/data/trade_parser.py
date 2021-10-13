@@ -1,4 +1,19 @@
 class TradeParser:
+    """
+    Class TradeParser
+        Trade data를 관리하는 모듈. 각 data들을 dictionary 형태로 관리.
+
+    Attributes:
+        price : 현재 Trade의 price 값을 저장하고 있는 dictionary. ( key : pure symbol, value : price) (ex : {"BTC":10000, "ETH":21342})
+
+    Functions:
+        __init__ : Class 선언 시 pure symbol의 list 입력 필요 (ex : ["BTC", "EOS", "ETH"])
+        init_trade : 호출 시 현재의 trade price를 price에 업데이트
+        update_trade_upbit : upbit 소켓의 callback message를 받아 price 값을 업데이트
+        update_trade_binance : binance 소켓의 callback message를 받아 price 값을 업데이트
+
+    """
+
     def __init__(self, symbols):
         self.price = dict()
         for symbol in symbols:
