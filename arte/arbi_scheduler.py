@@ -1,5 +1,6 @@
 import traceback
 from apscheduler.schedulers.blocking import BlockingScheduler
+from pandas import Timestamp
 
 from arte.data import SocketDataManager
 from arte.data import RequestDataManager
@@ -44,6 +45,7 @@ class ArbiTrader:
                 binance_future_price=self.socket_data_manager.binance_future_trade,
                 exchange_rate=self.exchange_rate,
                 except_list=self.except_list,
+                current_time=Timestamp.now(),
             )
             self.strategy.run()
 
