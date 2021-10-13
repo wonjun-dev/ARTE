@@ -6,7 +6,7 @@ getcontext().prec = 6
 from binance_f.model.constant import *
 from arte.test_system.test_account import TestAccount
 from arte.test_system.test_order_handler import TestOrderHandler
-from arte.system.order_recorder import OrderRecorder
+from arte.test_system.test_order_recorder import TestOrderRecorder
 
 import time
 
@@ -30,7 +30,7 @@ class TestTradeManager:
     def __init__(self, init_usdt=5000, *args, **kwargs):
         self.account = TestAccount(init_balance=init_usdt)
         self.order_handler = TestOrderHandler(self.account)
-        self.order_recorder = OrderRecorder()
+        self.order_recorder = TestOrderRecorder()
         self.test_current_time = None
 
         self.bot = None
@@ -83,8 +83,7 @@ class TestTradeManager:
         # message = f"Order {order.clientOrderId}: {order.side} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
 
     def _process_order_record(self, order):
-        # self.order_recorder.get_event_test_order(order, self.test_current_time)
-        pass
+        self.order_recorder.test_order_to_order_dict(order, self.test_current_time)
 
     @staticmethod
     def _is_buy_or_sell(order):
@@ -107,4 +106,3 @@ if __name__ == "__main__":
     tm.sell_long_market(symbol="ethusdt", price=2700, ratio=0.5)
     # tm.buy_short_market("ethusdt", price=2783, usdt=100)
     # tm.sell_short_market("ethusdt", price=2700, ratio=1)
-
