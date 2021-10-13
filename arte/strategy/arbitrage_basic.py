@@ -157,14 +157,6 @@ class ArbitrageBasic:
             self.dict_premium_q[symbol] = deque(maxlen=self.q_maxlen)
 
     def run(self):
-        # print(len(self.im[Indicator.PREMIUM][-1].keys()))
-        # print(len(self.pure_symbols_wo_excepted))
-        # print(self.binance_future_price.price)
-        # print(self.upbit_price.price)
-        # print(self.binance_spot_price.price)
-        # print(self.im[Indicator.PREMIUM][-1])
-        btc_premium = self.im[Indicator.PREMIUM][-1]["BTC"]
-
         for symbol in self.symbols_wo_excepted:
             self.dict_price_q[symbol].append(self.upbit_price.price[symbol])
             self.dict_premium_q[symbol].append(self.im[Indicator.PREMIUM][-1][symbol])
@@ -174,7 +166,7 @@ class ArbitrageBasic:
             for symbol in self.symbols_wo_excepted:
                 self.asset_signals[symbol].proceed(
                     premium_q=self.dict_premium_q[symbol],
-                    criteria_premium=btc_premium,
+                    criteria_premium=self.im[Indicator.PREMIUM][-1]["BTC"],
                     price_q=self.dict_price_q[symbol],
                     future_price=self.binance_future_price.price[symbol],
                     current_time=self.current_time,
