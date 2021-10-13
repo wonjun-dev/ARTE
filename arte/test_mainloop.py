@@ -12,6 +12,20 @@ from arte.strategy import ArbitrageBasic
 
 
 class TestMainloop:
+    """
+    Class ArbiTrader:
+        Arbi 거래 Backtest를 위한 모듈
+        for문을 돌며 time_interval마다 mainloop를 실행시킴.
+
+    Attributes:
+        test_data_manager : 선언 시 data 절대 경로 필요
+
+    Functions:
+        mainloop : 실제 전략이 돌아가는 함수. start에서 정한 interval 마다 실행되는 함수
+        start : Backtest를 위한 init_test_data_loader 함수를 호출하고, mainloop을 interval 마다 실행시킴.
+
+    """
+
     def __init__(self):
         self.test_data_manager = TestDataLoader("/media/park/hard2000/data")
         self.symbol_collector = CommonSymbolCollector()
