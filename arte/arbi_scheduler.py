@@ -13,6 +13,25 @@ from arte.strategy import ArbitrageBasic
 
 
 class ArbiTrader:
+    """
+    Class ArbiTrader:
+        실시간 Arbi 거래를 위한 모듈
+        scheduler 기반으로 지정한 interval 마다 mainloop을 실행.
+
+    Attributes:
+        bot : Telegram Bot 관리를 위한 모듈
+        except_list : 현재 Upbit에서 입출금이 막힌 symbol list
+        exchange_rate : 실시간 현재 환율
+        common_symbols : upbit과 binance future에서 공통으로 거래되는 암호화폐 리스트
+
+    Functions:
+        mainloop : 실제 전략이 돌아가는 함수. start에서 정한 interval 마다 실행되는 함수
+        start : 거래를 위해 필요한 socket들을 열고 mainloop을 주기적으로 실행하기 위한 scheduler를 초기화하는 함수
+        get_exchange_rate : 현재 환율 업데이트
+        update_closed_list : 현재 Upbit에서 입출금이 막힌 symbol list 업데이트
+
+    """
+
     def __init__(self, client, **kwargs):
 
         self.client = client
@@ -53,6 +72,12 @@ class ArbiTrader:
             traceback.print_exc()
 
     def start(self, watch_interval: float = 1.0):
+        """
+        Upbit, Binance-spot, Binance-future socket을 열고,
+        mainloop을 watch_interval 마다 실행시키고,
+        get_exchange_rate을 매 시 정각마다 실행히키고
+        update_closed_list를 매 시 정각 1초 후에 실행시킴
+        """
         self.socket_data_manager.open_upbit_trade_socket(symbols=self.common_symbols)
         self.socket_data_manager.open_binanace_spot_trade_socket(symbols=self.common_symbols)
         self.socket_data_manager.open_binanace_future_trade_socket(symbols=self.common_symbols)
