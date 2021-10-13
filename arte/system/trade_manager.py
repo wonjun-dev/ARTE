@@ -162,7 +162,7 @@ class TradeManager:
 if __name__ == "__main__":
     import threading
     import time
-    from arte.client import Client
+    from arte.system.client import Client
 
     API_KEY = "0dcd28f57648b0a7d5ea2737487e3b3093d47935e67506b78291042d1dd2f9ea"
     SECRET_KEY = "b36dc15c333bd5950addaf92a0f9dc96d8ed59ea6835386c59a6e63e1ae26aa1"
