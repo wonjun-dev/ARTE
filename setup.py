@@ -15,9 +15,8 @@ setup(
         "arte",
         "arte.data",
         "arte.indicator",
-        "arte.indicator.core",
+        "arte.test_system",
         "arte.strategy",
-        "arte.strategy.core",
         "arte.system",
     ],
     install_requires=[

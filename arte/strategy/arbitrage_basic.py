@@ -92,7 +92,7 @@ class SignalState:
     def buy_long(self, **kwargs):
         self.initialize()
         print("Passed all signals, Order Buy long")
-        self.tm.buy_long_market(symbol=self.symbol, price=kwargs["future_price"], usdt=100)
+        self.tm.buy_long_market(symbol=self.symbol, usdt=100)
         self.is_open = True
         self.premium_at_buy = kwargs["premium_q"][-1]
         self.price_at_buy = kwargs["future_price"]  # temp val - it need to change to result of order
@@ -112,7 +112,7 @@ class SignalState:
     def sell_long(self, **kwargs):
         self.initialize()
         print("Passed all signals, Order Sell long")
-        self.tm.sell_long_market(symbol=self.symbol, price=kwargs["future_price"], ratio=1)
+        self.tm.sell_long_market(symbol=self.symbol, ratio=1)
         self.is_open = False
         self.premium_at_buy = None
         self.price_at_buy = None
@@ -157,14 +157,6 @@ class ArbitrageBasic:
             self.dict_premium_q[symbol] = deque(maxlen=self.q_maxlen)
 
     def run(self):
-        # print(len(self.im[Indicator.PREMIUM][-1].keys()))
-        # print(len(self.pure_symbols_wo_excepted))
-        # print(self.binance_future_price.price)
-        # print(self.upbit_price.price)
-        # print(self.binance_spot_price.price)
-        # print(self.im[Indicator.PREMIUM][-1])
-        btc_premium = self.im[Indicator.PREMIUM][-1]["BTC"]
-
         for symbol in self.symbols_wo_excepted:
             self.dict_price_q[symbol].append(self.upbit_price.price[symbol])
             self.dict_premium_q[symbol].append(self.im[Indicator.PREMIUM][-1][symbol])
@@ -174,7 +166,7 @@ class ArbitrageBasic:
             for symbol in self.symbols_wo_excepted:
                 self.asset_signals[symbol].proceed(
                     premium_q=self.dict_premium_q[symbol],
-                    criteria_premium=btc_premium,
+                    criteria_premium=self.im[Indicator.PREMIUM][-1]["BTC"],
                     price_q=self.dict_price_q[symbol],
                     future_price=self.binance_future_price.price[symbol],
                     current_time=self.current_time,

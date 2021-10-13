@@ -4,6 +4,17 @@ from binance_f import RequestClient
 
 
 class CommonSymbolCollector:
+    """
+    Class RequestDataManager
+        Upbit, Binance-spot, Binance-future의 공통된 암호화폐 리스트를 받아오는 함수들을 관리하는 모듈
+
+    Functions:
+        get_common_fiat_symbol : Upbit-kor 마켓과 Binance-spot의 usdt 마켓에서 공통된 암호화폐들의 pure symbol(대문자) list ( ex : ["BTC", "ETH", "EOS"])
+        get_common_btc_symbol : Upbit-btc 마켓과 Binance-spot의 btc 마켓에서 공통된 암호화폐들의 pure symbol(대문자) list
+        get_future_symbol : Upbit-kor 마켓과 Binance-future의 usdt 마켓에서 공통된 암호화폐들의 pure symbol(대문자) list
+
+    """
+
     def __init__(self):
         self.binance_spot_client = Client()
         self.binance_future_client = RequestClient()

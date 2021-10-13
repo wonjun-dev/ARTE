@@ -33,6 +33,9 @@ class TradeManager:
         self.order_recorder = OrderRecorder()
         self.user_data_manager = UserDataManager(client, self.account, self.order_recorder)
 
+        # Trader have to be assigned
+        self.environment = None
+
         self.bot = None
         if "bot" in kwargs:
             self.bot = kwargs["bot"]
@@ -49,25 +52,25 @@ class TradeManager:
         return dict(order_count=0, positionSize=0, positionSide=PositionSide.INVALID)
 
     @_process_order
-    def buy_long_market(self, symbol, price, usdt=None, ratio=None):
+    def buy_long_market(self, symbol, usdt=None, ratio=None):
         if self.symbols_state[symbol]["order_count"] < self.max_order_count:
             return self.order_handler.buy_market(
                 symbol=symbol,
                 order_side=OrderSide.BUY,
                 position_side=PositionSide.LONG,
-                price=price,
+                price=self.environment.socket_data_manager.binance_future_trade.price[symbol[:-4]],
                 usdt=usdt,
                 ratio=ratio,
             )
 
     @_process_order
-    def buy_short_market(self, symbol, price, usdt=None, ratio=None):
+    def buy_short_market(self, symbol, usdt=None, ratio=None):
         if self.symbols_state[symbol]["order_count"] < self.max_order_count:
             return self.order_handler.buy_market(
                 symbol=symbol,
                 order_side=OrderSide.SELL,
                 position_side=PositionSide.SHORT,
-                price=price,
+                price=self.environment.socket_data_manager.binance_future_trade.price[symbol[:-4]],
                 usdt=usdt,
                 ratio=ratio,
             )
@@ -159,7 +162,7 @@ class TradeManager:
 if __name__ == "__main__":
     import threading
     import time
-    from arte.client import Client
+    from arte.system.client import Client
 
     API_KEY = "0dcd28f57648b0a7d5ea2737487e3b3093d47935e67506b78291042d1dd2f9ea"
     SECRET_KEY = "b36dc15c333bd5950addaf92a0f9dc96d8ed59ea6835386c59a6e63e1ae26aa1"
