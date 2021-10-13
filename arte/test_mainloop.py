@@ -52,4 +52,4 @@ class TestMainloop:
 
 if __name__ == "__main__":
     test_main_loop = TestMainloop()
-    test_main_loop.start(["EOS", "BTC", "ETH"], "2021-10-01", "2021-10-04")
+    test_main_loop.start(["EOS", "BTC"], "2021-10-01", "2021-10-04")

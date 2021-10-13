@@ -18,8 +18,9 @@ TAKER_FEE_RATE = 0.0004
 def _print_status(method):
     @wraps(method)
     def _impl(self, *args, **kwargs):
-        method(self, *args, **kwargs)
+        order = method(self, *args, **kwargs)
         print(self.account)
+        return order
 
     return _impl
 

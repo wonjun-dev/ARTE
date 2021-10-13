@@ -11,8 +11,8 @@ from arte.test_system.test_realized_pnl import TestRealizedPnl
 
 class TestOrderRecorder:
     def __init__(self):
-        if not os.path.exists("./arte/test_system/db"):
-            os.makedirs("./arte/test_system/db")
+        if not os.path.exists("./test_db"):
+            os.makedirs("./test_db")
 
         self.order_fields = [
             "symbol",
@@ -94,7 +94,7 @@ class TestOrderRecorder:
 
     def update_csv(self, start_date: str, order_dict: dict):
         symbol = order_dict["symbol"]
-        path = f"./arte/test_system/db/Test_{symbol}_{start_date}.csv"
+        path = f"./test_db/Test_{symbol}_{start_date}.csv"
         with open(path, "a", newline="") as f_object:
             writer_object = csv.DictWriter(f_object, fieldnames=self.order_fields)
             if os.stat(path).st_size == 0:

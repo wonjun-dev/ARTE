@@ -149,4 +149,6 @@ config.ini
 
 # DB
 /db
+/test_db
 *.csv
+
