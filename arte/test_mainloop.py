@@ -13,7 +13,7 @@ from arte.strategy import ArbitrageBasic
 
 class TestMainloop:
     """
-    Class ArbiTrader:
+    Class TestMainloop:
         Arbi 거래 Backtest를 위한 모듈
         for문을 돌며 time_interval마다 mainloop를 실행시킴.
 
@@ -27,7 +27,7 @@ class TestMainloop:
     """
 
     def __init__(self):
-        self.test_data_manager = TestDataLoader("/media/park/hard2000/data")
+        self.test_data_manager = TestDataLoader("D:\\0922_1004\\")
         self.symbol_collector = CommonSymbolCollector()
 
         self.tm = TestTradeManager(init_usdt=400, max_order_count=3)
@@ -66,4 +66,55 @@ class TestMainloop:
 
 if __name__ == "__main__":
     test_main_loop = TestMainloop()
-    test_main_loop.start(["EOS", "BTC"], "2021-10-01", "2021-10-04")
+    test_main_loop.start(
+        [
+            "WAVES",
+            "XRP",
+            "VET",
+            "ETC",
+            "SXP",
+            "SAND",
+            "ADA",
+            "NEO",
+            "ICX",
+            "STORJ",
+            "THETA",
+            "BCH",
+            "ENJ",
+            "XEM",
+            "ATOM",
+            "SC",
+            "ZIL",
+            "XLM",
+            "BAT",
+            "ONT",
+            "LTC",
+            "CHZ",
+            "KNC",
+            "TRX",
+            "LINK",
+            "DOT",
+            "BTC",
+            "MTL",
+            "HBAR",
+            "EOS",
+            "ETH",
+            "QTUM",
+            "OMG",
+            "IOTA",
+            "MANA",
+            "KAVA",
+            "IOST",
+            "STMX",
+            "ANKR",
+            "SRM",
+            "BTT",
+            "CVC",
+            "XTZ",
+            "DOGE",
+            "AXS",
+            "ZRX",
+        ],
+        "2021-09-22",
+        "2021-10-04",
+    )

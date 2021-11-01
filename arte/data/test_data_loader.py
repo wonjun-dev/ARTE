@@ -229,6 +229,9 @@ class TestDataLoader:
                 self.upbit_trade.price[symbol] = self.upbit_ohlcv_list[symbol][self.count]["close"]
                 self.binance_trade.price[symbol] = self.binance_ohlcv_list[symbol][self.count]["close"]
 
+                self.upbit_trade.volume[symbol] = self.upbit_ohlcv_list[symbol][counter]["volume"]
+                self.binance_trade.volume[symbol] = self.binance_ohlcv_list[symbol][counter]["volume"]
+
             self.count += 1
             self.current_time += timedelta(milliseconds=self.ohlcv_interval)
             return True
@@ -250,6 +253,9 @@ class TestDataLoader:
         for symbol in self.symbols:
             self.upbit_trade.price[symbol] = self.upbit_ohlcv_list[symbol][counter]["close"]
             self.binance_trade.price[symbol] = self.binance_ohlcv_list[symbol][counter]["close"]
+
+            self.upbit_trade.volume[symbol] = self.upbit_ohlcv_list[symbol][counter]["volume"]
+            self.binance_trade.volume[symbol] = self.binance_ohlcv_list[symbol][counter]["volume"]
 
         self.current_time += timedelta(milliseconds=self.ohlcv_interval)
 

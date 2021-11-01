@@ -16,8 +16,10 @@ class TradeParser:
 
     def __init__(self, symbols):
         self.price = dict()
+        self.volume = dict()
         for symbol in symbols:
             self.price[symbol.upper()] = None
+            self.volume[symbol.upper()] = None
 
     def init_trade(self, mark_prices, is_future=True):
 
