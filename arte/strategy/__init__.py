@@ -1,1 +1,2 @@
 from arte.strategy.arbitrage_basic import ArbitrageBasic
+from arte.strategy.arbitrage_cascading import ArbitrageCascading

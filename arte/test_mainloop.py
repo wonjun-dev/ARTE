@@ -9,6 +9,7 @@ from arte.data.test_data_loader import TestDataLoader
 from arte.test_system.test_trade_manager import TestTradeManager
 
 from arte.strategy import ArbitrageBasic
+from arte.strategy import ArbitrageCascading
 
 
 class TestMainloop:
@@ -27,11 +28,11 @@ class TestMainloop:
     """
 
     def __init__(self):
-        self.test_data_manager = TestDataLoader("D:\\0922_1004\\")
+        self.test_data_manager = TestDataLoader("D:\\arbi_data\\20211026\\")
         self.symbol_collector = CommonSymbolCollector()
 
-        self.tm = TestTradeManager(init_usdt=400, max_order_count=3)
-        self.strategy = ArbitrageBasic(trade_manager=self.tm)
+        self.tm = TestTradeManager(init_usdt=200, max_order_count=3)
+        self.strategy = ArbitrageCascading(trade_manager=self.tm)
 
         # self.common_symbols = self.symbol_collector.get_future_symbol()
         self.except_list = []
@@ -56,7 +57,7 @@ class TestMainloop:
             traceback.print_exc()
 
     def start(self, symbols, start_date, end_date):
-        self.test_data_manager.init_test_data_loader(symbols, start_date, end_date, ohlcv_interval=1000)
+        self.test_data_manager.init_test_data_loader(symbols, start_date, end_date, ohlcv_interval=500)
         self.strategy.initialize(symbols, self.except_list)
 
         for i in tqdm(range(self.test_data_manager.get_counter()), ncols=100):
@@ -66,55 +67,4 @@ class TestMainloop:
 
 if __name__ == "__main__":
     test_main_loop = TestMainloop()
-    test_main_loop.start(
-        [
-            "WAVES",
-            "XRP",
-            "VET",
-            "ETC",
-            "SXP",
-            "SAND",
-            "ADA",
-            "NEO",
-            "ICX",
-            "STORJ",
-            "THETA",
-            "BCH",
-            "ENJ",
-            "XEM",
-            "ATOM",
-            "SC",
-            "ZIL",
-            "XLM",
-            "BAT",
-            "ONT",
-            "LTC",
-            "CHZ",
-            "KNC",
-            "TRX",
-            "LINK",
-            "DOT",
-            "BTC",
-            "MTL",
-            "HBAR",
-            "EOS",
-            "ETH",
-            "QTUM",
-            "OMG",
-            "IOTA",
-            "MANA",
-            "KAVA",
-            "IOST",
-            "STMX",
-            "ANKR",
-            "SRM",
-            "BTT",
-            "CVC",
-            "XTZ",
-            "DOGE",
-            "AXS",
-            "ZRX",
-        ],
-        "2021-09-22",
-        "2021-10-04",
-    )
+    test_main_loop.start(["BTC", "MATIC"], "2021-10-19", "2021-10-19")
