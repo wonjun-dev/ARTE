@@ -28,15 +28,15 @@ class TestMainloop:
     """
 
     def __init__(self):
-        self.test_data_manager = TestDataLoader("D:\\arbi_data\\20211026\\")
+        self.test_data_manager = TestDataLoader("/Volumes/D/data/")
         self.symbol_collector = CommonSymbolCollector()
 
-        self.tm = TestTradeManager(init_usdt=200, max_order_count=3)
+        self.tm = TestTradeManager(init_usdt=1000, max_order_count=6)
         self.strategy = ArbitrageCascading(trade_manager=self.tm)
 
         # self.common_symbols = self.symbol_collector.get_future_symbol()
         self.except_list = []
-
+        
     def mainloop(self):
         try:
             self.tm.update(

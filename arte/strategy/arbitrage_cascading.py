@@ -36,20 +36,20 @@ class SignalState:
         transitions = [
             {"trigger": "proceed", "source": "idle", "dest": "sell_long_state", "conditions": "have_long_position"},
             {"trigger": "proceed", "source": "idle", "dest": "sell_short_state", "conditions": "have_short_position"},
-            {"trigger": "proceed", "source": "idle", "dest": "buy_short_state"},
-            {"trigger": "proceed", "source": "idle", "dest": "buy_long_state"},  # 여기에 대한 처리 필요
+            {"trigger": "proceed", "source": "idle", "dest": "buy_short_state", "conditions": "premium_undershoot_min"},
+            {"trigger": "proceed", "source": "idle", "dest": "buy_long_state", "conditions": "premium_overshoot_min"},  # 여기에 대한 처리 필요
             {
                 "trigger": "proceed",
                 "source": "buy_long_state",
                 "dest": "buy_long_order_state",
-                "conditions": ["premium_overshoot_min", "upbit_price_up"],
+                "conditions": "upbit_price_up",
                 "after": "buy_long",
             },
             {
                 "trigger": "proceed",
                 "source": "buy_short_state",
                 "dest": "buy_short_order_state",
-                "conditions": ["premium_undershoot_min", "upbit_price_down"],
+                "conditions": "upbit_price_down",
                 "after": "buy_long",
             },
             {
@@ -122,23 +122,23 @@ class SignalState:
         premium_q = list(kwargs["premium_q"])
         criteria_premium_q = list(kwargs["criteria_premium_q"])
         premium_dif = premium_q[-1] - criteria_premium_q[-1]
-        return premium_dif > 0.8
+        return premium_dif > 3
 
     def premium_undershoot_min(self, **kwargs):
         premium_q = list(kwargs["premium_q"])
         criteria_premium_q = list(kwargs["criteria_premium_q"])
         premium_dif = premium_q[-1] - criteria_premium_q[-1]
-        return premium_dif < -0.8
+        return premium_dif < -0.1
 
     def upbit_price_up(self, **kwargs):
         price_q = kwargs["price_q"]
         change_rate = price_q[-1] / min(price_q)  # price change rate in 20 sec
-        return change_rate > 1.005
+        return change_rate > 1
 
     def upbit_price_down(self, **kwargs):
         price_q = kwargs["price_q"]
         change_rate = price_q[-1] / max(price_q)  # price change rate in 20 sec
-        return change_rate < 0.995
+        return change_rate < 1
 
     def buy_long(self, **kwargs):
         self.initialize()
