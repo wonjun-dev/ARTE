@@ -31,7 +31,7 @@ class TestMainloop:
         self.test_data_manager = TestDataLoader("/Volumes/D/data/")
         self.symbol_collector = CommonSymbolCollector()
 
-        self.tm = TestTradeManager(init_usdt=1000, max_order_count=6)
+        self.tm = TestTradeManager(init_usdt=400, max_order_count=600000000000000)
         self.strategy = ArbitrageCascading(trade_manager=self.tm)
 
         # self.common_symbols = self.symbol_collector.get_future_symbol()
@@ -57,7 +57,7 @@ class TestMainloop:
             traceback.print_exc()
 
     def start(self, symbols, start_date, end_date):
-        self.test_data_manager.init_test_data_loader(symbols, start_date, end_date, ohlcv_interval=500)
+        self.test_data_manager.init_test_data_loader(symbols, start_date, end_date, ohlcv_interval=1000)
         self.strategy.initialize(symbols, self.except_list)
 
         for i in tqdm(range(self.test_data_manager.get_counter()), ncols=100):
@@ -67,4 +67,4 @@ class TestMainloop:
 
 if __name__ == "__main__":
     test_main_loop = TestMainloop()
-    test_main_loop.start(["BTC", "AXS"], "2021-10-04", "2021-10-04")
+    test_main_loop.start(["BTC", "SOL"], "2021-11-02", "2021-11-02")

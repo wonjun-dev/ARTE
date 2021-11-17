@@ -1,11 +1,14 @@
+import numpy as np
 from collections import deque
-
+from pandas.core import series
+from scipy import stats
 from transitions import Machine
 
 from arte.indicator import IndicatorManager
 from arte.indicator import Indicator
 
 from arte.system.utils import Timer
+from statsmodels.tsa.stattools import coint
 
 
 def _symbolize_binance(pure_symbol, upper=False):
@@ -21,6 +24,8 @@ class SignalState:
         "idle",
         "buy_long_c",
         "buy_short_c",
+        "buy_long_v",
+        "buy_short_v",
         "buy_long_order",
         "buy_short_order",
         "sell_long_c",
@@ -34,14 +39,14 @@ class SignalState:
         self.tm = tm
 
         transitions = [
-            {"trigger": "proceed", "source": "idle", "dest": "buy_long_c", "conditions": ["premium_overshoot_min","order_state_valid_buy_long" ]},
-            {"trigger": "proceed", "source": "idle", "dest": "buy_short_c", "conditions": ["premium_undershoot_min", "order_state_valid_buy_short"]},
+            {"trigger": "proceed", "source": "idle", "dest": "buy_long_c", "conditions": ["order_state_valid_buy_long","z_score_valid","premium_overshoot_min" ]},
+            {"trigger": "proceed", "source": "idle", "dest": "buy_short_c", "conditions": ["order_state_valid_buy_short","z_score_valid","premium_undershoot_min"]},
             {"trigger": "proceed", "source": "buy_long_c", "dest":"buy_long_order", "conditions": "upbit_price_up", "after":"buy_long"},
             {"trigger": "proceed", "source": "buy_short_c", "dest":"buy_short_order", "conditions": "upbit_price_down", "after":"buy_short"},
-            {"trigger": "proceed", "source": "idle", "dest": "sell_long_c", "conditions":["premium_decrease", "order_state_valid_sell_long"], "after":"sell_long"},
-            {"trigger": "proceed", "source": "idle", "dest": "sell_short_c", "conditions":["premium_increase", "order_state_valid_sell_short"], "after":"sell_short"},
-            {"trigger": "proceed", "source": "idle", "dest": "sell_long_stop", "conditions":["stop_loss_long", "order_state_valid_sell_long"], "after":"sell_long"},
-            {"trigger": "proceed", "source": "idle", "dest": "sell_short_stop", "conditions":["stop_loss_short", "order_state_valid_sell_short"], "after":"sell_short"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_long_c", "conditions":["order_state_valid_sell_long","premium_decrease"], "after":"sell_long"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_short_c", "conditions":[ "order_state_valid_sell_short","premium_increase"], "after":"sell_short"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_long_stop", "conditions":[ "order_state_valid_sell_long","stop_loss_long"], "after":"sell_long"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_short_stop", "conditions":[ "order_state_valid_sell_short", "stop_loss_short"], "after":"sell_short"},
             {"trigger": "initialize", "source": "*", "dest": "idle"},  # , "before": "print_end"},
         ]
         m = Machine(
@@ -55,6 +60,8 @@ class SignalState:
         self.premium_at_buy = None
         self.price_at_buy = None
         self.order_state = 0
+        #self.zscore = None
+
         # wallet status에 따라서
         # self.timer = Timer()
 
@@ -73,24 +80,39 @@ class SignalState:
         return (self.order_state <= 0)and(self.order_state>-4)
 
     def order_state_valid_sell_long(self, **kwargs):
-        print(self.order_state)
         return self.order_state >0
 
     def order_state_valid_sell_short(self, **kwargs):
-        print(self.order_state)
         return self.order_state <0
 
+    def z_score_valid(self, **kwargs):
+        if self.symbol == _symbolize_binance("BTC"):
+            return False
+        _, pvalue, _ = coint(list(kwargs["premium_q"]), list(kwargs["criteria_premium_q"]))
+        if pvalue < 0.05:
+            return True
+        else:
+            return False
+
     def premium_overshoot_min(self, **kwargs):
-        premium_q = list(kwargs["premium_q"])
-        criteria_premium_q = list(kwargs["criteria_premium_q"])
-        premium_dif = premium_q[-1] - criteria_premium_q[-1]
-        return premium_dif > 0.28 * (self.order_state+1)
+        if kwargs["zscore"][-1] != None:
+            return kwargs["zscore"][-1] >= (self.order_state +1)
+        else:
+            return False
+        #premium_q = list(kwargs["premium_q"])
+        #criteria_premium_q = list(kwargs["criteria_premium_q"])
+        #premium_dif = premium_q[-1] - criteria_premium_q[-1]
+        #return premium_dif > self.sigma * (self.order_state+1)
 
     def premium_undershoot_min(self, **kwargs):
-        premium_q = list(kwargs["premium_q"])
-        criteria_premium_q = list(kwargs["criteria_premium_q"])
-        premium_dif = premium_q[-1] - criteria_premium_q[-1]
-        return premium_dif < -0.28 * (self.order_state+1)
+        if kwargs["zscore"][-1] != None:
+            return kwargs["zscore"][-1] <= (self.order_state-1)
+        else:
+            return False
+        #premium_q = list(kwargs["premium_q"])
+        #criteria_premium_q = list(kwargs["criteria_premium_q"])
+        #premium_dif = premium_q[-1] - criteria_premium_q[-1]
+        #return premium_dif < -self.sigma * (self.order_state+1)
 
     def upbit_price_up(self, **kwargs):
         price_q = kwargs["price_q"]
@@ -122,16 +144,24 @@ class SignalState:
 
     # Sell logic and ordering
     def premium_decrease(self, **kwargs):
-        premium_q = list(kwargs["premium_q"])
-        criteria_premium_q = list(kwargs["criteria_premium_q"])
-        premium_dif = premium_q[-1] - criteria_premium_q[-1]
-        return premium_dif < 0.14 * (self.order_state+1)
+        if kwargs["zscore"][-1] != None:
+            return kwargs["zscore"][-1] <= (self.order_state)
+        else:
+            return False
+        #premium_q = list(kwargs["premium_q"])
+        #criteria_premium_q = list(kwargs["criteria_premium_q"])
+        #premium_dif = premium_q[-1] - criteria_premium_q[-1]
+        #return premium_dif < self.sigma * (self.order_state)
 
     def premium_increase(self, **kwargs):
-        premium_q = list(kwargs["premium_q"])
-        criteria_premium_q = list(kwargs["criteria_premium_q"])
-        premium_dif = premium_q[-1] - criteria_premium_q[-1]
-        return premium_dif > -0.14 * (self.order_state+1)
+        if kwargs["zscore"][-1] != None:
+            return kwargs["zscore"][-1] <= (self.order_state)
+        else:
+            return False
+        #premium_q = list(kwargs["premium_q"])
+        #criteria_premium_q = list(kwargs["criteria_premium_q"])
+        #premium_dif = premium_q[-1] - criteria_premium_q[-1]
+        #return premium_dif > -self.sigma * (self.order_state)
 
     # def check_timeup(self, **kwargs):
     #    return self.timer.check_timeup(kwargs["current_time"])
@@ -188,6 +218,7 @@ class ArbitrageCascading:
         self.premium_assets = []
         self.asset_signals = {}
         self.q_maxlen = 20
+        self.q_maxlen_kimp = 900
         self.init_price_counter = 0
         self.dict_price_q = {}
         self.dict_premium_q = {}
@@ -211,7 +242,7 @@ class ArbitrageCascading:
         for symbol in self.symbols_wo_excepted:
             self.asset_signals[symbol] = SignalState(symbol=_symbolize_binance(symbol), tm=self.tm)
             self.dict_price_q[symbol] = deque(maxlen=self.q_maxlen)
-            self.dict_premium_q[symbol] = deque(maxlen=self.q_maxlen)
+            self.dict_premium_q[symbol] = deque(maxlen=self.q_maxlen_kimp)
 
     def run(self):
         for symbol in self.symbols_wo_excepted:
@@ -219,8 +250,12 @@ class ArbitrageCascading:
             self.dict_premium_q[symbol].append(self.im[Indicator.PREMIUM][-1][symbol])
             self.init_price_counter += 1
 
-        if self.init_price_counter >= self.q_maxlen:
+        if self.init_price_counter >= self.q_maxlen_kimp:
             for symbol in self.symbols_wo_excepted:
+
+                kimp_q = np.array(self.dict_premium_q[symbol]) - np.array(self.dict_premium_q["BTC"])
+                #zscore = (kimp_q - kimp_q.mean()) / np.std(kimp_q)
+                zscore = stats.zscore(kimp_q)
                 self.asset_signals[symbol].proceed(
                     premium_q=self.dict_premium_q[symbol],
                     criteria_premium_q=self.dict_premium_q["BTC"],
@@ -228,4 +263,5 @@ class ArbitrageCascading:
                     future_price=self.binance_future_price.price[symbol],
                     current_time=self.current_time,
                     hard_stop_loss=0.03,
+                    zscore = 0.5*zscore
                 )
