@@ -19,14 +19,14 @@ class SignalState:
 
     states = [
         "idle",
-        "buy_long_state",
-        "buy_long_order_state",
-        "sell_long_state",
-        "sell_long_order_state",
-        "buy_short_state",
-        "buy_short_order_state",
-        "sell_short_state",
-        "sell_short_order_state",
+        "buy_long_c",
+        "buy_short_c",
+        "buy_long_order",
+        "buy_short_order",
+        "sell_long_c",
+        "sell_short_c",
+        "sell_long_stop",
+        "sell_short_stop",
     ]
 
     def __init__(self, symbol, tm):
@@ -34,52 +34,14 @@ class SignalState:
         self.tm = tm
 
         transitions = [
-            {"trigger": "proceed", "source": "idle", "dest": "sell_long_state", "conditions": "have_long_position"},
-            {"trigger": "proceed", "source": "idle", "dest": "sell_short_state", "conditions": "have_short_position"},
-            {"trigger": "proceed", "source": "idle", "dest": "buy_short_state", "conditions": "premium_undershoot_min"},
-            {"trigger": "proceed", "source": "idle", "dest": "buy_long_state", "conditions": "premium_overshoot_min"},  # 여기에 대한 처리 필요
-            {
-                "trigger": "proceed",
-                "source": "buy_long_state",
-                "dest": "buy_long_order_state",
-                "conditions": "upbit_price_up",
-                "after": "buy_long",
-            },
-            {
-                "trigger": "proceed",
-                "source": "buy_short_state",
-                "dest": "buy_short_order_state",
-                "conditions": "upbit_price_down",
-                "after": "buy_long",
-            },
-            {
-                "trigger": "proceed",
-                "source": "sell_long_state",
-                "dest": "sell_long_order_state",
-                "conditions": ["premium_decrease"],
-                "after": "sell_long",
-            },
-            {
-                "trigger": "proceed",
-                "source": "sell_long_state",
-                "dest": "sell_long_order_state",
-                "conditions": ["stop_loss_long"],
-                "after": "sell_long",
-            },
-            {
-                "trigger": "proceed",
-                "source": "sell_short_state",
-                "dest": "sell_short_order_state",
-                "conditions": ["premium_increase"],
-                "after": "sell_short",
-            },
-            {
-                "trigger": "proceed",
-                "source": "sell_short_state",
-                "dest": "sell_short_order_state",
-                "conditions": ["stop_loss_short"],
-                "after": "sell_short",
-            },
+            {"trigger": "proceed", "source": "idle", "dest": "buy_long_c", "conditions": ["premium_overshoot_min","order_state_valid_buy_long" ]},
+            {"trigger": "proceed", "source": "idle", "dest": "buy_short_c", "conditions": ["premium_undershoot_min", "order_state_valid_buy_short"]},
+            {"trigger": "proceed", "source": "buy_long_c", "dest":"buy_long_order", "conditions": "upbit_price_up", "after":"buy_long"},
+            {"trigger": "proceed", "source": "buy_short_c", "dest":"buy_short_order", "conditions": "upbit_price_down", "after":"buy_short"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_long_c", "conditions":["premium_decrease", "order_state_valid_sell_long"], "after":"sell_long"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_short_c", "conditions":["premium_increase", "order_state_valid_sell_short"], "after":"sell_short"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_long_stop", "conditions":["stop_loss_long", "order_state_valid_sell_long"], "after":"sell_long"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_short_stop", "conditions":["stop_loss_short", "order_state_valid_sell_short"], "after":"sell_short"},
             {"trigger": "initialize", "source": "*", "dest": "idle"},  # , "before": "print_end"},
         ]
         m = Machine(
@@ -90,11 +52,9 @@ class SignalState:
             after_state_change="auto_proceed",
         )
 
-        self.is_long = False
-        self.is_short = False
         self.premium_at_buy = None
         self.price_at_buy = None
-        self.wallet_status = 0
+        self.order_state = 0
         # wallet status에 따라서
         # self.timer = Timer()
 
@@ -106,29 +66,31 @@ class SignalState:
             if not self.proceed(**kwargs):
                 self.initialize()
 
-    def have_long_position(self, **kwargs):
-        return self.is_long
+    def order_state_valid_buy_long(self, **kwargs):
+        return (self.order_state >= 0)and(self.order_state<4)
 
-    def have_short_position(self, **kwargs):
-        return self.is_short
+    def order_state_valid_buy_short(self, **kwargs):
+        return (self.order_state <= 0)and(self.order_state>-4)
 
-    # Buy logic and ordering
-    # def premium_over_threshold(self, **kwargs):
-    #     premium = kwargs["premium_q"][-1]
-    #     criteria_premium = kwargs["criteria_premium"]
-    #     return premium > criteria_premium * 1.2
+    def order_state_valid_sell_long(self, **kwargs):
+        print(self.order_state)
+        return self.order_state >0
+
+    def order_state_valid_sell_short(self, **kwargs):
+        print(self.order_state)
+        return self.order_state <0
 
     def premium_overshoot_min(self, **kwargs):
         premium_q = list(kwargs["premium_q"])
         criteria_premium_q = list(kwargs["criteria_premium_q"])
         premium_dif = premium_q[-1] - criteria_premium_q[-1]
-        return premium_dif > 3
+        return premium_dif > 0.28 * (self.order_state+1)
 
     def premium_undershoot_min(self, **kwargs):
         premium_q = list(kwargs["premium_q"])
         criteria_premium_q = list(kwargs["criteria_premium_q"])
         premium_dif = premium_q[-1] - criteria_premium_q[-1]
-        return premium_dif < -0.1
+        return premium_dif < -0.28 * (self.order_state+1)
 
     def upbit_price_up(self, **kwargs):
         price_q = kwargs["price_q"]
@@ -141,19 +103,19 @@ class SignalState:
         return change_rate < 1
 
     def buy_long(self, **kwargs):
+        self.order_state += 1
         self.initialize()
         print("Passed all signals, Order Buy long")
         self.tm.buy_long_market(symbol=self.symbol, usdt=100)
-        self.is_long = True
         self.premium_at_buy = kwargs["premium_q"][-1]
         self.price_at_buy = kwargs["future_price"]  # temp val - it need to change to result of order
         # self.timer.start(kwargs["current_time"], "600s")
 
     def buy_short(self, **kwargs):
+        self.order_state -= 1
         self.initialize()
         print("Passed all signals, Order Buy short")
         self.tm.buy_short_market(symbol=self.symbol, usdt=100)
-        self.is_short = True
         self.premium_at_buy = kwargs["premium_q"][-1]
         self.price_at_buy = kwargs["future_price"]  # temp val - it need to change to result of order
         # self.timer.start(kwargs["current_time"], "600s")
@@ -163,13 +125,13 @@ class SignalState:
         premium_q = list(kwargs["premium_q"])
         criteria_premium_q = list(kwargs["criteria_premium_q"])
         premium_dif = premium_q[-1] - criteria_premium_q[-1]
-        return premium_dif < 0.5
+        return premium_dif < 0.14 * (self.order_state+1)
 
     def premium_increase(self, **kwargs):
         premium_q = list(kwargs["premium_q"])
         criteria_premium_q = list(kwargs["criteria_premium_q"])
         premium_dif = premium_q[-1] - criteria_premium_q[-1]
-        return premium_dif > -0.5
+        return premium_dif > -0.14 * (self.order_state+1)
 
     # def check_timeup(self, **kwargs):
     #    return self.timer.check_timeup(kwargs["current_time"])
@@ -178,35 +140,40 @@ class SignalState:
     #     return kwargs["future_price"][self.symbol] > self.price_at_buy
 
     def sell_long(self, **kwargs):
+        self.order_state = 0
         self.initialize()
         print("Passed all signals, Order Sell long")
         self.tm.sell_long_market(symbol=self.symbol, ratio=1)
-        self.is_long = False
-        self.premium_at_buy = None
-        self.price_at_buy = None
+        #self.premium_at_buy = None
+        #self.price_at_buy = None
 
     def sell_short(self, **kwargs):
+        self.order_state = 0
         self.initialize()
         print("Passed all signals, Order Sell short")
         self.tm.sell_short_market(symbol=self.symbol, ratio=1)
-        self.is_short = False
-        self.premium_at_buy = None
-        self.price_at_buy = None
+        #self.premium_at_buy = None
+        #self.price_at_buy = None
 
     def stop_loss_long(self, **kwargs):
         hard_stop_loss = kwargs["hard_stop_loss"]
         cur_price = kwargs["future_price"]
 
-        pnl = (cur_price - self.price_at_buy) / self.price_at_buy
-        return pnl < -hard_stop_loss
+        if self.price_at_buy != None:
+            pnl = (cur_price - self.price_at_buy) / self.price_at_buy
+            return pnl < -hard_stop_loss
+        else:
+            return False
 
     def stop_loss_short(self, **kwargs):
         hard_stop_loss = kwargs["hard_stop_loss"]
         cur_price = kwargs["future_price"]
 
-        pnl = -(cur_price - self.price_at_buy) / self.price_at_buy
-        return pnl < -hard_stop_loss
-
+        if self.price_at_buy != None:
+            pnl = -(cur_price - self.price_at_buy) / self.price_at_buy
+            return pnl < -hard_stop_loss
+        else:
+            return False
 
 class ArbitrageCascading:
     """
