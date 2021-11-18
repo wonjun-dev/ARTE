@@ -8,7 +8,7 @@ from arte.data.common_symbol_collector import CommonSymbolCollector
 from arte.data.test_data_loader import TestDataLoader
 from arte.test_system.test_trade_manager import TestTradeManager
 
-from arte.strategy import ArbitrageBasic
+from arte.strategy.arbitrage_upbit import ArbitrageBasic
 
 
 class TestMainloop:
@@ -27,7 +27,7 @@ class TestMainloop:
     """
 
     def __init__(self):
-        self.test_data_manager = TestDataLoader("/media/park/hard2000/data")
+        self.test_data_manager = TestDataLoader("/home/park/Projects/data")
         self.symbol_collector = CommonSymbolCollector()
 
         self.tm = TestTradeManager(init_usdt=400, max_order_count=3)
@@ -40,7 +40,7 @@ class TestMainloop:
         try:
             self.tm.update(
                 test_current_time=self.test_data_manager.current_time,
-                future_prices=self.test_data_manager.binance_trade.price,
+                future_prices=self.test_data_manager.upbit_trade.price,
             )
             self.strategy.update(
                 upbit_price=self.test_data_manager.upbit_trade,
@@ -66,4 +66,4 @@ class TestMainloop:
 
 if __name__ == "__main__":
     test_main_loop = TestMainloop()
-    test_main_loop.start(["EOS", "BTC"], "2021-10-01", "2021-10-04")
+    test_main_loop.start(["ADA", "EOS", "BTC"], "2021-10-24", "2021-10-30")
