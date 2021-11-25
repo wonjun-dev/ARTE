@@ -15,6 +15,9 @@ def _symbolize_binance(pure_symbol, upper=False):
         bsymbol = bsymbol.upper()
     return bsymbol
 
+def _symbolize_upbit(pure_symbol):
+    usymbol = 'KRW-' + pure_symbol.upper()
+    return usymbol
 
 class SignalState:
 
@@ -98,10 +101,10 @@ class SignalState:
     def buy_long(self, **kwargs):
         self.initialize()
         print("Passed all signals, Order Buy long")
-        self.tm.buy_long_market(symbol=self.symbol, usdt=100)
+        self.tm.buy_long_market(symbol=self.symbol, krw=100000)
         self.is_open = True
         self.premium_at_buy = kwargs["premium_q"][-1]
-        self.price_at_buy = kwargs["future_price"]  # temp val - it need to change to result of order
+        self.price_at_buy = kwargs["trade_price"]  # temp val - it need to change to result of order
         self.timer.start(kwargs["current_time"], "120S")
 
     # Sell logic and ordering
@@ -145,7 +148,6 @@ class ArbitrageBasic:
     def update(self, **kwargs):
         self.upbit_price = kwargs["upbit_price"]
         self.binance_spot_price = kwargs["binance_spot_price"]
-        self.binance_future_price = kwargs["binance_future_price"]
         self.exchange_rate = kwargs["exchange_rate"]
         self.except_list = kwargs["except_list"]
         self.current_time = kwargs["current_time"]
@@ -159,7 +161,7 @@ class ArbitrageBasic:
                 self.symbols_wo_excepted.append(symbol)
 
         for symbol in self.symbols_wo_excepted:
-            self.asset_signals[symbol] = SignalState(symbol=_symbolize_binance(symbol), tm=self.tm)
+            self.asset_signals[symbol] = SignalState(symbol=_symbolize_upbit(symbol), tm=self.tm)
             self.dict_price_q[symbol] = deque(maxlen=self.q_maxlen)
             self.dict_binance_price_q[symbol] = deque(maxlen=self.q_maxlen)
             self.dict_premium_q[symbol] = deque(maxlen=self.q_maxlen)
@@ -175,9 +177,8 @@ class ArbitrageBasic:
             for symbol in self.symbols_wo_excepted:
                 self.asset_signals[symbol].proceed(
                     premium_q=self.dict_premium_q[symbol],
-                    criteria_premium=self.im[Indicator.PREMIUM][-1]["BTC"],
                     price_q=self.dict_price_q[symbol],
                     binance_price_q=self.dict_binance_price_q[symbol],
-                    future_price=self.upbit_price.price[symbol],
+                    trade_price=self.upbit_price.price[symbol],
                     current_time=self.current_time,
                 )

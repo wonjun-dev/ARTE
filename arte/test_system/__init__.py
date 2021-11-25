@@ -1,0 +1,1 @@
+from arte.test_system.test_trade_manager import TestBinanceTradeManager

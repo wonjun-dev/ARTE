@@ -72,9 +72,12 @@ class TestDataLoader:
         self.upbit_trade = TradeParser(symbols=self.symbols)
         self.binance_trade = TradeParser(symbols=self.symbols)
 
+        self.upbit_last_askbid = {symbol: None for symbol in self.symbols}
+
         self.init_upbit_test_loader()
         self.init_binance_test_loader()
 
+        self.start_time = pd.to_datetime(start_date)
         self.current_time = pd.to_datetime(start_date)
         self.end_current_time = pd.to_datetime(end_date) + timedelta(days=1)
         self.count = 0
@@ -113,18 +116,18 @@ class TestDataLoader:
         temp_upbit_ohlcv = gp["price"].ohlc()
         temp_upbit_ohlcv["volume"] = gp["quantity"].sum()
         temp_upbit_ohlcv["trade_num"] = gp["trade_num"].sum()
+        temp_upbit_ohlcv["last_askbid"] = gp["ask_bid"].nth(-1)
+        temp_upbit_ohlcv["last_askbid"].ffill(inplace=True)
 
         temp_upbit_ohlcv.fillna(
-            dict.fromkeys(temp_upbit_ohlcv.columns.tolist(), temp_upbit_ohlcv.close.ffill()),
-            inplace=True,
+            dict.fromkeys(temp_upbit_ohlcv.columns.tolist(), temp_upbit_ohlcv.close.ffill()), inplace=True,
         )
-
         start_stamp = pd.to_datetime(current_date)
         end_stamp = temp_upbit_ohlcv.index[0]
         temp = temp_upbit_ohlcv.iloc[0]["open"]
 
         while start_stamp < end_stamp:
-            temp_upbit_ohlcv.loc[start_stamp] = [temp, temp, temp, temp, 0.0, 0]
+            temp_upbit_ohlcv.loc[start_stamp] = [temp, temp, temp, temp, 0.0, 0, "NONE"]
             start_stamp += timedelta(milliseconds=self.ohlcv_interval)
 
         temp_upbit_ohlcv.sort_index(inplace=True)
@@ -134,7 +137,7 @@ class TestDataLoader:
         temp = temp_upbit_ohlcv.iloc[-1]["close"]
 
         while start_stamp < end_stamp:
-            temp_upbit_ohlcv.loc[start_stamp] = [temp, temp, temp, temp, 0.0, 0]
+            temp_upbit_ohlcv.loc[start_stamp] = [temp, temp, temp, temp, 0.0, 0, "NONE"]
             start_stamp += timedelta(milliseconds=self.ohlcv_interval)
 
         return temp_upbit_ohlcv
@@ -166,8 +169,7 @@ class TestDataLoader:
         temp_binance_ohlcv["trade_num"] = gp["trade_num"].sum()
 
         temp_binance_ohlcv.fillna(
-            dict.fromkeys(temp_binance_ohlcv.columns.tolist(), temp_binance_ohlcv.close.ffill()),
-            inplace=True,
+            dict.fromkeys(temp_binance_ohlcv.columns.tolist(), temp_binance_ohlcv.close.ffill()), inplace=True,
         )
 
         start_stamp = pd.to_datetime(current_date)
@@ -249,9 +251,10 @@ class TestDataLoader:
         self.load_exchange_rate()
         for symbol in self.symbols:
             self.upbit_trade.price[symbol] = self.upbit_ohlcv_list[symbol][counter]["close"]
+            self.upbit_last_askbid[symbol] = self.upbit_ohlcv_list[symbol][counter]["last_askbid"]
             self.binance_trade.price[symbol] = self.binance_ohlcv_list[symbol][counter]["close"]
 
-        self.current_time += timedelta(milliseconds=self.ohlcv_interval)
+        self.current_time = self.start_time + timedelta(milliseconds=self.ohlcv_interval) * counter
 
     def load_exchange_rate(self):
         """
@@ -263,3 +266,15 @@ class TestDataLoader:
             while temp_time.strftime("%Y-%m-%d") not in self.exchange_rate_df.index:
                 temp_time -= timedelta(days=1)
             self.exchange_rate = float(self.exchange_rate_df.loc[temp_time.strftime("%Y-%m-%d")].value.replace(",", ""))
+
+
+if __name__ == "__main__":
+    DATA_PATH = "/home/park/Projects/data"
+    symbol = "ANKR"
+    start_date = "2021-10-01"
+    end_date = "2021-10-03"
+    dl = TestDataLoader(DATA_PATH)
+    dl.init_test_data_loader([symbol], start_date, end_date, ohlcv_interval=1000)
+    dl.load_next_by_counter(100)
+    print(dl.upbit_trade.price)
+    print(dl.upbit_last_askbid)

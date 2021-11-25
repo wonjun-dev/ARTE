@@ -10,9 +10,13 @@ from arte.test_system.test_realized_pnl import TestRealizedPnl
 
 
 class TestOrderRecorder:
-    def __init__(self):
+    def __init__(self, **kwargs):
         if not os.path.exists("./test_db"):
             os.makedirs("./test_db")
+
+        self.backtest_id = None
+        if "backtest_id" in kwargs:
+            self.backtest_id = kwargs["backtest_id"]
 
         self.order_fields = [
             "symbol",
@@ -35,7 +39,7 @@ class TestOrderRecorder:
         ]
 
         self.test_realized_pnl = TestRealizedPnl()
-        self.start_date = datetime.today().strftime("%Y%m%d%H%M")
+        self.start_date = datetime.today().strftime("%Y%m%d%H%M%S")
 
     def test_order_to_order_dict(self, order, test_current_time):
         # test order class to dict(event_dict)
@@ -63,9 +67,9 @@ class TestOrderRecorder:
 
         # commisionAmount calc
         if order.type == "MARKET":
-            order_dict["commissionAmount"] = order_dict["USDT_Qty"] * 0.0004
+            order_dict["commissionAmount"] = order.fee
         else:
-            order_dict["commissionAmount"] = order_dict["USDT_Qty"] * 0.0002
+            order_dict["commissionAmount"] = order.fee
 
         # calc PNL and Profit
         self.test_realized_pnl.proceeding(order, order_dict["commissionAmount"])
@@ -90,11 +94,15 @@ class TestOrderRecorder:
         order_dict["updateTime"] = test_current_time
 
         # update_csv
-        self.update_csv(self.start_date, order_dict)
+        self.update_csv(order_dict)
 
-    def update_csv(self, start_date: str, order_dict: dict):
+    def update_csv(self, order_dict: dict):
         symbol = order_dict["symbol"]
-        path = f"./test_db/Test_{symbol}_{start_date}.csv"
+
+        if self.backtest_id:
+            path = f"./test_db/Test_{symbol}_{self.backtest_id}.csv"
+        else:
+            path = f"./test_db/Test_{symbol}_{self.start_date}.csv"
         with open(path, "a", newline="") as f_object:
             writer_object = csv.DictWriter(f_object, fieldnames=self.order_fields)
             if os.stat(path).st_size == 0:

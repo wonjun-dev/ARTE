@@ -63,6 +63,7 @@ class TestOrderHandler:
             o.positionSide = PositionSide.LONG
             o.type = OrderType.MARKET
             o.status = "FILLED"
+            o.fee = float(fee)
 
             self.account.withdraw_usdt(whole_cost)
             self.account.deposit(symbol, PositionSide.LONG, quantity)
@@ -93,6 +94,7 @@ class TestOrderHandler:
         o.positionSide = PositionSide.LONG
         o.type = OrderType.MARKET
         o.status = "FILLED"
+        o.fee = float(fee)
 
         self.account.deposit_usdt(whole_earn)
         self.account.withdraw(symbol, PositionSide.LONG, quantity)
@@ -122,6 +124,7 @@ class TestOrderHandler:
             o.positionSide = PositionSide.SHORT
             o.type = OrderType.MARKET
             o.status = "FILLED"
+            o.fee = float(fee)
 
             self.account.withdraw_usdt(whole_cost)
             self.account.deposit(symbol, PositionSide.SHORT, quantity)
@@ -161,6 +164,7 @@ class TestOrderHandler:
         o.positionSide = PositionSide.SHORT
         o.type = OrderType.MARKET
         o.status = "FILLED"
+        o.fee = float(fee)
 
         self.account.deposit_usdt(whole_earn)
         self.account.withdraw(symbol, PositionSide.SHORT, quantity)

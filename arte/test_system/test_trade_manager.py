@@ -26,7 +26,7 @@ def _process_order(method):
     return _impl
 
 
-class TestTradeManager:
+class TestBinanceTradeManager:
     def __init__(self, init_usdt=5000, *args, **kwargs):
         self.account = TestAccount(init_balance=init_usdt)
         self.order_handler = TestOrderHandler(self.account)
