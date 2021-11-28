@@ -99,5 +99,5 @@ if __name__ == "__main__":
     use_bot = config.getboolean("USE_BOT")
 
     clients = Client(mode, api_key, secret_key)
-    trader = ArbiTrader(clients, backtest_id="upbitfollow_20211128_rbt")
+    trader = ArbiTrader(clients, backtest_id="upbitfollow_20211128_rbt01")
     trader.start()
