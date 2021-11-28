@@ -15,9 +15,11 @@ def _symbolize_binance(pure_symbol, upper=False):
         bsymbol = bsymbol.upper()
     return bsymbol
 
+
 def _symbolize_upbit(pure_symbol):
-    usymbol = 'KRW-' + pure_symbol.upper()
+    usymbol = "KRW-" + pure_symbol.upper()
     return usymbol
+
 
 class SignalState:
 
@@ -34,7 +36,7 @@ class SignalState:
                 "trigger": "proceed",
                 "source": "buy_state",
                 "dest": "buy_order_state",
-                "conditions": ["binance_price_up", "upbit_price_stay"],#, "premium_undershoot_mean"],
+                "conditions": ["binance_price_up", "upbit_price_stay"],  # , "premium_undershoot_mean"],
                 "after": "buy_long",
             },
             {
@@ -152,6 +154,7 @@ class ArbitrageBasic:
         self.except_list = kwargs["except_list"]
         self.current_time = kwargs["current_time"]
         self.im.update_premium(self.upbit_price, self.binance_spot_price, self.exchange_rate)
+        print(self.upbit_price.price, "\n", self.binance_spot_price.price)
 
     def initialize(self, common_symbols, except_list):
         self.except_list = except_list

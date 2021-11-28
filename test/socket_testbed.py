@@ -17,11 +17,10 @@ use_bot = config.getboolean("USE_BOT")
 
 cl = Client(mode, api_key, secret_key)
 sdm = SocketDataManager(cl)
-symbol_collector = CommonSymbolCollector()
-upbit_symbols, binance_symbols = symbol_collector.get_future_symbol()
-
-# sdm.open_binanace_future_trade_socket(binance_symbols)
-sdm.open_binanace_spot_trade_socket(binance_symbols)
+# symbol_collector = CommonSymbolCollector()
+# symbols = symbol_collector.get_future_symbol()
+# print(symbols)
+sdm.open_upbit_orderbook_socket(["ETH"])
 # time.sleep(2)
 # sdm.unsubscribe_all()
 

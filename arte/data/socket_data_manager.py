@@ -1,4 +1,3 @@
-import binance
 from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
 from binance import Client
@@ -6,8 +5,7 @@ from binance import Client
 from arte.data.candlestick_parser import CandlestickParser
 from arte.data.ticker_parser import TickerParser
 from arte.data.trade_parser import TradeParser
-
-import datetime
+from arte.data.upbit_orderbook_parser import UpbitOrderbookParser
 
 
 class SocketDataManager:
@@ -73,6 +71,21 @@ class SocketDataManager:
         # candlestick 데이터를 받는 socket 열기
         self.client.sub_client.subscribe_candlestick_event(
             symbol=binance_symbol, interval=interval, callback=callback, error_handler=error
+        )
+
+    def open_upbit_orderbook_socket(self, symbols: list):
+        self.upbit_orderbook = UpbitOrderbookParser(symbols=symbols)
+        upbit_symbol = ["KRW-" + symbol for symbol in symbols]
+
+        def callback(event):
+            self.upbit_orderbook.update_upbit_orderbook(event)
+            # print(self.upbit_orderbook["ETH"])
+
+        def error(e: "BinanceApiException"):
+            print(e.error_code + e.error_message)
+
+        self.client.sub_client.subscribe_upbit_orderbook_event(
+            symbols=upbit_symbol, callback=callback, error_handler=error
         )
 
     def open_upbit_trade_socket(self, symbols: list):
