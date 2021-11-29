@@ -44,7 +44,7 @@ class BatchBacktester:
                 start_date = pos_dates[0]
                 end_date = pos_dates[-1]
                 periods = (len(pos_dates) // 7) + 1
-                backtest_id = f'{self.strategy_name}_{start_date.replace("-", "")[2:]}-{end_date.replace("-", "")[2:]}_{random_choice()}'
+                backtest_id = f'BT_{self.strategy_name}_{start_date.replace("-", "")[2:]}-{end_date.replace("-", "")[2:]}_{random_choice()}'
                 self.main_loop.__init__(backtest_id=backtest_id)
                 intervals = generate_intervals(start_date, end_date, periods)
                 print(

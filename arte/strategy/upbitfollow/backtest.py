@@ -9,7 +9,7 @@ from arte.data.common_symbol_collector import CommonSymbolCollector
 from arte.data.test_data_loader import TestDataLoader
 
 from arte.test_system_upbit import TestUpbitTradeManager
-from arte.strategy.upbitfollow.strategy import ArbitrageBasic
+from arte.strategy.upbitfollow.strategy_upbitfollow import ArbitrageBasic
 from arte.system.batch_backtester import BatchBacktester
 
 DATA_PATH = "/home/park/Projects/data"
@@ -17,7 +17,7 @@ DATA_PATH = "/home/park/Projects/data"
 
 class TestMainloop:
     def __init__(self, **kwargs):
-        self.symbol_collector = CommonSymbolCollector()
+        # self.symbol_collector = CommonSymbolCollector()
 
         self.backtest_id = None
         if "backtest_id" in kwargs:

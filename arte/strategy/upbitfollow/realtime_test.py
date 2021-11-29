@@ -7,7 +7,7 @@ from arte.data import RequestDataManager
 from arte.data.common_symbol_collector import CommonSymbolCollector
 
 from arte.test_system_upbit.rbt_trade_manager import RBTUpbitTradeManager
-from arte.strategy.upbitfollow.strategy import ArbitrageBasic
+from arte.strategy.upbitfollow.strategy_upbitfollow import ArbitrageBasic
 
 
 class ArbiTrader:

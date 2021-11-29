@@ -43,6 +43,13 @@ class SignalState:
                 "trigger": "proceed",
                 "source": "sell_state",
                 "dest": "sell_order_state",
+                "conditions": ["price_decrease"],
+                "after": "sell_long",
+            },
+            {
+                "trigger": "proceed",
+                "source": "sell_state",
+                "dest": "sell_order_state",
                 "conditions": ["premium_increase"],
                 "after": "sell_long",
             },
@@ -110,6 +117,10 @@ class SignalState:
         self.timer.start(kwargs["current_time"], "120S")
 
     # Sell logic and ordering
+    def price_decrease(self, **kwargs):
+        cur_price = kwargs["price_q"][-1]
+        return cur_price < self.price_at_buy
+
     def premium_increase(self, **kwargs):
         premium_q = kwargs["premium_q"]
         return premium_q[-1] > (self.premium_at_buy * 1.1)
@@ -154,7 +165,7 @@ class ArbitrageBasic:
         self.except_list = kwargs["except_list"]
         self.current_time = kwargs["current_time"]
         self.im.update_premium(self.upbit_price, self.binance_spot_price, self.exchange_rate)
-        print(self.upbit_price.price, "\n", self.binance_spot_price.price)
+        # print(self.upbit_price.price, "\n", self.binance_spot_price.price)
 
     def initialize(self, common_symbols, except_list):
         self.except_list = except_list
