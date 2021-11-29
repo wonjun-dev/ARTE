@@ -6,11 +6,8 @@ from arte.data import SocketDataManager
 from arte.data import RequestDataManager
 from arte.data.common_symbol_collector import CommonSymbolCollector
 
-# from arte.system.trade_manager import TradeManager
 from arte.test_system_upbit.rbt_trade_manager import RBTUpbitTradeManager
-
-
-from arte.strategy.arbitrage_upbit import ArbitrageBasic
+from arte.strategy.upbitfollow.strategy import ArbitrageBasic
 
 
 class ArbiTrader:
@@ -87,7 +84,6 @@ class ArbiTrader:
 if __name__ == "__main__":
     import configparser
     from arte.system.client import Client
-    from arte.upbitfollow_rbt_scheduler import ArbiTrader
 
     cfg = configparser.ConfigParser()
     cfg.read("test/config.ini")
