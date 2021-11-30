@@ -167,7 +167,8 @@ class ArbitrageBasic:
         self.except_list = kwargs["except_list"]
         self.current_time = kwargs["current_time"]
         self.im.update_premium(self.upbit_price, self.binance_spot_price, self.exchange_rate)
-        # print(self.upbit_price.price, "\n", self.binance_spot_price.price)
+        print(f'Upbit: {self.upbit_price.price}')
+        print(f'Bspot: {self.binance_spot_price.price}')
 
     def initialize(self, common_symbols, except_list):
         self.except_list = except_list
@@ -189,7 +190,7 @@ class ArbitrageBasic:
             self.dict_premium_q[symbol].append(self.im[Indicator.PREMIUM][-1][symbol])
             self.init_price_counter += 1
 
-        if self.init_price_counter >= self.q_maxlen:
+        if self.init_price_counter >= (self.q_maxlen * len(self.symbols_wo_excepted)):
             for symbol in self.symbols_wo_excepted:
                 self.asset_signals[symbol].proceed(
                     premium_q=self.dict_premium_q[symbol],
