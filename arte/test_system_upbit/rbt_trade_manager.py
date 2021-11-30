@@ -40,7 +40,6 @@ class RBTUpbitTradeManager:
         self.order_recorder = TestOrderRecorder(backtest_id=backtest_id)
 
         self.test_current_time = None
-        self.trade_prices = None
         self.orderbook = None
 
         self.bot = None
@@ -61,6 +60,8 @@ class RBTUpbitTradeManager:
             ask_qty = self.orderbook[symbol]["ask_list"][1]
             if ask_price * ask_qty >= krw:
                 return ask_price
+            else:
+                return None
         elif buy_or_sell == "SELL":
             return self.orderbook[symbol]["bid_list"][0]
 
@@ -68,7 +69,12 @@ class RBTUpbitTradeManager:
     def buy_long_market(self, symbol, krw=None, ratio=None):
         if self.symbols_state[symbol]["order_count"] < self.max_order_count:
             market_trade_price = self.calc_market_order_price_qty(symbol=symbol[4:], buy_or_sell="BUY", krw=krw)
-            return self.order_handler.open_long_market(symbol=symbol, price=market_trade_price, krw=krw, ratio=ratio)
+            if market_trade_price:
+                return self.order_handler.open_long_market(
+                    symbol=symbol, price=market_trade_price, krw=krw, ratio=ratio
+                )
+            else:
+                return None
 
     @_process_order
     def sell_long_market(self, symbol, ratio):
@@ -96,17 +102,25 @@ class RBTUpbitTradeManager:
     def _process_order_record(self, order):
         self.order_recorder.test_order_to_order_dict(order, self.test_current_time)
 
-    def update(self, test_current_time, trade_prices, orderbook):
+    def update(self, test_current_time, orderbook):
         self.test_current_time = test_current_time
-        self.trade_prices = trade_prices
         self.orderbook = orderbook
 
 
 if __name__ == "__main__":
-    tm = RBTUpbitTradeManager(init_krw=100000, max_order_count=3)
-    symbol = "KRW-ETH"
-    # tm.update(0, trade_prices={symbol[4:]:2783000.0}, last_askbid='BID')
-    # tm.buy_long_market(symbol=symbol, krw=50000)
-    # tm.update(0, trade_prices={symbol[4:]:2700000.0})
-    # tm.sell_long_market(symbol=symbol, ratio=1)
-    # print(tm.calc_market_order_price(1500, 'BID', 'BUY'))
+    from arte.data.upbit_orderbook_parser import UpbitOrderbookParser
+
+    tm = RBTUpbitTradeManager(init_krw=400000, max_order_count=3)
+    symbol = "KRW-AXS"
+
+    orderbook = UpbitOrderbookParser([symbol])
+    orderbook._orderbook[symbol[4:]] = {
+        "ask_list": [101, 1],
+        "bid_list": [99, 1],
+        "total_ask_size": 100,
+        "total_bid_size": 100,
+    }
+    tm.update(test_current_time=0, orderbook=orderbook)
+    tm.buy_long_market(symbol=symbol, krw=100000)
+    tm.sell_long_market(symbol=symbol, ratio=1)
+

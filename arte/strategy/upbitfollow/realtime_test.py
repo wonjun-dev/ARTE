@@ -44,9 +44,7 @@ class ArbiTrader:
         try:
             _cur_time = Timestamp.now()
             self.tm.update(
-                test_current_time=_cur_time,
-                trade_prices=self.socket_data_manager.upbit_trade.price,
-                orderbook=self.socket_data_manager.upbit_orderbook,
+                test_current_time=_cur_time, orderbook=self.socket_data_manager.upbit_orderbook,
             )
             self.strategy.update(
                 upbit_price=self.socket_data_manager.upbit_trade,

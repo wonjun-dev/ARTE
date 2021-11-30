@@ -39,13 +39,13 @@ class SignalState:
                 "conditions": ["binance_price_up", "upbit_price_stay"],  # , "premium_undershoot_mean"],
                 "after": "buy_long",
             },
-            {
-                "trigger": "proceed",
-                "source": "sell_state",
-                "dest": "sell_order_state",
-                "conditions": ["price_decrease"],
-                "after": "sell_long",
-            },
+            # {
+            #     "trigger": "proceed",
+            #     "source": "sell_state",
+            #     "dest": "sell_order_state",
+            #     "conditions": ["price_decrease"],
+            #     "after": "sell_long",
+            # },
             {
                 "trigger": "proceed",
                 "source": "sell_state",
@@ -99,22 +99,24 @@ class SignalState:
 
     def binance_price_up(self, **kwargs):
         binance_price_q = kwargs["binance_price_q"]
-        change_rate = binance_price_q[-1] / binance_price_q[0]  # price change rate in 20 sec
+        # change_rate = binance_price_q[-1] / binance_price_q[0]
+        change_rate = binance_price_q[-1] / np.mean([binance_price_q[i] for i in range(8)])
         return change_rate > 1.005
 
     def upbit_price_stay(self, **kwargs):
         price_q = kwargs["price_q"]
-        change_rate = price_q[-1] / price_q[0]  # price change rate in 20 sec
+        # change_rate = price_q[-1] / price_q[0]
+        change_rate = price_q[-1] / np.mean([price_q[i] for i in range(9)])
         return change_rate < 1.001
 
     def buy_long(self, **kwargs):
         self.initialize()
         print("Passed all signals, Order Buy long")
-        self.tm.buy_long_market(symbol=self.symbol, krw=100000)
-        self.is_open = True
-        self.premium_at_buy = kwargs["premium_q"][-1]
-        self.price_at_buy = kwargs["trade_price"]  # temp val - it need to change to result of order
-        self.timer.start(kwargs["current_time"], "120S")
+        if self.tm.buy_long_market(symbol=self.symbol, krw=100000):
+            self.is_open = True
+            self.premium_at_buy = kwargs["premium_q"][-1]
+            self.price_at_buy = kwargs["trade_price"]  # temp val - it need to change to result of order
+            self.timer.start(kwargs["current_time"], "120S")
 
     # Sell logic and ordering
     def price_decrease(self, **kwargs):
@@ -134,10 +136,10 @@ class SignalState:
     def sell_long(self, **kwargs):
         self.initialize()
         print("Passed all signals, Order Sell long")
-        self.tm.sell_long_market(symbol=self.symbol, ratio=1)
-        self.is_open = False
-        self.premium_at_buy = None
-        self.price_at_buy = None
+        if self.tm.sell_long_market(symbol=self.symbol, ratio=1):
+            self.is_open = False
+            self.premium_at_buy = None
+            self.price_at_buy = None
 
 
 class ArbitrageBasic:

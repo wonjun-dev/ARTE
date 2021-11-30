@@ -270,11 +270,12 @@ class TestDataLoader:
 
 if __name__ == "__main__":
     DATA_PATH = "/home/park/Projects/data"
-    symbol = "ANKR"
+    symbol = "AXS"
     start_date = "2021-10-01"
-    end_date = "2021-10-03"
+    end_date = "2021-10-01"
     dl = TestDataLoader(DATA_PATH)
     dl.init_test_data_loader([symbol], start_date, end_date, ohlcv_interval=1000)
-    dl.load_next_by_counter(100)
+    dl.load_next_by_counter(0)
     print(dl.upbit_trade.price)
     print(dl.upbit_last_askbid)
+    print(dl.current_time)

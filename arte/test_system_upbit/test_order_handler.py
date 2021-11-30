@@ -2,6 +2,7 @@
 Upbit
 """
 
+import sys
 from decimal import Decimal, getcontext
 
 getcontext().prec = 6
@@ -12,8 +13,6 @@ import numpy as np
 
 from binance_f.model import Order
 from binance_f.model.constant import *
-
-from arte.test_system_upbit.test_account import Account
 
 MAKER_FEE_RATE = 0.0005
 TAKER_FEE_RATE = 0.0005
@@ -79,8 +78,8 @@ class OrderHandler:
             return None
         price = Decimal(price)
         ratio = Decimal(ratio)
-        if not (self.account[symbol] > 0):
-            print("You cannot sell, no position to sell")
+        if not self.account.has_asset(symbol, sys.float_info.epsilon):
+            print(f"{symbol} has never been traded or no position to sell, you cannot sell.")
             return None
         quantity = Decimal(self.account[symbol]) * ratio
         krw_by_sell = quantity * price
@@ -102,6 +101,8 @@ class OrderHandler:
 
 
 if __name__ == "__main__":
+    from arte.test_system_upbit.test_account import Account
+
     acc = Account(init_balance=100000)
     oh = OrderHandler(acc)
     oh.open_long_market(symbol="KRW-BTC", price=50000000, krw=50000)

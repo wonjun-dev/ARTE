@@ -23,7 +23,7 @@ class TestMainloop:
         if "backtest_id" in kwargs:
             self.backtest_id = kwargs["backtest_id"]
 
-        self.tm = TestUpbitTradeManager(init_krw=400000, max_order_count=3, backtest_id=self.backtest_id)
+        self.tm = TestUpbitTradeManager(init_krw=800000, max_order_count=3, backtest_id=self.backtest_id)
         self.strategy = ArbitrageBasic(trade_manager=self.tm)
 
         # self.common_symbols = self.symbol_collector.get_future_symbol()
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # selected_assets = 'BTC ETH BCH AAVE SOL LTC AXS ETC NEO DOT ATOM LINK QTUM OMG KAVA MANA EOS 1INCH ADA'
     # selected_assets = selected_assets.split(' ')
 
-    strategy_name = "upbitfollow"
+    strategy_name = "upbitfollow_meanbased"
     start_date = "2021-10-01"
     end_date = "2021-10-31"
     symbols = ["AXS", "EOS", "SOL"]
