@@ -8,11 +8,13 @@ from datetime import datetime
 
 from arte.test_system.test_realized_pnl import TestRealizedPnl
 
+TEST_DB_PATH = "./test_db"
+
 
 class TestOrderRecorder:
     def __init__(self, **kwargs):
-        if not os.path.exists("./test_db"):
-            os.makedirs("./test_db")
+        if not os.path.exists(TEST_DB_PATH):
+            os.makedirs(TEST_DB_PATH)
 
         self.backtest_id = None
         if "backtest_id" in kwargs:
@@ -40,6 +42,7 @@ class TestOrderRecorder:
 
         self.test_realized_pnl = TestRealizedPnl()
         self.start_date = datetime.today().strftime("%Y%m%d%H%M%S")
+        self.backtest_date = datetime.today().strftime("%Y%m%d")
 
     def test_order_to_order_dict(self, order, test_current_time):
         # test order class to dict(event_dict)
@@ -100,11 +103,14 @@ class TestOrderRecorder:
         symbol = order_dict["symbol"]
 
         if self.backtest_id:
-            path = f"./test_db/Test_{symbol}_{self.backtest_id}.csv"
+            dirpath = os.path.join(TEST_DB_PATH, f"{self.backtest_id.split('-')[0]}_{self.backtest_date}")
+            if not os.path.exists(dirpath):
+                os.makedirs(dirpath)
+            fpath = os.path.join(dirpath, f"BT_{symbol}_{self.backtest_id}.csv")
         else:
-            path = f"./test_db/Test_{symbol}_{self.start_date}.csv"
-        with open(path, "a", newline="") as f_object:
+            fpath = f"./test_db/Test_{symbol}_{self.start_date}.csv"
+        with open(fpath, "a", newline="") as f_object:
             writer_object = csv.DictWriter(f_object, fieldnames=self.order_fields)
-            if os.stat(path).st_size == 0:
+            if os.stat(fpath).st_size == 0:
                 writer_object.writeheader()
             writer_object.writerow(order_dict)

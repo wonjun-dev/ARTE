@@ -34,19 +34,32 @@ class Grouping:
 
 def generate_intervals(start, end, periods):
     def str_dt(dt):
-        return dt.strftime('%Y-%m-%d')
-    dt_range = pd.date_range(start=start, end=end, periods=periods+1)
+        return dt.strftime("%Y-%m-%d")
+
+    dt_range = pd.date_range(start=start, end=end, periods=periods + 1)
     intervals = []
-    for i in range(len(dt_range)-1):
+    for i in range(len(dt_range) - 1):
         start_dt = str_dt(dt_range[i])
-        if i+1 == len(dt_range)-1:
-            end_dt = str_dt(dt_range[i+1])
+        if i + 1 == len(dt_range) - 1:
+            end_dt = str_dt(dt_range[i + 1])
         else:
-            end_dt = str_dt(dt_range[i+1]-pd.Timedelta('1D'))
+            end_dt = str_dt(dt_range[i + 1] - pd.Timedelta("1D"))
         intervals.append([start_dt, end_dt])
     return intervals
 
 
 def random_choice():
     alphabet = string.ascii_lowercase + string.digits
-    return ''.join(random.choices(alphabet, k=8))
+    return "".join(random.choices(alphabet, k=8))
+
+
+def symbolize_binance(pure_symbol, upper=False):
+    bsymbol = pure_symbol.lower() + "usdt"
+    if upper:
+        bsymbol = bsymbol.upper()
+    return bsymbol
+
+
+def symbolize_upbit(pure_symbol):
+    usymbol = "KRW-" + pure_symbol.upper()
+    return usymbol

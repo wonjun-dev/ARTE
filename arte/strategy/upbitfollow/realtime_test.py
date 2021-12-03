@@ -5,17 +5,15 @@ from pandas import Timestamp
 from arte.data import SocketDataManager
 from arte.data import RequestDataManager
 from arte.data.common_symbol_collector import CommonSymbolCollector
-
 from arte.test_system_upbit.rbt_trade_manager import RBTUpbitTradeManager
-from arte.strategy.upbitfollow.strategy_upbitfollow import ArbitrageBasic
+
+from strategy_loop import StrategyLoop
 
 
-class ArbiTrader:
+class TradeScheduler:
     def __init__(self, client, **kwargs):
-
         self.client = client
         self.scheduler = BlockingScheduler()
-
         self.socket_data_manager = SocketDataManager(self.client)
         self.request_data_manager = RequestDataManager(self.client)
         # self.symbol_collector = CommonSymbolCollector()
@@ -31,7 +29,7 @@ class ArbiTrader:
             self.backtest_id = kwargs["backtest_id"]
 
         self.tm = RBTUpbitTradeManager(init_krw=400000, max_order_count=3, backtest_id=self.backtest_id)
-        self.strategy = ArbitrageBasic(trade_manager=self.tm)
+        self.strategy = StrategyLoop(trade_manager=self.tm)
 
         # Init required data
         self.except_list = []  # self.request_data_manager.get_closed_symbols()
@@ -54,7 +52,7 @@ class ArbiTrader:
                 current_time=_cur_time,
             )
             self.strategy.run()
-            
+
         except Exception:
             traceback.print_exc()
 
@@ -93,5 +91,5 @@ if __name__ == "__main__":
     use_bot = config.getboolean("USE_BOT")
 
     clients = Client(mode, api_key, secret_key)
-    trader = ArbiTrader(clients, backtest_id="upbitfollow_20211128_rbt03")
+    trader = TradeScheduler(clients, backtest_id="upbitfollow_20211128_rbt03")
     trader.start()
