@@ -39,14 +39,14 @@ class SignalState:
         self.tm = tm
 
         transitions = [
-            {"trigger": "proceed", "source": "idle", "dest": "buy_long_c", "conditions": ["order_state_valid_buy_long","upbit_price_up","z_score_valid" ]},
-            {"trigger": "proceed", "source": "idle", "dest": "buy_short_c", "conditions": ["order_state_valid_buy_short","upbit_price_down","z_score_valid"]},
-            {"trigger": "proceed", "source": "buy_long_c", "dest":"buy_long_order", "conditions": "premium_overshoot_min", "after":"buy_long"},
-            {"trigger": "proceed", "source": "buy_short_c", "dest":"buy_short_order", "conditions": "premium_undershoot_min", "after":"buy_short"},
-            {"trigger": "proceed", "source": "idle", "dest": "sell_long_c", "conditions":["order_state_valid_sell_long","premium_decrease"], "after":"sell_long"},
-            {"trigger": "proceed", "source": "idle", "dest": "sell_short_c", "conditions":[ "order_state_valid_sell_short","premium_increase"], "after":"sell_short"},
-            {"trigger": "proceed", "source": "idle", "dest": "sell_long_stop", "conditions":[ "order_state_valid_sell_long","stop_loss_long"], "after":"sell_long"},
-            {"trigger": "proceed", "source": "idle", "dest": "sell_short_stop", "conditions":[ "order_state_valid_sell_short", "stop_loss_short"], "after":"sell_short"},
+            {"trigger": "proceed", "source": "idle", "dest": "buy_long_c", "conditions": ["order_state_valid_buy_short","upbit_price_up","z_score_valid" ]},
+            {"trigger": "proceed", "source": "idle", "dest": "buy_short_c", "conditions": ["order_state_valid_buy_long","upbit_price_down","z_score_valid"]},
+            {"trigger": "proceed", "source": "buy_long_c", "dest":"buy_long_order", "conditions": "premium_overshoot_min", "after":"buy_short"},
+            {"trigger": "proceed", "source": "buy_short_c", "dest":"buy_short_order", "conditions": "premium_undershoot_min", "after":"buy_long"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_long_c", "conditions":["order_state_valid_sell_short","premium_decrease"], "after":"sell_short"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_short_c", "conditions":[ "order_state_valid_sell_long","premium_increase"], "after":"sell_long"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_long_stop", "conditions":[ "order_state_valid_sell_short","stop_loss_short"], "after":"sell_short"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_short_stop", "conditions":[ "order_state_valid_sell_long", "stop_loss_long"], "after":"sell_long"},
             {"trigger": "initialize", "source": "*", "dest": "idle"},  # , "before": "print_end"},
         ]
         m = Machine(
@@ -211,7 +211,7 @@ class SignalState:
         return stats.zscore(kimp_q) * 0.5
         
 
-class ArbitrageCascading:
+class ArbitrageCascadingVer2:
     """
     Upbit-Binance Pair Arbitrage 기초 전략
     """
@@ -268,5 +268,5 @@ class ArbitrageCascading:
                     price_q=self.dict_price_q[symbol],
                     future_price=self.binance_future_price.price[symbol],
                     current_time=self.current_time,
-                    hard_stop_loss=0.01,
+                    hard_stop_loss=0.03,
                 )

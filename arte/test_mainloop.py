@@ -9,7 +9,7 @@ from arte.data.test_data_loader import TestDataLoader
 from arte.test_system.test_trade_manager import TestTradeManager
 
 from arte.strategy import ArbitrageBasic
-from arte.strategy import ArbitrageCascading
+from arte.strategy import ArbitrageCascadingVer2
 
 
 class TestMainloop:
@@ -32,7 +32,7 @@ class TestMainloop:
         self.symbol_collector = CommonSymbolCollector()
 
         self.tm = TestTradeManager(init_usdt=400, max_order_count=600000000000000)
-        self.strategy = ArbitrageCascading(trade_manager=self.tm)
+        self.strategy = ArbitrageCascadingVer2(trade_manager=self.tm)
 
         # self.common_symbols = self.symbol_collector.get_future_symbol()
         self.except_list = []
@@ -67,4 +67,4 @@ class TestMainloop:
 
 if __name__ == "__main__":
     test_main_loop = TestMainloop()
-    test_main_loop.start(["BTC", "SOL"], "2021-11-02", "2021-11-02")
+    test_main_loop.start(["BTC", "MATIC"], "2021-11-01", "2021-11-04")
