@@ -51,6 +51,7 @@ class TradeScheduler:
                 except_list=self.except_list,
                 current_time=_cur_time,
             )
+            self.strategy.print_state()
             self.strategy.run()
 
         except Exception:

@@ -19,7 +19,8 @@ class SignalState:
                 "trigger": "proceed",
                 "source": "buy_state",
                 "dest": "buy_order_state",
-                "conditions": ["binance_price_up", "upbit_price_stay"],  # , "premium_undershoot_mean"],
+                "conditions": ["binance_price_up", "upbit_price_stay"], 
+                # "conditions": ["premium_undershoot_mean"],
                 "after": "buy_long",
             },
             # {
@@ -77,8 +78,8 @@ class SignalState:
 
     def premium_undershoot_mean(self, **kwargs):
         premium_q = list(kwargs["premium_q"])
-        change_rate = premium_q[-1] / (np.mean(premium_q))
-        return change_rate < 0.99
+        change_rate = premium_q[-1] / (np.mean(premium_q[:9]))
+        return change_rate < 0.7
 
     def binance_price_up(self, **kwargs):
         binance_price_q = kwargs["binance_price_q"]
@@ -94,13 +95,13 @@ class SignalState:
 
     def buy_long(self, **kwargs):
         self.initialize()
-        print("Passed all signals, Order Buy long")
+        # print("Passed all signals, Order Buy long")
         if self.tm.buy_long_market(symbol=self.symbol, krw=100000):
             self.is_open = True
             self.premium_at_buy = kwargs["premium_q"][-1]
             self.premium_before_buy = np.mean(list(kwargs["premium_q"])[:5])
-            print(f"Premium at buy: {self.premium_at_buy}, before: {self.premium_before_buy}")
-            print(f'{kwargs["premium_q"]}')
+            # print(f"Premium at buy: {self.premium_at_buy}, before: {self.premium_before_buy}")
+            # print(f'{kwargs["premium_q"]}')
             self.price_at_buy = kwargs["trade_price"]  # temp val - it need to change to result of order
             self.timer.start(kwargs["current_time"], "30S")
 
@@ -126,9 +127,9 @@ class SignalState:
 
     def sell_long(self, **kwargs):
         self.initialize()
-        print("Passed all signals, Order Sell long")
+        # print("Passed all signals, Order Sell long")
         if self.tm.sell_long_market(symbol=self.symbol, ratio=1):
-            print(f'{kwargs["premium_q"][-1]}')
+            # print(f'{kwargs["premium_q"][-1]}')
             self.is_open = False
             self.premium_at_buy = None
             self.premium_before_buy = None

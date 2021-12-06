@@ -41,8 +41,6 @@ class StrategyLoop:
         self.except_list = kwargs["except_list"]
         self.current_time = kwargs["current_time"]
         self.im.update_premium(self.upbit_price, self.binance_spot_price, self.exchange_rate)
-        # print(f'Upbit: {self.upbit_price.price}')
-        # print(f'Bspot: {self.binance_spot_price.price}')
 
     def run(self):
         self.init_price_counter += 1
@@ -60,3 +58,7 @@ class StrategyLoop:
                     trade_price=self.upbit_price.price[symbol],
                     current_time=self.current_time,
                 )
+
+    def print_state(self):
+        print(f'Upbit: {self.upbit_price.price}')
+        print(f'Bspot: {self.binance_spot_price.price}')

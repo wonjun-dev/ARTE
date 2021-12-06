@@ -11,7 +11,7 @@ from arte.system.batch_backtester import BatchBacktester
 
 from strategy_loop import StrategyLoop
 
-DATA_PATH = "/home/park/Projects/data"
+DATA_PATH = "/media/park/hard2000/data"
 
 
 class BackTester:
@@ -47,9 +47,9 @@ class BackTester:
         except Exception:
             traceback.print_exc()
 
-    def start(self, symbols, start_date, end_date):
+    def start(self, symbols, date_range):
         self.test_data_manager = TestDataLoader(DATA_PATH)
-        self.test_data_manager.init_test_data_loader(symbols, start_date, end_date, ohlcv_interval=1000)
+        self.test_data_manager.init_test_data_loader(symbols, date_range[0], date_range[1], ohlcv_interval=1000)
         self.strategy.initialize(symbols, self.except_list)
 
         for i in tqdm(range(self.test_data_manager.get_counter()), ncols=100):
@@ -59,14 +59,19 @@ class BackTester:
 
 if __name__ == "__main__":
     selected_assets = "BTC ETH BCH AAVE SOL LTC AXS ETC NEO DOT ATOM LINK QTUM OMG KAVA MANA EOS 1INCH ADA"
-    symbols = selected_assets.split(" ")
+    # symbols = selected_assets.split(" ")
 
-    strategy_name = "upbitfollow_ver4_1"
+    strategy_name = "upbitfollow_converge_ver41_nov"
     start_date = "2021-10-01"
     end_date = "2021-10-31"
-    # symbols = ["AXS"]
+    symbols = ["AXS"]
 
     bbt = BatchBacktester(
         BackTester(), DATA_PATH, strategy_name, ["upbit", "binance_spot"], symbols, start_date, end_date
     )
+
+    import timeit
+
+    st = timeit.default_timer()
     bbt.start()
+    print(timeit.default_timer() - st)

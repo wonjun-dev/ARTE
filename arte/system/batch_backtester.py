@@ -1,10 +1,14 @@
 import os
 import gc
 import copy
+import functools
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor
 
 import pandas as pd
 
 from arte.system.utils import generate_intervals, random_choice
+
 
 
 class BatchBacktester:
@@ -17,6 +21,7 @@ class BatchBacktester:
         self.wanted_date_range = set(
             [dt.strftime("%Y-%m-%d") for dt in pd.date_range(start=start_date, end=end_date, freq="D")]
         )
+        self.n_cpu = multiprocessing.cpu_count()
 
     def get_possible_date_range(self, symbol):
         symbol_dates = dict()
@@ -43,14 +48,19 @@ class BatchBacktester:
                 pos_dates = sorted(list(possible_dates_symbols[symbol]))
                 start_date = pos_dates[0]
                 end_date = pos_dates[-1]
-                periods = (len(pos_dates) // 7) + 1
+                periods = self.n_cpu # (len(pos_dates) // 7) + 1
                 backtest_id = f'{self.strategy_name}-{start_date.replace("-", "")[2:]}_{end_date.replace("-", "")[2:]}_{random_choice()}'
                 self.main_loop.__init__(backtest_id=backtest_id)
                 intervals = generate_intervals(start_date, end_date, periods)
                 print(
                     f"Start Backtest of {symbol}. date range is from {start_date} to {end_date}. By {periods} divided manner"
                 )
-                for intv in intervals:
-                    gc.collect()  # prevent memory explosion
-                    print(intv)
-                    self.main_loop.start([symbol], intv[0], intv[1])
+                print(intervals)
+
+                partial_start = functools.partial(self.main_loop.start, [symbol])
+                with ProcessPoolExecutor(max_workers=self.n_cpu) as executor:
+                    executor.map(partial_start, intervals)
+                    # for intv in intervals:
+                        # gc.collect()  # prevent memory explosion
+                        # print(intv)
+                        #executor.submit(self.main_loop.start([symbol], intv))

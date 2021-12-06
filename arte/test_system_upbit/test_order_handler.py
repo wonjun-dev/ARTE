@@ -22,7 +22,7 @@ def _print_status(method):
     @wraps(method)
     def _impl(self, *args, **kwargs):
         order = method(self, *args, **kwargs)
-        print(self.account)
+        # print(self.account)
         return order
 
     return _impl

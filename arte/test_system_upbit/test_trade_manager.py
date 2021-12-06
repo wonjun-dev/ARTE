@@ -16,7 +16,7 @@ from arte.test_system.test_order_recorder import TestOrderRecorder
 def _process_order(method):
     @wraps(method)
     def _impl(self, **kwargs):
-        print(kwargs)
+        # print(kwargs)
         kwargs["symbol"] = kwargs["symbol"].upper()
         if kwargs["symbol"] not in self.symbols_state:
             self.symbols_state[kwargs["symbol"]] = self._init_symbol_state()
