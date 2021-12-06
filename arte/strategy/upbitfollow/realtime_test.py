@@ -5,7 +5,7 @@ from pandas import Timestamp
 from arte.data import SocketDataManager
 from arte.data import RequestDataManager
 from arte.data.common_symbol_collector import CommonSymbolCollector
-from arte.test_system_upbit.rbt_trade_manager import RBTUpbitTradeManager
+from arte.test_system import RTTUpbitTradeManager
 
 from strategy_loop import StrategyLoop
 
@@ -28,7 +28,7 @@ class TradeScheduler:
         if "backtest_id" in kwargs:
             self.backtest_id = kwargs["backtest_id"]
 
-        self.tm = RBTUpbitTradeManager(init_krw=400000, max_order_count=3, backtest_id=self.backtest_id)
+        self.tm = RTTUpbitTradeManager(init_krw=400000, max_order_count=3, backtest_id=self.backtest_id)
         self.strategy = StrategyLoop(trade_manager=self.tm)
 
         # Init required data

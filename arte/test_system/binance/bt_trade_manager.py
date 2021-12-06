@@ -4,11 +4,9 @@ from decimal import Decimal, getcontext
 getcontext().prec = 6
 
 from binance_f.model.constant import *
-from arte.test_system.test_account import TestAccount
-from arte.test_system.test_order_handler import TestOrderHandler
-from arte.test_system.test_order_recorder import TestOrderRecorder
-
-import time
+from .test_account import TestAccount
+from .test_order_handler import TestOrderHandler
+from arte.test_system.bt_order_recorder import BackTestOrderRecorder
 
 
 def _process_order(method):
@@ -26,11 +24,11 @@ def _process_order(method):
     return _impl
 
 
-class TestBinanceTradeManager:
+class BackTestBinanceTradeManager:
     def __init__(self, init_usdt=5000, *args, **kwargs):
         self.account = TestAccount(init_balance=init_usdt)
         self.order_handler = TestOrderHandler(self.account)
-        self.order_recorder = TestOrderRecorder()
+        self.order_recorder = BackTestOrderRecorder()
         self.test_current_time = None
         self.future_prices = None
 
@@ -107,10 +105,12 @@ class TestBinanceTradeManager:
         self.test_current_time = test_current_time
         self.future_prices = future_prices
 
+    def end_bt(self):
+        return self.order_recorder.return_records()
+
 
 if __name__ == "__main__":
-
-    tm = TestTradeManager(init_usdt=1000, max_order_count=3)
+    tm = BackTestBinanceTradeManager(init_usdt=1000, max_order_count=3)
     tm.buy_long_market(symbol="ethusdt", price=2783, usdt=100)
     tm.sell_long_market(symbol="ethusdt", price=2700, ratio=0.5)
     # tm.buy_short_market("ethusdt", price=2783, usdt=100)

@@ -9,7 +9,7 @@ import numpy as np
 from binance_f.model import Order
 from binance_f.model.constant import *
 
-from arte.test_system.test_account import TestAccount
+from .test_account import TestAccount
 
 MAKER_FEE_RATE = 0.0002
 TAKER_FEE_RATE = 0.0004

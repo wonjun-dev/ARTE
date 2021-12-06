@@ -48,8 +48,7 @@ class BatchBacktester:
                 pos_dates = sorted(list(possible_dates_symbols[symbol]))
                 actual_start_date = pos_dates[0]
                 actual_end_date = pos_dates[-1]
-                periods = self.n_cpu # (len(pos_dates) // 7) + 1
-                
+                periods = self.n_cpu
                 
                 intervals = generate_intervals(actual_start_date, actual_end_date, periods)
                 print(
@@ -57,15 +56,21 @@ class BatchBacktester:
                 )
                 print(intervals)
                 
-                full_records = []
-                
+                base_records = []
+                additional_records = []
                 partial_start = functools.partial(self.main_loop.start, [symbol])
                 with ProcessPoolExecutor(max_workers=self.n_cpu) as executor:
-                    records = executor.map(partial_start, intervals)
-                    for record in records:
-                        full_records += record
+                    _records = executor.map(partial_start, intervals)
+                    for record in _records:
+                        if isinstance(record, dict):
+                            base_records += record['upbit']
+                            additional_records += record['binance']
+                        else:
+                            base_records += record
 
-                self.save_records(full_records, actual_start_date, actual_end_date)
+                self.save_records(base_records, actual_start_date, actual_end_date)
+                if additional_records:
+                    self.save_records(additional_records, actual_start_date, actual_end_date)
 
     def save_records(self, full_records, start_date, end_date):
         symbol = full_records[0]["symbol"]

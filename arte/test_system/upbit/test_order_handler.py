@@ -101,7 +101,7 @@ class OrderHandler:
 
 
 if __name__ == "__main__":
-    from arte.test_system_upbit.test_account import Account
+    from test_account import Account
 
     acc = Account(init_balance=100000)
     oh = OrderHandler(acc)
