@@ -10,7 +10,7 @@ getcontext().prec = 6
 from binance_f.model.constant import *
 from arte.test_system_upbit.test_account import Account
 from arte.test_system_upbit.test_order_handler import OrderHandler
-from arte.test_system.test_order_recorder import TestOrderRecorder
+from arte.test_system.bt_order_recorder import BackTestOrderRecorder
 
 
 def _process_order(method):
@@ -32,12 +32,7 @@ class TestUpbitTradeManager:
     def __init__(self, init_krw=100000, *args, **kwargs):
         self.account = Account(init_balance=init_krw)
         self.order_handler = OrderHandler(self.account)
-
-        backtest_id = None
-        if "backtest_id" in kwargs:
-            backtest_id = kwargs["backtest_id"]
-
-        self.order_recorder = TestOrderRecorder(backtest_id=backtest_id)
+        self.order_recorder = BackTestOrderRecorder()
 
         self.test_current_time = None
         self.trade_prices = None
@@ -127,6 +122,9 @@ class TestUpbitTradeManager:
         self.test_current_time = test_current_time
         self.trade_prices = trade_prices
         self.last_askbid = last_askbid
+
+    def end_bt(self):
+        return self.order_recorder.return_records()
 
 
 if __name__ == "__main__":

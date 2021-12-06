@@ -15,17 +15,9 @@ DATA_PATH = "/media/park/hard2000/data"
 
 
 class BackTester:
-    def __init__(self, **kwargs):
-
-        self.backtest_id = None
-        if "backtest_id" in kwargs:
-            self.backtest_id = kwargs["backtest_id"]
-
-        self.tm = TestUpbitTradeManager(init_krw=400000, max_order_count=3, backtest_id=self.backtest_id)
+    def __init__(self):
+        self.tm = TestUpbitTradeManager(init_krw=400000, max_order_count=3)
         self.strategy = StrategyLoop(trade_manager=self.tm)
-
-        # self.symbol_collector = CommonSymbolCollector()
-        # self.common_symbols = self.symbol_collector.get_future_symbol()
         self.except_list = []
 
     def mainloop(self):
@@ -56,14 +48,16 @@ class BackTester:
             self.test_data_manager.load_next_by_counter(i)
             self.mainloop()
 
+        return self.tm.end_bt()
+
 
 if __name__ == "__main__":
     selected_assets = "BTC ETH BCH AAVE SOL LTC AXS ETC NEO DOT ATOM LINK QTUM OMG KAVA MANA EOS 1INCH ADA"
     # symbols = selected_assets.split(" ")
 
-    strategy_name = "upbitfollow_converge_ver41_nov"
-    start_date = "2021-10-01"
-    end_date = "2021-10-31"
+    strategy_name = "upbitfollow_converge_nov"
+    start_date = "2021-11-01"
+    end_date = "2021-11-30"
     symbols = ["AXS"]
 
     bbt = BatchBacktester(

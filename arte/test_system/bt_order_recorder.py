@@ -1,25 +1,12 @@
 """
 오더를 레코드 합니다.
 """
- 
-import os
-import csv
-from datetime import datetime
-
 from arte.test_system.test_realized_pnl import TestRealizedPnl
 
 TEST_DB_PATH = "./test_db"
 
-
-class TestOrderRecorder:
-    def __init__(self, **kwargs):
-        if not os.path.exists(TEST_DB_PATH):
-            os.makedirs(TEST_DB_PATH)
-
-        self.backtest_id = None
-        if "backtest_id" in kwargs:
-            self.backtest_id = kwargs["backtest_id"]
-
+class BackTestOrderRecorder:
+    def __init__(self):
         self.order_fields = [
             "symbol",
             "clientOrderId",
@@ -41,8 +28,7 @@ class TestOrderRecorder:
         ]
 
         self.test_realized_pnl = TestRealizedPnl()
-        self.start_date = datetime.today().strftime("%Y%m%d%H%M%S")
-        self.backtest_date = datetime.today().strftime("%Y%m%d")
+        self.record_rows = []
 
     def test_order_to_order_dict(self, order, test_current_time):
         # test order class to dict(event_dict)
@@ -96,22 +82,8 @@ class TestOrderRecorder:
         # test current time
         order_dict["updateTime"] = test_current_time
 
-        # update_csv
-        self.update_csv(order_dict)
+        # update record rows
+        self.record_rows.append(order_dict)
 
-    def update_csv(self, order_dict: dict):
-        symbol = order_dict["symbol"]
-
-        if self.backtest_id:
-            dirpath = os.path.join(TEST_DB_PATH, f"{self.backtest_id.split('-')[0]}_{self.backtest_date}")
-            if not os.path.exists(dirpath):
-                os.makedirs(dirpath)
-            fpath = os.path.join(dirpath, f"BT_{symbol}_{self.backtest_id}.csv")
-        else:
-            fpath = f"./test_db/Test_{symbol}_{self.start_date}.csv"
-
-        with open(fpath, "a", newline="") as f_object:
-            writer_object = csv.DictWriter(f_object, fieldnames=self.order_fields)
-            if os.stat(fpath).st_size == 0:
-                writer_object.writeheader()
-            writer_object.writerow(order_dict)
+    def return_records(self):
+        return self.record_rows
