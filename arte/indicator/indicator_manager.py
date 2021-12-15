@@ -7,12 +7,14 @@ from arte.data.candlestick_parser import CandlestickParser
 
 from arte.indicator.bollinger import Bollinger
 from arte.indicator.premium import Premium
+from arte.indicator.spread import Spread
 
 
 class Indicator:
     PREMIUM = "Premium"
     BOLLINGER = "Bollinger"
     ATR = "ATR"
+    SPREAD = "SPREAD"
 
 
 class IndicatorManager:
@@ -40,3 +42,7 @@ class IndicatorManager:
     def update_premium(self, upbit_obj, binance_obj, exchange_rate):
         if isinstance(upbit_obj, TradeParser) and isinstance(binance_obj, TradeParser):
             self.value_dict[Indicator.PREMIUM].append(Premium.calc(upbit_obj, binance_obj, exchange_rate))
+
+    def update_spread(self, symbol_A_obj, symbol_B_obj, gamma):
+        if isinstance(symbol_A_obj, TradeParser) and isinstance(symbol_B_obj, TradeParser):
+            self.value_dict[Indicator.SPREAD].append(Spread.calc(symbol_A_obj, symbol_B_obj, gamma))
