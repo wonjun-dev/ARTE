@@ -26,7 +26,11 @@ class BackTester:
                 trade_prices=self.test_data_manager.upbit_trade.price,
                 last_askbid=self.test_data_manager.upbit_last_askbid,
             )
-            self.tm_binance.update() # need to change!
+            self.tm_binance.update(
+                test_current_time=self.test_data_manager.current_time,
+                future_prices=self.test_data_manager.binance_trade.price,
+
+            ) # need to change!
 
             self.strategy.update(
                 upbit_price=self.test_data_manager.upbit_trade,
@@ -56,10 +60,10 @@ if __name__ == "__main__":
     selected_assets = "BTC ETH BCH AAVE SOL LTC AXS ETC NEO DOT ATOM LINK QTUM OMG KAVA MANA EOS 1INCH ADA"
     # symbols = selected_assets.split(" ")
 
-    strategy_name = "upbitfollow_converge_nov"
-    start_date = "2021-11-01"
-    end_date = "2021-11-30"
-    symbols = ["AXS"]
+    strategy_name = "upbitfollow_converge_nov_inverse_additional"
+    start_date = "2021-10-01"
+    end_date = "2021-11-01"
+    symbols = ["QTUM", "DOT", "OMG", "ATOM"]
 
     bbt = BatchBacktester(
         BackTester(), DATA_PATH, strategy_name, ["upbit", "binance_spot"], symbols, start_date, end_date
