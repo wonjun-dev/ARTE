@@ -124,6 +124,8 @@ class UpbitOrderRecorder:
         # update_csv
         self.update_csv(self.current_strategy_name, self.start_date, order_dict)
 
+        return event  # for telegram message
+
     def update_csv(self, strategy: str, start_date: str, order_dict: dict):
         symbol = order_dict["symbol"]
         path = f"./db/{strategy}_{symbol}_{start_date}.csv"
