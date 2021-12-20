@@ -3,9 +3,9 @@ from functools import wraps
 from decimal import Decimal
 
 from binance_f.model.constant import *
-from .account import UpbitAccount
-from .order_handler import UpbitOrderHandler
-from .order_recorder import UpbitOrderRecorder
+from account import UpbitAccount
+from order_handler import UpbitOrderHandler
+from order_recorder import UpbitOrderRecorder
 
 
 def _process_order(method):
@@ -15,7 +15,7 @@ def _process_order(method):
         if "error" in order:
             print(f"Error during order: {order}")
         else:
-            self._postprocess_order(order)
+            self._postprocess_order_by_thread(order)
         return order
 
     return _impl
@@ -23,7 +23,7 @@ def _process_order(method):
 
 class UpbitTradeManager:
     def __init__(self, client, symbols, *args, **kwargs):
-        self.client = client.upbit_request_client
+        self.client = client.request_client
         self.account = UpbitAccount(self.client)
         self.order_handler = UpbitOrderHandler(self.client, self.account)
         self.order_handler.manager = self
@@ -52,7 +52,7 @@ class UpbitTradeManager:
 
     @_process_order
     def buy_long_market(self, symbol, krw=None, ratio=None):
-        if self.symbols_state[symbol]["order_count"] < self.max_order_count:
+        if self.symbols_state[symbol[4:]]["order_count"] < self.max_order_count:
             return self.order_handler.buy_market(symbol=symbol, krw=krw, ratio=ratio)
 
     @_process_order
@@ -60,15 +60,16 @@ class UpbitTradeManager:
         return self.order_handler.sell_market(symbol=symbol, ratio=ratio)
 
     def _postprocess_order_by_thread(self, order):
-        threading.Thread(target=self._postprocess_order, args=(order)).start()
+        threading.Thread(target=self._postprocess_order, args=(order,)).start()
 
     def _postprocess_order(self, order):
-        time.sleep(0.05)
+        time.sleep(0.1)  # minimum waiting time. need to adjust later (more longer?)
         order_result = order["result"]
         pure_symbol = order_result["market"][4:]
         # update account
         self.account.update()
 
+        print(self.account.symbols())
         # update self.symbols_state
         for _symbol in self.account.symbols():
             self.symbols_state[_symbol]["position_size"] = self.account[_symbol]
@@ -83,6 +84,7 @@ class UpbitTradeManager:
         # update order_record
         resp = self.client.Order.Order_info(uuid=order_result["uuid"])
         order_info = resp["result"]
+        self.order_recorder.get_event(order_info)
 
         # Process result message
         # message = f"Order {order.clientOrderId}: {order.side} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
@@ -94,17 +96,17 @@ class UpbitTradeManager:
 if __name__ == "__main__":
     import threading
     import time
-    from arte.system.client import Client
+    import configparser
+    from arte.system.client import UpbitClient
 
-    API_KEY = None
-    SECRET_KEY = None
-    cl = Client(mode="TEST", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
-    tm = UpbitTradeManager(client=cl, max_order_count=3)
-    tm.buy_short_market("ethusdt", 2783, usdt=100)
-    time.sleep(0.05)
-    tm.sell_short_market("ethusdt", ratio=1)
+    cfg = configparser.ConfigParser()
+    cfg.read("/media/park/hard2000/arte_config/config.ini")
+    config = cfg["REAL_JAEHAN"]
+    access_key = config["UPBIT_ACCESS_KEY"]
+    secret_key = config["UPBIT_SECRET_KEY"]
 
-    for t in threading.enumerate():
-        if t is threading.current_thread():
-            continue
-        t.join()
+    cl = UpbitClient(access_key, secret_key)
+    tm = UpbitTradeManager(client=cl, symbols=["XRP", "EOS"], max_order_count=3)
+    tm.buy_long_market("KRW-XRP", krw=5100)
+    time.sleep(0.25)
+    tm.sell_long_market("KRW-XRP", ratio=1.0)

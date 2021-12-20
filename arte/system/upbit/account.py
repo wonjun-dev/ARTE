@@ -54,7 +54,7 @@ class UpbitAccount:
         threading.Thread(target=self._sleep_update).start()
 
     def symbols(self):
-        return self._positions.keys()
+        return set(self._positions.keys()) - set(["KRW"])
 
 
 if __name__ == "__main__":
@@ -68,11 +68,11 @@ if __name__ == "__main__":
 
     request_client = Upbit(config["UPBIT_ACCESS_KEY"], config["UPBIT_SECRET_KEY"])
     acc = UpbitAccount(request_client)
-    print(acc["EOS"])
     print(acc)
+    print(acc.symbols())
     print("start threaded update")
     acc.update_by_thread()
-    for _ in range(50):
+    for _ in range(10):
         time.sleep(0.1)
         print(acc, threading.active_count())
 

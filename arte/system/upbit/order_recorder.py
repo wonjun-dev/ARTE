@@ -14,7 +14,7 @@ from binance_f.model.constant import *
 
 class UpbitPseudoOrderUpdate(OrderUpdate):
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
 
 
 class UpbitOrderRecorder:
@@ -71,8 +71,8 @@ class UpbitOrderRecorder:
             event.clientOrderId = order_info["uuid"]
             event.symbol = order_info["market"]
             event.side = OrderSide.BUY if order_info["side"] == UpbitOrderSide.BUY else OrderSide.SELL
-            event.origQty = order_info["executed_volume"]
-            event.commissionAmount = order_info["paid_fee"]
+            event.origQty = float(order_info["executed_volume"])
+            event.commissionAmount = float(order_info["paid_fee"])
             event.avgPrice = self._calc_avgPrice(order_info)
 
         # orderUpdate event to dict(event_dict)

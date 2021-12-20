@@ -24,3 +24,8 @@ class Client:
         _upbit_api_key = "xou3PRNskZ2wzJls3emcvd0xx3lA1eWxvsj4U2yX"
         _upbit_secret_key = "Fo2VKAuEx9yNux6hTN8i3ovX9BAZcDKsmC5qaAt8"
         self.upbit_request_client = Upbit(_upbit_api_key, _upbit_secret_key)
+
+
+class UpbitClient:
+    def __init__(self, api_key, secret_key):
+        self.request_client = Upbit(api_key, secret_key)
