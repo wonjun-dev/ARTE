@@ -9,7 +9,7 @@ from datetime import datetime
 from arte.system.realized_pnl import RealizedPnl
 
 
-class OrderRecorder:
+class BinanceOrderRecorder:
     def __init__(self):
         if not os.path.exists("./db"):
             os.makedirs("./db")

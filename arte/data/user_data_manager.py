@@ -8,8 +8,6 @@ from binance_f.model import *
 from binance_f.exception.binanceapiexception import BinanceApiException
 from binance_f.base.printobject import *
 
-from arte.system.order_recorder import OrderRecorder
-
 
 class UserDataManager:
     def __init__(self, client, account, order_recorder) -> None:
@@ -58,12 +56,13 @@ class UserDataManager:
 
 
 if __name__ == "__main__":
-    from arte.system.account import Account
-    from arte.client import Client
+    from arte.system.binance.account import BinanceAccount
+    from arte.system.binance.order_recorder import BinanceOrderRecorder
+    from arte.system.client import Client
 
     cli = Client("TEST")
-    acc = Account(cli.request_client)
-    order_rec = OrderRecorder()
+    acc = BinanceAccount(cli.request_client)
+    order_rec = BinanceOrderRecorder()
     udm = UserDataManager(cli, acc, order_rec)
     udm.open_user_data_socket()
 

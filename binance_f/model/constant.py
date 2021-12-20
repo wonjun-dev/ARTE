@@ -23,6 +23,18 @@ class OrderSide:
     INVALID = None
 
 
+class UpbitOrderSide:
+    BUY = "bid"
+    SELL = "ask"
+    INVALID = None
+
+
+class UpbitOrderType:
+    LIMIT = 'limit'
+    PRICE = 'price'
+    MARKET = 'market'
+
+
 class TimeInForce:
     GTC = "GTC"
     IOC = "IOC"

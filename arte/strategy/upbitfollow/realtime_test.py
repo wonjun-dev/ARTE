@@ -28,6 +28,9 @@ class TradeScheduler:
         if "backtest_id" in kwargs:
             self.backtest_id = kwargs["backtest_id"]
 
+        selected_assets = "BTC ETH BCH AAVE SOL LTC AXS ETC NEO DOT ATOM LINK QTUM OMG KAVA MANA EOS 1INCH ADA"
+        self.common_symbols = selected_assets.split(" ")
+
         self.tm = RTTUpbitTradeManager(init_krw=400000, max_order_count=3, backtest_id=self.backtest_id)
         self.strategy = StrategyLoop(trade_manager=self.tm)
 
@@ -35,8 +38,6 @@ class TradeScheduler:
         self.except_list = []  # self.request_data_manager.get_closed_symbols()
         self.exchange_rate = self.request_data_manager.get_usdt_to_kor()
         # self.common_symbols = self.symbol_collector.get_future_symbol()
-        selected_assets = "BTC ETH BCH AAVE SOL LTC AXS ETC NEO DOT ATOM LINK QTUM OMG KAVA MANA EOS 1INCH ADA"
-        self.common_symbols = selected_assets.split(" ")
 
     def mainloop(self):
         try:
