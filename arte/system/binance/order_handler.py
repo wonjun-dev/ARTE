@@ -11,7 +11,7 @@ def get_timestamp():
     return int(time.time())  # * 1000)
 
 
-class OrderHandler:
+class BinanceOrderHandler:
     """
     실제 헷지 모드 세팅에서만 작동하며, 가상의 원웨이 모드를 구성합니다. 
     """
@@ -126,8 +126,8 @@ class OrderHandler:
 
 
 if __name__ == "__main__":
-    from arte.client import Client
-    from arte.system.account import Account
+    from arte.system.client import Client
+    from account import BinanceAccount
     import threading
 
     cl = Client(
@@ -136,7 +136,7 @@ if __name__ == "__main__":
         secret_key="b36dc15c333bd5950addaf92a0f9dc96d8ed59ea6835386c59a6e63e1ae26aa1",
         req_only=True,
     )
-    oh = OrderHandler(cl.request_client, Account(cl.request_client), "ETHUSDT")
+    oh = BinanceOrderHandler(cl.request_client, Account(cl.request_client), "ETHUSDT")
     # oh._market(OrderSide.BUY, PositionSide.SHORT, quantity=0.3)
     # oh._stop_market(OrderSide.SELL, PositionSide.LONG, stop_price=3050, quantity=0.032)
     # oh._limit(OrderSide.BUY, PositionSide.LONG, price=3120, quantity=0.05)

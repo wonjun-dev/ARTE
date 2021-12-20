@@ -83,14 +83,14 @@ class SignalState:
 
     def binance_price_up(self, **kwargs):
         binance_price_q = kwargs["binance_price_q"]
-        change_rate = binance_price_q[-1] / binance_price_q[0]
-        # change_rate = binance_price_q[-1] / np.mean([binance_price_q[i] for i in range(3, 8)])
+        # change_rate = binance_price_q[-1] / binance_price_q[0]
+        change_rate = binance_price_q[-1] / np.mean([binance_price_q[i] for i in range(0, 12)])
         return change_rate > 1.005
 
     def upbit_price_stay(self, **kwargs):
         price_q = kwargs["price_q"]
-        change_rate = price_q[-1] / price_q[0]
-        # change_rate = price_q[-1] / np.mean([price_q[i] for i in range(4, 9)])
+        # change_rate = price_q[-1] / price_q[0]
+        change_rate = price_q[-1] / np.mean([price_q[i] for i in range(0, 16)])
         return change_rate < 1.001
 
     def buy_long(self, **kwargs):
@@ -103,7 +103,7 @@ class SignalState:
             # print(f"Premium at buy: {self.premium_at_buy}, before: {self.premium_before_buy}")
             # print(f'{kwargs["premium_q"]}')
             self.price_at_buy = kwargs["trade_price"]  # temp val - it need to change to result of order
-            self.timer.start(kwargs["current_time"], "30S")
+            self.timer.start(kwargs["current_time"], "60S")
 
     # Sell logic and ordering
     def price_decrease(self, **kwargs):

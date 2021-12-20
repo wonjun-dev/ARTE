@@ -4,9 +4,9 @@ from decimal import Decimal, getcontext
 getcontext().prec = 4  # x.xxx (count as 4)
 
 from binance_f.model.constant import *
-from arte.system.account import Account
-from arte.system.order_handler import OrderHandler
-from arte.system.order_recorder import OrderRecorder
+from .account import BinanceAccount
+from .order_handler import BinanceOrderHandler
+from arte.system.binance.order_recorder import BinanceOrderRecorder
 from arte.data.user_data_manager import UserDataManager
 
 
@@ -25,12 +25,12 @@ def _process_order(method):
     return _impl
 
 
-class TradeManager:
+class BinanceTradeManager:
     def __init__(self, client, *args, **kwargs):
-        self.account = Account(client.request_client)
-        self.order_handler = OrderHandler(client.request_client, self.account)
+        self.account = BinanceAccount(client.request_client)
+        self.order_handler = BinanceOrderHandler(client.request_client, self.account)
         self.order_handler.manager = self
-        self.order_recorder = OrderRecorder()
+        self.order_recorder = BinanceOrderRecorder()
         self.user_data_manager = UserDataManager(client, self.account, self.order_recorder)
 
         # Trader have to be assigned
@@ -164,10 +164,10 @@ if __name__ == "__main__":
     import time
     from arte.system.client import Client
 
-    API_KEY = "0dcd28f57648b0a7d5ea2737487e3b3093d47935e67506b78291042d1dd2f9ea"
-    SECRET_KEY = "b36dc15c333bd5950addaf92a0f9dc96d8ed59ea6835386c59a6e63e1ae26aa1"
+    API_KEY = None
+    SECRET_KEY = None
     cl = Client(mode="TEST", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
-    tm = TradeManager(client=cl, max_order_count=3)
+    tm = BinanceTradeManager(client=cl, max_order_count=3)
     tm.buy_short_market("ethusdt", 2783, usdt=100)
     time.sleep(0.05)
     tm.sell_short_market("ethusdt", ratio=1)
