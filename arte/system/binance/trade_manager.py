@@ -13,10 +13,6 @@ from arte.data.user_data_manager import UserDataManager
 def _process_order(method):
     @wraps(method)
     def _impl(self, *args, **kwargs):
-        args = list(args)
-        args[0] = args[0].upper()
-        if args[0] not in self.symbols_state:
-            self.symbols_state[args[0]] = self._init_symbol_state()
         order = method(self, *args, **kwargs)
         if order:
             self._postprocess_order(order)
@@ -26,7 +22,7 @@ def _process_order(method):
 
 
 class BinanceTradeManager:
-    def __init__(self, client, *args, **kwargs):
+    def __init__(self, client, symbols, *args, **kwargs):
         self.account = BinanceAccount(client.request_client)
         self.order_handler = BinanceOrderHandler(client.request_client, self.account)
         self.order_handler.manager = self
@@ -44,6 +40,8 @@ class BinanceTradeManager:
 
         # state manage
         self.symbols_state = dict()
+        for _psymbol in self.symbols:
+            self.symbols_state[_psymbol] = self._init_symbol_state()
 
         # start user data stream
         self.user_data_manager.open_user_data_socket()
@@ -162,10 +160,17 @@ class BinanceTradeManager:
 if __name__ == "__main__":
     import threading
     import time
+    import configparser
     from arte.system.client import Client
 
-    API_KEY = None
-    SECRET_KEY = None
+    cfg = configparser.ConfigParser()
+    cfg.read("/media/park/hard2000/arte_config/config.ini")
+    config = cfg["TEST"]
+    # access_key = config["UPBIT_ACCESS_KEY"]
+    # secret_key = config["UPBIT_SECRET_KEY"]
+
+    API_KEY = config["API_KEY"]
+    SECRET_KEY = config["SECRET_KEY"]
     cl = Client(mode="TEST", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
     tm = BinanceTradeManager(client=cl, max_order_count=3)
     tm.buy_short_market("ethusdt", 2783, usdt=100)

@@ -84,13 +84,13 @@ class UpbitTradeManager:
         # update order_record
         resp = self.client.Order.Order_info(uuid=order_result["uuid"])
         order_info = resp["result"]
-        self.order_recorder.get_event(order_info)
+        order_inst = self.order_recorder.get_event(order_info)
 
         # Process result message
-        # message = f"Order {order.clientOrderId}: {order.side} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
-        # print(message)
-        # if self.bot:
-        #     self.bot.sendMessage(message)
+        message = f"Order {order_inst.clientOrderId}: {order_inst.side} {order_inst.type} - {order_inst.symbol} / Qty: {order_inst.origQty}, Price: ${order_inst.avgPrice}"
+        print(message)
+        if self.bot:
+            self.bot.sendMessage(message)
 
 
 if __name__ == "__main__":

@@ -63,10 +63,10 @@ order_result = client.Order.Order_new(market="KRW-XRP", side="ask", ord_type="ma
 print(type(order_result))
 
 # order_dict = json.load(order_result['text'])
-# resp = client.Order.Order_info(
-#     uuid="8b8bde6d-3753-4922-b574-ffb0dfe8ce0d"
-# )  # market='KRW-XRP', uuids=["944fc2ff-feff-4a16-8032-881cb45e8388"])
-# print(resp["result"])
+resp = client.Order.Order_info(
+    uuid="8b8bde6d-3753-4922-b574-ffb0dfe8ce0d"
+)  # market='KRW-XRP', uuids=["944fc2ff-feff-4a16-8032-881cb45e8388"])
+print(resp["result"])
 
 
 # acc.update_by_thread()
