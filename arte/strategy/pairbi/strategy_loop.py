@@ -26,7 +26,6 @@ class StrategyLoop:
         self.q_maxlen = 18000
         self.dict_price_q = {}
         self.dict_binance_price_q = {}
-        self.dict_premium_q = {}
 
         self.kalman_avg_upbit = {}
         self.kalman_avg_binance = {}
@@ -45,7 +44,6 @@ class StrategyLoop:
             self.asset_signals[symbol] = SignalState(symbol=symbol, tm_upbit=self.tm_upbit, tm_binance=self.tm_binance)
             self.dict_price_q[symbol] = deque(maxlen=self.q_maxlen)
             self.dict_binance_price_q[symbol] = deque(maxlen=self.q_maxlen)
-            self.dict_premium_q[symbol] = deque(maxlen=self.q_maxlen)
 
             self.kalman_avg_upbit[symbol] = KalmanAvg(maxlen=self.q_maxlen)
             self.kalman_avg_binance[symbol] = KalmanAvg(maxlen=self.q_maxlen)
@@ -65,7 +63,6 @@ class StrategyLoop:
         for symbol in self.symbols_wo_excepted:
             self.dict_price_q[symbol].append(self.upbit_price.price[symbol])
             self.dict_binance_price_q[symbol].append(self.binance_spot_price.price[symbol])
-            self.dict_premium_q[symbol].append(self.im[Indicator.PREMIUM][-1][symbol])
 
             if self.init_price_counter ==1:
                 self.kalman_avg_upbit[symbol].initialize(self.upbit_price.price[symbol])
@@ -80,10 +77,8 @@ class StrategyLoop:
         if self.init_price_counter >= self.q_maxlen:
             for symbol in self.symbols_wo_excepted:
                 self.asset_signals[symbol].proceed(
-                    premium_q=self.dict_premium_q[symbol],
                     price_q=self.dict_price_q[symbol],
                     binance_price_q=self.dict_binance_price_q[symbol],
-                    trade_price=self.upbit_price.price[symbol],
                     current_time=self.current_time,
                     spread = self.spread[symbol],
                     #half_life = self.cal_half_life(self.spread[symbol])

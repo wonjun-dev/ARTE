@@ -5,15 +5,15 @@ from tqdm import tqdm
 # from arte.data.common_symbol_collector import CommonSymbolCollector
 
 from arte.data.test_data_loader import TestDataLoader
-from arte.test_system import BackTestUpbitTradeManager
+from arte.test_system import BackTestBinanceTradeManager
 from arte.test_system import BatchBacktester
 from strategy_loop import StrategyLoop
 
-DATA_PATH = "/media/park/hard2000/data"
+DATA_PATH = "/Volumes/D/data"
 
 class BackTester:
     def __init__(self):
-        self.tm = BackTestUpbitTradeManager(init_krw=400000, max_order_count=3)
+        self.tm = BackTestBinanceTradeManager(init_usdt=10000, max_order_count=3)
         self.strategy = StrategyLoop(trade_manager=self.tm)
         self.except_list = []
 
@@ -21,9 +21,9 @@ class BackTester:
         try:
             self.tm.update(
                 test_current_time=self.test_data_manager.current_time,
-                trade_prices=self.test_data_manager.upbit_trade.price,
-                last_askbid=self.test_data_manager.upbit_last_askbid,
-            )
+                future_prices=self.test_data_manager.binance_trade.price,
+
+            ) # need to change!
             self.strategy.update(
                 upbit_price=self.test_data_manager.upbit_trade,
                 binance_spot_price=self.test_data_manager.binance_trade,
