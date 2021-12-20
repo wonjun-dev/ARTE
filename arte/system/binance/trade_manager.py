@@ -23,6 +23,7 @@ def _process_order(method):
 
 class BinanceTradeManager:
     def __init__(self, client, symbols, *args, **kwargs):
+        self.symbols = symbols
         self.account = BinanceAccount(client.request_client)
         self.order_handler = BinanceOrderHandler(client.request_client, self.account)
         self.order_handler.manager = self
@@ -122,7 +123,7 @@ class BinanceTradeManager:
         )
 
     def _postprocess_order(self, order):
-        symbol = order.symbol
+        symbol = order.symbol[:-4].upper()
         if self._is_buy_or_sell(order) == "BUY":
             self.symbols_state[symbol]["order_count"] += 1
             self.symbols_state[symbol]["positionSize"] = float(

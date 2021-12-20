@@ -23,7 +23,7 @@ class StrategyLoop:
         self.premium_threshold = 3
         self.premium_assets = []
         self.asset_signals = {}
-        self.q_maxlen = 18000
+        self.q_maxlen = 1800
         self.dict_price_q = {}
         self.dict_binance_price_q = {}
 

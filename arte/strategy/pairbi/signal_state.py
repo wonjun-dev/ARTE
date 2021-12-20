@@ -105,10 +105,10 @@ class SignalState:
     def buy_long(self, **kwargs):
         self.initialize()
         # print("Passed all signals, Order Buy long")
-        if self.tm_upbit.buy_long_market(symbol=symbolize_upbit(self.symbol), krw=100000):
+        if self.tm_upbit.buy_long_market(symbol=symbolize_upbit(self.symbol), krw=25000):
             self.is_open = True
 
-        self.tm_binance.buy_short_market(symbol=symbolize_binance(self.symbol), usdt=100)
+        self.tm_binance.buy_short_market(symbol=symbolize_binance(self.symbol), usdt=20)
 
     def sell_long(self, **kwargs):
         self.initialize()
