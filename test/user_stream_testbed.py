@@ -3,8 +3,9 @@ import threading
 import time
 
 from arte.system.client import Client
-from arte.data import SocketDataManager
-from arte.data.common_symbol_collector import CommonSymbolCollector
+from arte.data.user_data_manager import UserDataManager
+from arte.system.binance.account import BinanceAccount
+from arte.system.binance.order_recorder import BinanceOrderRecorder
 
 cfg = configparser.ConfigParser()
 cfg.read("/media/park/hard2000/arte_config/config.ini")
@@ -16,11 +17,12 @@ secret_key = config["SECRET_KEY"]
 use_bot = config.getboolean("USE_BOT")
 
 cl = Client(mode, api_key, secret_key)
-sdm = SocketDataManager(cl)
-# symbol_collector = CommonSymbolCollector()
-# symbols = symbol_collector.get_future_symbol()
-# print(symbols)
-sdm.open_binanace_future_trade_socket(["QTUM"])
+acc = BinanceAccount(cl.request_client)
+orc = BinanceOrderRecorder()
+
+udm = UserDataManager(cl, acc, orc)
+udm.open_user_data_socket()
+
 st = time.time()
 # time.sleep(2)
 # sdm.unsubscribe_all()
@@ -30,7 +32,7 @@ st = time.time()
 # print(mp)
 def loop_time_check(st):
     while True:
-        time.sleep(1)
+        time.sleep(30)
         print(time.time() - st)
 
 
