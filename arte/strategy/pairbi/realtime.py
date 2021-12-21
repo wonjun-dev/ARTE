@@ -59,7 +59,7 @@ class TradeScheduler:
         except Exception:
             traceback.print_exc()
 
-    def start(self, watch_interval: float = 1.0):
+    def start(self, watch_interval: float = 3.0):
         self.socket_data_manager.open_upbit_trade_socket(symbols=self.common_symbols)
         self.socket_data_manager.open_binanace_future_trade_socket(symbols=self.common_symbols)
 

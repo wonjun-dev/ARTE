@@ -46,7 +46,7 @@ class BackTester:
 
     def start(self, symbols, date_range):
         self.test_data_manager = TestDataLoader(DATA_PATH)
-        self.test_data_manager.init_test_data_loader(symbols, date_range[0], date_range[1], ohlcv_interval=1000)
+        self.test_data_manager.init_test_data_loader(symbols, date_range[0], date_range[1], ohlcv_interval=3000)
         self.strategy.initialize(symbols, self.except_list)
 
         for i in tqdm(range(self.test_data_manager.get_counter()), ncols=100):
@@ -60,9 +60,9 @@ if __name__ == "__main__":
     selected_assets = "BTC ETH BCH AAVE SOL LTC AXS ETC NEO DOT ATOM LINK QTUM OMG KAVA MANA EOS 1INCH ADA"
     # symbols = selected_assets.split(" ")
 
-    strategy_name = "upbitfollow_converge_nov_inverse_additional"
-    start_date = "2021-10-01"
-    end_date = "2021-11-01"
+    strategy_name = "pairarbi_3sec"
+    start_date = "2021-11-01"
+    end_date = "2021-12-01"
     symbols = ["QTUM", "DOT", "OMG", "ATOM"]
 
     bbt = BatchBacktester(
