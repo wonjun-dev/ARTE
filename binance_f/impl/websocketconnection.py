@@ -89,9 +89,9 @@ class WebsocketConnection:
         return self.delay_in_second != -1
 
     def re_connect_in_delay(self, delay_in_second):
-        if self.ws is not None:
-            self.ws.close()
-            self.ws = None
+        # if self.ws is not None:
+        #     self.ws.close()
+        #     self.ws = None
         self.delay_in_second = delay_in_second
         self.logger.warning(
             "[Sub][" + str(self.id) + "] Reconnecting after " + str(self.delay_in_second) + " seconds later"
@@ -108,13 +108,14 @@ class WebsocketConnection:
         if self.state == ConnectionState.CONNECTED:
             self.logger.info("[Sub][" + str(self.id) + "] Already connected")
         else:
+            # self.last_receive_time = get_current_timestamp()
             self.__thread = threading.Thread(target=websocket_func, args=[self])
             self.__thread.start()
 
     def send(self, data):
         self.ws.send(data)
 
-    def close(self):
+    def on_close(self):
         if self.ws is not None:
             self.ws.close()
             del websocket_connection_handler[self.ws]
