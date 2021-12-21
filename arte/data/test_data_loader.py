@@ -200,7 +200,8 @@ class TestDataLoader:
         if is_upbit:
             market_path = "upbit"
         else:
-            market_path = "binance_spot"
+            # market_path = "binance_spot"
+            market_path = "binance_futures"
 
         file_path = os.path.join(
             self.root_data_path,

@@ -43,6 +43,5 @@ class IndicatorManager:
         if isinstance(upbit_obj, TradeParser) and isinstance(binance_obj, TradeParser):
             self.value_dict[Indicator.PREMIUM].append(Premium.calc(upbit_obj, binance_obj, exchange_rate))
 
-    def update_spread(self, symbol_A_obj, symbol_B_obj, gamma):
-        if isinstance(symbol_A_obj, TradeParser) and isinstance(symbol_B_obj, TradeParser):
-            self.value_dict[Indicator.SPREAD].append(Spread.calc(symbol_A_obj, symbol_B_obj, gamma))
+    def update_spread(self, symbol_A_price, symbol_B_price, gamma, mu):
+        self.value_dict[Indicator.SPREAD].append(Spread.calc(symbol_A_price, symbol_B_price, gamma, mu))
