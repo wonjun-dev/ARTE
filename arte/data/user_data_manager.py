@@ -51,7 +51,7 @@ class UserDataManager:
         self.client.request_client.close_user_data_stream()
 
     def _schedule_keepalive(self):
-        self.sched.add_job(self._keepalive, "interval", minutes=60, id="put_keepalive_userdata")
+        self.sched.add_job(self._keepalive, "interval", minutes=30, id="put_keepalive_userdata")
         self.sched.start()
 
 

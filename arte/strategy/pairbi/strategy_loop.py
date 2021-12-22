@@ -74,7 +74,7 @@ class StrategyLoop:
                 self.kalman_reg[symbol].update( self.kalman_avg_upbit[symbol].his_state_means[-1][0], self.kalman_avg_binance[symbol].his_state_means[-1][0] )
             self.spread[symbol].append( self.upbit_price.price[symbol]*self.kalman_reg[symbol].his_state_means[-1,0] - self.binance_spot_price.price[symbol] )
 
-        if self.init_price_counter >= 600:#self.q_maxlen:
+        if self.init_price_counter >= self.q_maxlen:
             for symbol in self.symbols_wo_excepted:
                 self.asset_signals[symbol].proceed(
                     price_q=self.dict_price_q[symbol],
