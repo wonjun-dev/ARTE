@@ -1,7 +1,7 @@
 """
 오더를 레코드 합니다.
 """
- 
+
 import os
 import csv
 from datetime import datetime
@@ -54,9 +54,6 @@ class TestOrderRecorder:
             if key in self.order_fields:
                 order_dict[key] = event_dict[key]
 
-        # USDT qunatity calc
-        order_dict["USDT_Qty"] = round(order_dict["origQty"] * order_dict["avgPrice"], 4)
-
         # making side - positionSide - type data
         if order.positionSide == "LONG":
             order_dict["side_positionSide_type"] = (
@@ -77,16 +74,19 @@ class TestOrderRecorder:
         # calc PNL and Profit
         self.test_realized_pnl.proceeding(order, order_dict["commissionAmount"])
 
+        # USDT qunatity calc
+        order_dict["USDT_Qty"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["USDT_Qty"], 4)
+
         # PNL calc
         order_dict["realized_pnl"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["realized_pnl"], 8)
         order_dict["total_realized_pnl"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["total_realized_pnl"], 8)
-        order_dict["ROE_pnl"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["realized_pnl_rate"], 8)
+        order_dict["ROE_pnl"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["realized_pnl_rate"] * 100, 8)
         order_dict["win_rate_pnl"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["winrate_pnl"], 8)
 
         # Profit calc incl commission
         order_dict["real_profit"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["real_profit"], 8)
         order_dict["total_real_profit"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["total_real_profit"], 8)
-        order_dict["ROE_profit"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["real_profit_rate"], 8)
+        order_dict["ROE_profit"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["real_profit_rate"] * 100, 8)
         order_dict["win_rate_profit"] = round(self.test_realized_pnl.pnl_dict[order.symbol]["winrate_profit"], 8)
 
         # reset if all sold
