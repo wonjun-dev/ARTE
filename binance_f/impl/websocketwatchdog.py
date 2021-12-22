@@ -8,10 +8,8 @@ from binance_f.impl.utils.timeservice import get_current_timestamp
 def watch_dog_job(*args):
     watch_dog_instance = args[0]
     for connection in watch_dog_instance.connection_list:
-        print(connection.id, connection.state)
         if connection.state == ConnectionState.CONNECTED:
             if watch_dog_instance.is_auto_connect:
-                print(connection.last_receive_time)
                 ts = get_current_timestamp() - connection.last_receive_time
                 if connection.is_user_data_stream:
                     ts = 0
