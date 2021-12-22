@@ -98,7 +98,7 @@ class SocketDataManager:
 
         def callback(event):
             self.upbit_trade.update_trade_upbit(event)
-            # print(self.upbit_trade.price)
+            print(self.upbit_trade.price)
 
         def error(e: "BinanceApiException"):
             print(e.error_code + e.error_message)
@@ -189,7 +189,7 @@ class SocketDataManager:
                 print("Event ID: ", event)
             elif data_type == SubscribeMessageType.PAYLOAD:
                 self.binance_future_trade.update_trade_binance(event)
-                # print(self.binance_future_trade.price)
+                print(self.binance_future_trade.price)
 
             else:
                 print("Unknown Data:")

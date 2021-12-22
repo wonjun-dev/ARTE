@@ -9,7 +9,7 @@ from datetime import datetime
 from arte.system.realized_pnl import RealizedPnl
 
 
-class OrderRecorder:
+class BinanceOrderRecorder:
     def __init__(self):
         if not os.path.exists("./db"):
             os.makedirs("./db")
@@ -39,7 +39,7 @@ class OrderRecorder:
 
         self.realized_pnl = RealizedPnl()
 
-        self.current_strategy_name = "arbi"
+        self.current_strategy_name = "PairTrading"
         self.start_date = datetime.today().strftime("%Y%m%d%H%M%S")
 
     def get_event(self, event):
@@ -62,9 +62,6 @@ class OrderRecorder:
             if key in self.order_fields:
                 order_dict[key] = event_dict[key]
 
-        # USDT qunatity calc
-        order_dict["USDT_Qty"] = round(order_dict["origQty"] * order_dict["avgPrice"], 4)
-
         # making side - positionSide - type data
         if event.positionSide == "LONG":
             order_dict["side_positionSide_type"] = (
@@ -80,16 +77,18 @@ class OrderRecorder:
         if event.orderStatus == "FILLED":
             self.realized_pnl.proceeding(event)
 
+            order_dict["USDT_Qty"] = round(self.realized_pnl.pnl_dict[event.symbol]["USDT_Qty"], 4)
+
             # PNL calc
             order_dict["realized_pnl"] = round(self.realized_pnl.pnl_dict[event.symbol]["realized_pnl"], 8)
             order_dict["total_realized_pnl"] = round(self.realized_pnl.pnl_dict[event.symbol]["total_realized_pnl"], 8)
-            order_dict["ROE_pnl"] = round(self.realized_pnl.pnl_dict[event.symbol]["realized_pnl_rate"], 8)
+            order_dict["ROE_pnl"] = round(self.realized_pnl.pnl_dict[event.symbol]["realized_pnl_rate"] * 100, 8)
             order_dict["win_rate_pnl"] = round(self.realized_pnl.pnl_dict[event.symbol]["winrate_pnl"], 8)
 
             # Profit calc incl commission
             order_dict["real_profit"] = round(self.realized_pnl.pnl_dict[event.symbol]["real_profit"], 8)
             order_dict["total_real_profit"] = round(self.realized_pnl.pnl_dict[event.symbol]["total_real_profit"], 8)
-            order_dict["ROE_profit"] = round(self.realized_pnl.pnl_dict[event.symbol]["real_profit_rate"], 8)
+            order_dict["ROE_profit"] = round(self.realized_pnl.pnl_dict[event.symbol]["real_profit_rate"] * 100, 8)
             order_dict["win_rate_profit"] = round(self.realized_pnl.pnl_dict[event.symbol]["winrate_profit"], 8)
 
             # strategy_name

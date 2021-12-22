@@ -59,7 +59,7 @@ def websocket_func(*args):
     connection_instance.logger.info("[Sub][" + str(connection_instance.id) + "] Connecting...")
     connection_instance.delay_in_second = -1
     connection_instance.ws.on_open = on_open
-    connection_instance.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+    connection_instance.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE}, ping_interval=30)
     # connection_instance.ws.run_forever()
     connection_instance.logger.info("[Sub][" + str(connection_instance.id) + "] Connection event loop down")
     if connection_instance.state == ConnectionState.CONNECTED:
@@ -89,9 +89,9 @@ class WebsocketConnection:
         return self.delay_in_second != -1
 
     def re_connect_in_delay(self, delay_in_second):
-        if self.ws is not None:
-            self.ws.close()
-            self.ws = None
+        # if self.ws is not None:
+        #     self.ws.close()
+        #     self.ws = None
         self.delay_in_second = delay_in_second
         self.logger.warning(
             "[Sub][" + str(self.id) + "] Reconnecting after " + str(self.delay_in_second) + " seconds later"
@@ -108,13 +108,14 @@ class WebsocketConnection:
         if self.state == ConnectionState.CONNECTED:
             self.logger.info("[Sub][" + str(self.id) + "] Already connected")
         else:
+            # self.last_receive_time = get_current_timestamp()
             self.__thread = threading.Thread(target=websocket_func, args=[self])
             self.__thread.start()
 
     def send(self, data):
         self.ws.send(data)
 
-    def close(self):
+    def on_close(self):
         if self.ws is not None:
             self.ws.close()
             del websocket_connection_handler[self.ws]
@@ -210,6 +211,6 @@ class WebsocketConnection:
 
     def close_on_error(self):
         if self.ws is not None:
-            self.ws.close()
+            # self.ws.close()
             self.state = ConnectionState.CLOSED_ON_ERROR
             self.logger.error("[Sub][" + str(self.id) + "] Connection is closing due to error")
