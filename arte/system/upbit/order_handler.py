@@ -8,6 +8,9 @@ from binance_f.base.printobject import *
 from binance_f.model.constant import *
 
 
+ERROR_DICT = {"result": dict(error=None)}
+
+
 def get_timestamp():
     return int(time.time())  # * 1000)
 
@@ -35,7 +38,7 @@ class UpbitOrderHandler:
     def sell_market(self, symbol: str, ratio):
         pure_symbol = symbol[4:]
         if pure_symbol not in self.account.symbols():
-            return dict(error=None)
+            return ERROR_DICT
         if self.account[pure_symbol] > 0:
             return self.request_client.Order.Order_new(
                 market=symbol,
@@ -46,7 +49,7 @@ class UpbitOrderHandler:
             )
         else:
             print(f"Cannot execute sell {symbol}, you dont have any position.")
-            return dict(error=None)
+            return ERROR_DICT
 
     def _asset_ratio_to_quantity(self, symbol: str, ratio, unit_float=8):
         getcontext().prec = unit_float + 1
@@ -78,8 +81,12 @@ if __name__ == "__main__":
     oh = UpbitOrderHandler(client, acc)
 
     st = time.time()
-    # order_result = oh.buy_market(symbol="KRW-EOS", krw=5300)
-    order_result = oh.sell_market(symbol="KRW-EOS", ratio=1.0)
+    order_result = oh.buy_market(symbol="KRW-EOS", krw=40000)
+    if order_result:
+        print("Buy!")
+    # order_result = oh.sell_market(symbol="KRW-EOS", ratio=1.0)
+    # if order_result:
+    #     print("Sell!")
     print(order_result)
     print(time.time() - st)  # XRP usually under 0.01, once 0.33 / EOS 0.1 /
 

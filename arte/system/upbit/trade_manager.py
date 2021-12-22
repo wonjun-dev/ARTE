@@ -3,17 +3,18 @@ from functools import wraps
 from decimal import Decimal
 
 from binance_f.model.constant import *
-from .account import UpbitAccount
-from .order_handler import UpbitOrderHandler
-from .order_recorder import UpbitOrderRecorder
+from arte.system.upbit.account import UpbitAccount
+from arte.system.upbit.order_handler import UpbitOrderHandler
+from arte.system.upbit.order_recorder import UpbitOrderRecorder
 
 
 def _process_order(method):
     @wraps(method)
     def _impl(self, *args, **kwargs):
         order = method(self, *args, **kwargs)
-        if "error" in order:
+        if "error" in order["result"]:
             print(f"Error during order: {order}")
+            return None
         else:
             self._postprocess_order_by_thread(order)
         return order
@@ -69,7 +70,6 @@ class UpbitTradeManager:
         # update account
         self.account.update()
 
-        print(self.account.symbols())
         # update self.symbols_state
         for _symbol in self.account.symbols():
             self.symbols_state[_symbol]["position_size"] = self.account[_symbol]
@@ -87,7 +87,7 @@ class UpbitTradeManager:
         order_inst = self.order_recorder.get_event(order_info)
 
         # Process result message
-        message = f"Order {order_inst.clientOrderId}: {order_inst.side} {order_inst.type} - {order_inst.symbol} / Qty: {order_inst.origQty}, Price: ${order_inst.avgPrice}"
+        message = f"Order {order_inst.clientOrderId}: {order_inst.side} {order_inst.type} - {order_inst.symbol} / Qty: {order_inst.origQty}, Price: KRW {order_inst.avgPrice}"
         print(message)
         if self.bot:
             self.bot.sendMessage(message)
@@ -107,6 +107,8 @@ if __name__ == "__main__":
 
     cl = UpbitClient(access_key, secret_key)
     tm = UpbitTradeManager(client=cl, symbols=["XRP", "EOS"], max_order_count=3)
-    tm.buy_long_market("KRW-XRP", krw=5100)
+    order_result_buy = tm.buy_long_market("KRW-XRP", krw=5300)
+    # print(order_result_buy)
     time.sleep(0.25)
-    tm.sell_long_market("KRW-XRP", ratio=1.0)
+    order_result_sell = tm.sell_long_market("KRW-XRP", ratio=1.0)
+    # print(order_result_sell)
