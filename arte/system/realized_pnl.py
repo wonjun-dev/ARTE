@@ -25,6 +25,8 @@ class RealizedPnl:
             data_dict["total_real_profit"] = 0
             data_dict["winrate_profit"] = 0
             data_dict["win_count_profit"] = 0
+            data_dict["USDT_Qty"] = 0
+            data_dict["USDT_Qty_before"] = 0
             # add data for pnl_dict -> key: event.symbol, value: data_dict
             self.pnl_dict[event.symbol] = data_dict
 
@@ -32,6 +34,8 @@ class RealizedPnl:
             self.pnl_dict[event.symbol]["position_side"] = PositionSide.LONG
             if event.side == OrderSide.BUY:
                 # long position open
+                self.pnl_dict[event.symbol]["USDT_Qty"] = (event.origQty * event.avgPrice) - event.commissionAmount
+
                 self.pnl_dict[event.symbol]["avg_price"] = (
                     self.pnl_dict[event.symbol]["avg_price"] * self.pnl_dict[event.symbol]["quantity"]
                     + event.avgPrice * event.origQty
@@ -43,10 +47,12 @@ class RealizedPnl:
 
             elif event.side == OrderSide.SELL:
                 # long position close
+                self.pnl_dict[event.symbol]["USDT_Qty"] = (event.origQty * event.avgPrice) - event.commissionAmount
+
                 abs_pnl = (event.avgPrice - self.pnl_dict[event.symbol]["avg_price"]) * event.origQty
                 self.pnl_dict[event.symbol]["realized_pnl"] = abs_pnl
                 self.pnl_dict[event.symbol]["realized_pnl_rate"] = (
-                    self.pnl_dict[event.symbol]["realized_pnl"] / self.pnl_dict[event.symbol]["avg_price"]
+                    self.pnl_dict[event.symbol]["realized_pnl"] / self.pnl_dict[event.symbol]["USDT_Qty"]
                 )
 
                 self.pnl_dict[event.symbol]["total_realized_pnl"] += self.pnl_dict[event.symbol]["realized_pnl"]
@@ -64,7 +70,7 @@ class RealizedPnl:
                     * (event.origQty / self.pnl_dict[event.symbol]["quantity"])
                 )
                 self.pnl_dict[event.symbol]["real_profit_rate"] = (
-                    self.pnl_dict[event.symbol]["real_profit"] / self.pnl_dict[event.symbol]["avg_price"]
+                    self.pnl_dict[event.symbol]["real_profit"] / self.pnl_dict[event.symbol]["USDT_Qty"]
                 )
                 self.pnl_dict[event.symbol]["total_real_profit"] += self.pnl_dict[event.symbol]["real_profit"]
 
@@ -83,11 +89,15 @@ class RealizedPnl:
             self.pnl_dict[event.symbol]["position_side"] = PositionSide.SHORT
             if event.side == OrderSide.BUY:
                 # short position close
+                self.pnl_dict[event.symbol]["USDT_Qty"] = (
+                    self.pnl_dict[event.symbol]["USDT_Qty_before"] + self.pnl_dict[event.symbol]["real_profit"]
+                )
+                self.pnl_dict[event.symbol]["USDT_Qty_before"] = 0
 
                 abs_pnl = (event.avgPrice - self.pnl_dict[event.symbol]["avg_price"]) * event.origQty
                 self.pnl_dict[event.symbol]["realized_pnl"] = -abs_pnl
                 self.pnl_dict[event.symbol]["realized_pnl_rate"] = (
-                    self.pnl_dict[event.symbol]["realized_pnl"] / self.pnl_dict[event.symbol]["avg_price"]
+                    self.pnl_dict[event.symbol]["realized_pnl"] / self.pnl_dict[event.symbol]["USDT_Qty"]
                 )
 
                 self.pnl_dict[event.symbol]["total_realized_pnl"] += self.pnl_dict[event.symbol]["realized_pnl"]
@@ -105,7 +115,7 @@ class RealizedPnl:
                     * (event.origQty / self.pnl_dict[event.symbol]["quantity"])
                 )
                 self.pnl_dict[event.symbol]["real_profit_rate"] = (
-                    self.pnl_dict[event.symbol]["real_profit"] / self.pnl_dict[event.symbol]["avg_price"]
+                    self.pnl_dict[event.symbol]["real_profit"] / self.pnl_dict[event.symbol]["USDT_Qty"]
                 )
                 self.pnl_dict[event.symbol]["total_real_profit"] += self.pnl_dict[event.symbol]["real_profit"]
 
@@ -122,6 +132,9 @@ class RealizedPnl:
 
             elif event.side == OrderSide.SELL:
                 # short position open
+                self.pnl_dict[event.symbol]["USDT_Qty"] = (event.origQty * event.avgPrice) - event.commissionAmount
+                self.pnl_dict[event.symbol]["USDT_Qty_before"] = self.pnl_dict[event.symbol]["USDT_Qty"]
+
                 self.pnl_dict[event.symbol]["avg_price"] = (
                     self.pnl_dict[event.symbol]["avg_price"] * self.pnl_dict[event.symbol]["quantity"]
                     + event.avgPrice * event.origQty
