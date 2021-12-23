@@ -60,7 +60,7 @@ if __name__ == "__main__":
     selected_assets = "BTC ETH BCH AAVE SOL LTC AXS ETC NEO DOT ATOM LINK QTUM OMG KAVA MANA EOS 1INCH ADA"
     # symbols = selected_assets.split(" ")
 
-    strategy_name = "pairarbi_3sec"
+    strategy_name = "pairarbi_3sec_exchanged"
     start_date = "2021-11-01"
     end_date = "2021-12-01"
     symbols = ["QTUM", "DOT", "OMG", "ATOM"]

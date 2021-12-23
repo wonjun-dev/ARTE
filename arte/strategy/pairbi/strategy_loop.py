@@ -56,13 +56,12 @@ class StrategyLoop:
         self.exchange_rate = kwargs["exchange_rate"]
         self.except_list = kwargs["except_list"]
         self.current_time = kwargs["current_time"]
-        self.im.update_premium(self.upbit_price, self.binance_spot_price, self.exchange_rate)
 
     def run(self):
         self.init_price_counter += 1
         for symbol in self.symbols_wo_excepted:
             self.dict_price_q[symbol].append(self.upbit_price.price[symbol])
-            self.dict_binance_price_q[symbol].append(self.binance_spot_price.price[symbol])
+            self.dict_binance_price_q[symbol].append(self.binance_spot_price.price[symbol]*self.exchange_rate)
 
             if self.init_price_counter ==1:
                 self.kalman_avg_upbit[symbol].initialize(self.upbit_price.price[symbol])
