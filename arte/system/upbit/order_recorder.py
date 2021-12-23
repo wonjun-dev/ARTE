@@ -43,6 +43,7 @@ class UpbitOrderRecorder:
             "ROE_profit",
             "win_rate_profit",
             "strategy_name",
+            "message",
         ]
 
         self.realized_pnl = RealizedPnl()
@@ -128,6 +129,9 @@ class UpbitOrderRecorder:
             # reset if all sold
             if self.realized_pnl.pnl_dict[event.symbol]["quantity"] == 0:
                 self.realized_pnl.close_position(event.symbol)
+
+        if order_info["message"]:
+            order_dict["message"] = order_info["message"]
 
         # update_csv
         self.update_csv(self.current_strategy_name, self.start_date, order_dict)

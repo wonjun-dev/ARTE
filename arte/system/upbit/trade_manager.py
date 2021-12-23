@@ -12,12 +12,17 @@ from arte.system.upbit.order_recorder import UpbitOrderRecorder
 def _process_order(method):
     @wraps(method)
     def _impl(self, *args, **kwargs):
+
+        message = None
+        if "message" in kwargs:
+            message = kwargs["message"]
+
         order = method(self, *args, **kwargs)
         if "error" in order["result"]:
             print(f"Error during order: {order}")
             return None
         else:
-            self._postprocess_order_by_thread(order)
+            self._postprocess_order_by_thread(order, message)
         return order
 
     return _impl
@@ -53,18 +58,18 @@ class UpbitTradeManager:
         return dict(order_count=0, position_size=0)
 
     @_process_order
-    def buy_long_market(self, symbol, krw=None, ratio=None):
-        if self.symbols_state[symbol[4:]]["order_count"] < self.max_order_count:
+    def buy_long_market(self, symbol, krw=None, ratio=None, **kwargs):
+        if self.symbols_state[symbol]["order_count"] < self.max_order_count:
             return self.order_handler.buy_market(symbol=symbol, krw=krw, ratio=ratio)
 
     @_process_order
-    def sell_long_market(self, symbol, ratio):
+    def sell_long_market(self, symbol, ratio, **kwargs):
         return self.order_handler.sell_market(symbol=symbol, ratio=ratio)
 
-    def _postprocess_order_by_thread(self, order):
-        threading.Thread(target=self._postprocess_order, args=(order,)).start()
+    def _postprocess_order_by_thread(self, order, message):
+        threading.Thread(target=self._postprocess_order, args=(order, message,)).start()
 
-    def _postprocess_order(self, order):
+    def _postprocess_order(self, order, message=None):
         time.sleep(0.35)  # minimum waiting time. need to adjust later (more longer?)
         order_result = order["result"]
         pure_symbol = order_result["market"][4:]
@@ -85,6 +90,7 @@ class UpbitTradeManager:
         # update order_record
         resp = self.client.Order.Order_info(uuid=order_result["uuid"])
         order_info = resp["result"]
+        order_info["message"] = message
         order_inst = self.order_recorder.get_event(order_info)
 
         # Process result message
