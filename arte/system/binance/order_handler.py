@@ -115,7 +115,8 @@ class BinanceOrderHandler:
         return result[0].price
 
     def _usdt_to_quantity(self, usdt, price, unit_float=3):
-        return math.floor((usdt / price) * (10 ** unit_float)) / (10 ** unit_float)
+        # return math.floor((usdt / price) * (10 ** unit_float)) / (10 ** unit_float)
+        return float(round((usdt/price), 1))
 
     def _asset_ratio_to_quantity(self, symbol: str, position_side: PositionSide, ratio, unit_float=3):
         asset_quantity = abs(self.account[symbol][position_side])
