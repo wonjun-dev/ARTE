@@ -10,15 +10,15 @@ class SignalState:
 
     def __init__(self, symbols, tm):
         self.symbols = symbols
-        self.pure_symbol_A = self.symbols[0]
-        self.pure_symbol_B = self.symbols[1]
-        self.symbol_A = symbolize_binance(self.pure_symbol_A)
-        self.symbol_B = symbolize_binance(self.pure_symbol_B)
+        self.symbol_A = self.symbols[0]
+        self.symbol_B = self.symbols[1]
+        # self.symbol_A = symbolize_binance(self.pure_symbol_A)
+        # self.symbol_B = symbolize_binance(self.pure_symbol_B)
         self.tm = tm
 
         transitions = [
-            {"trigger": "proceed", "source": "idle", "dest": "sell_state", "conditions": "have_open_position"},
-            {"trigger": "proceed", "source": "idle", "dest": "buy_state"},
+            {"trigger": "proceed", "source": "idle", "dest": "sell_state", "conditions": "have_open_position", "after": "print_state"},
+            {"trigger": "proceed", "source": "idle", "dest": "buy_state", "after": "print_state"},
             {
                 "trigger": "proceed",
                 "source": "buy_state",
@@ -73,12 +73,12 @@ class SignalState:
         self.initialize()
         spread_q = kwargs["spread_q"]
         dict_price_q = kwargs["dict_price_q"]
-        gamma = kwargs["gamma"]
-        symbol_A_price = dict_price_q[self.pure_symbol_A][-1]
-        symbol_B_price = dict_price_q[self.pure_symbol_B][-1]
+        # gamma = kwargs["gamma"]
+        symbol_A_price = dict_price_q[self.symbol_A][-1]
+        symbol_B_price = dict_price_q[self.symbol_B][-1]
 
         if spread_q[-1] > 0:
-            if self.tm.buy_long_market(symbol=self.symbol_B, usdt=1000) and self.tm.buy_short_market(symbol=self.symbol_A, usdt=1000):
+            if self.tm.buy_long_market(symbol=self.symbol_B, usdt=20) and self.tm.buy_short_market(symbol=self.symbol_A, usdt=20):
                 self.is_open = True
                 self.spread_at_buy = spread_q[-1]
                 self.price_at_buy[self.symbol_A] = symbol_A_price
@@ -87,7 +87,7 @@ class SignalState:
                 self.positions[self.symbol_B] = 'LONG'
 
         else:
-            if self.tm.buy_long_market(symbol=self.symbol_A, usdt=1000) and self.tm.buy_short_market(symbol=self.symbol_B, usdt=1000):
+            if self.tm.buy_long_market(symbol=self.symbol_A, usdt=20) and self.tm.buy_short_market(symbol=self.symbol_B, usdt=20):
                 self.is_open = True
                 self.spread_at_buy = spread_q[-1]
                 self.price_at_buy[self.symbol_A] = symbol_A_price
@@ -115,3 +115,7 @@ class SignalState:
                 self.positions[self.symbol_A] = None
                 self.positions[self.symbol_B] = None
 
+
+    def print_state(self, **kwargs):
+        spread_q = kwargs["spread_q"]
+        print(f"Spread: {spread_q[-1]} Is open: {self.is_open}")

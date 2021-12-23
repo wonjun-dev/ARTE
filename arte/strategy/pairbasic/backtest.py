@@ -42,7 +42,7 @@ class BackTester:
     def start(self, symbols, start_date, end_date):
         self.test_data_manager = TestDataLoader(DATA_PATH)
         self.test_data_manager.init_test_data_loader(
-            symbols, start_date, end_date, ohlcv_interval=1000
+            symbols, start_date, end_date, ohlcv_interval=60000
         )
         self.strategy.initialize(symbols)
 
@@ -55,7 +55,7 @@ class BackTester:
 if __name__ == "__main__":
     strategy_name = "pairbasic_baseline"
     start_date = "2021-11-19"
-    end_date = "2021-12-03"
+    end_date = "2021-12-18"
     symbols = ["ETC", "EOS"]
 
     bbt = BackTester(DATA_PATH, strategy_name, ["binance_futures"], symbols, start_date, end_date)
