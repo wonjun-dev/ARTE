@@ -30,7 +30,7 @@ class TradeScheduler:
             self.bot.trader = self
 
         # Trade manager 
-        self.tm_upbit = UpbitTradeManager(client_upbit, self.common_symbols, max_order_count=3)
+        self.tm_upbit = UpbitTradeManager(client_upbit, self.common_symbols, max_order_count=3, bot=self.bot)
         self.tm_binance = BinanceTradeManager(client_binance, self.common_symbols, max_order_count=3)
         self.strategy = StrategyLoop(trade_manager_upbit=self.tm_upbit, trade_manager_binance= self.tm_binance)
 

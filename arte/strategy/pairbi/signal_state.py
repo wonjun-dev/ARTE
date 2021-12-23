@@ -77,7 +77,7 @@ class SignalState:
         #spread = spread[-halflife:]
         zscore = (spread[-1]-np.mean(spread))/np.std(spread)
         #print(zscore)
-        return zscore < -2
+        return zscore < -3.5
 
     def zscore_comeback(self, **kwargs):
         
