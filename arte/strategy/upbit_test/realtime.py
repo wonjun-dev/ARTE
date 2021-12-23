@@ -17,7 +17,7 @@ class TradeScheduler:
         self.socket_data_manager = SocketDataManager(self.client_b)
         self.request_data_manager = RequestDataManager(self.client_b)
 
-        self.symbols = ["NEAR"]
+        self.symbols = ["NEAR", "MANA"]
 
         self.tm = UpbitTradeManager(self.client_u, self.symbols, max_order_count=3)
         self.strategy = StrategyLoop(self.symbols, self.tm)
