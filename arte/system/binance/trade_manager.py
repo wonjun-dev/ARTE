@@ -174,9 +174,9 @@ if __name__ == "__main__":
     SECRET_KEY = config["SECRET_KEY"]
     cl = Client(mode="TEST", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
     tm = BinanceTradeManager(client=cl, max_order_count=3)
-    tm.buy_short_market("ethusdt", 2783, usdt=100)
+    tm.buy_short_market("ETH", 2783, usdt=100)
     time.sleep(0.05)
-    tm.sell_short_market("ethusdt", ratio=1)
+    tm.sell_short_market("ETH", ratio=1)
 
     for t in threading.enumerate():
         if t is threading.current_thread():
