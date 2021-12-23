@@ -1,4 +1,5 @@
 import time
+import threading
 from functools import wraps
 from decimal import Decimal
 
@@ -25,11 +26,11 @@ def _process_order(method):
 class UpbitTradeManager:
     def __init__(self, client, symbols, *args, **kwargs):
         self.client = client.request_client
-        self.account = UpbitAccount(self.client)
+        self.symbols = symbols
+        self.account = UpbitAccount(self.client, self.symbols)
         self.order_handler = UpbitOrderHandler(self.client, self.account)
         self.order_handler.manager = self
         self.order_recorder = UpbitOrderRecorder()
-        self.symbols = symbols
 
         # Trader have to be assigned
         self.environment = None
@@ -64,14 +65,14 @@ class UpbitTradeManager:
         threading.Thread(target=self._postprocess_order, args=(order,)).start()
 
     def _postprocess_order(self, order):
-        time.sleep(0.1)  # minimum waiting time. need to adjust later (more longer?)
+        time.sleep(0.35)  # minimum waiting time. need to adjust later (more longer?)
         order_result = order["result"]
         pure_symbol = order_result["market"][4:]
         # update account
         self.account.update()
 
         # update self.symbols_state
-        for _symbol in self.account.symbols():
+        for _symbol in self.symbols:
             self.symbols_state[_symbol]["position_size"] = self.account[_symbol]
 
         if order_result["side"] == UpbitOrderSide.BUY:
@@ -94,7 +95,6 @@ class UpbitTradeManager:
 
 
 if __name__ == "__main__":
-    import threading
     import time
     import configparser
     from arte.system.client import UpbitClient
@@ -109,6 +109,6 @@ if __name__ == "__main__":
     tm = UpbitTradeManager(client=cl, symbols=["XRP", "EOS"], max_order_count=3)
     order_result_buy = tm.buy_long_market("KRW-XRP", krw=5300)
     # print(order_result_buy)
-    time.sleep(0.25)
+    time.sleep(0.5)
     order_result_sell = tm.sell_long_market("KRW-XRP", ratio=1.0)
     # print(order_result_sell)

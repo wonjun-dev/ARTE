@@ -37,7 +37,7 @@ class UpbitOrderHandler:
 
     def sell_market(self, symbol: str, ratio):
         pure_symbol = symbol[4:]
-        if pure_symbol not in self.account.symbols():
+        if pure_symbol not in self.account.symbols:
             return ERROR_DICT
         if self.account[pure_symbol] > 0:
             return self.request_client.Order.Order_new(

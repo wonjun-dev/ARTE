@@ -5,6 +5,7 @@ import secrets
 from binance_f.constant.test import *
 from binance_f.base.printobject import *
 from binance_f.model.constant import *
+from arte.system.utils import symbolize_binance
 
 
 def get_timestamp():
@@ -23,7 +24,7 @@ class BinanceOrderHandler:
 
     def _limit(self, symbol: str, order_side: OrderSide, position_side: PositionSide, price: float, quantity: float):
         result = self.request_client.post_order(
-            symbol=symbol,
+            symbol=symbolize_binance(symbol),
             side=order_side,
             positionSide=position_side,
             ordertype=OrderType.LIMIT,
@@ -37,7 +38,7 @@ class BinanceOrderHandler:
 
     def _market(self, symbol: str, order_side: OrderSide, position_side: PositionSide, quantity: float):
         result = self.request_client.post_order(
-            symbol=symbol,
+            symbol=symbolize_binance(symbol),
             side=order_side,
             positionSide=position_side,
             ordertype=OrderType.MARKET,
