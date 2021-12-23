@@ -41,7 +41,7 @@ class SignalState:
         )
 
         self.is_open = False
-        self.buy_count = -2
+        self.buy_count = -1
         self.timer = Timer()
 
     def print_end(self, **kwargs):
@@ -64,7 +64,7 @@ class SignalState:
     def buy_long(self, **kwargs):
         self.initialize()
         print(f"Passed all signals, Order Buy long at {kwargs['current_time']}")
-        if self.tm.buy_long_market(symbol=symbolize_upbit(self.symbol), krw=5200):
+        if self.tm.buy_long_market(symbol=self.symbol, krw=5200, message="GOOD!"):
             self.is_open = True
             self.buy_count += 1
             self.timer.start(kwargs["current_time"], "10S")
@@ -72,5 +72,5 @@ class SignalState:
     def sell_long(self, **kwargs):
         self.initialize()
         print(f"Passed all signals, Order Sell long at {kwargs['current_time']}")
-        if self.tm.sell_long_market(symbol=symbolize_upbit(self.symbol), ratio=1):
+        if self.tm.sell_long_market(symbol=self.symbol, ratio=1):
             self.is_open = False

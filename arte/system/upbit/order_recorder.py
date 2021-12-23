@@ -130,13 +130,13 @@ class UpbitOrderRecorder:
             if self.realized_pnl.pnl_dict[event.symbol]["quantity"] == 0:
                 self.realized_pnl.close_position(event.symbol)
 
+        if order_info["message"]:
+            order_dict["message"] = order_info["message"]
+
         # update_csv
         self.update_csv(self.current_strategy_name, self.start_date, order_dict)
 
         return event  # for telegram message
-
-    def get_message(self, message):
-        pass
 
     def update_csv(self, strategy: str, start_date: str, order_dict: dict):
         symbol = order_dict["symbol"]
