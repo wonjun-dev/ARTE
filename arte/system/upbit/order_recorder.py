@@ -43,6 +43,7 @@ class UpbitOrderRecorder:
             "ROE_profit",
             "win_rate_profit",
             "strategy_name",
+            "message",
         ]
 
         self.realized_pnl = RealizedPnl()
@@ -133,6 +134,9 @@ class UpbitOrderRecorder:
         self.update_csv(self.current_strategy_name, self.start_date, order_dict)
 
         return event  # for telegram message
+
+    def get_message(self, message):
+        pass
 
     def update_csv(self, strategy: str, start_date: str, order_dict: dict):
         symbol = order_dict["symbol"]
