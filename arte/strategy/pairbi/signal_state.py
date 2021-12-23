@@ -53,6 +53,7 @@ class SignalState:
         print(f"From {self.state} go back to Idle state.")
 
     def auto_proceed(self, **kwargs):
+        
         if not self.state == "idle":
             if not self.proceed(**kwargs):
                 self.initialize()
@@ -76,7 +77,7 @@ class SignalState:
         #spread = spread[-halflife:]
         zscore = (spread[-1]-np.mean(spread))/np.std(spread)
         #print(zscore)
-        return zscore < -4
+        return zscore < -2
 
     def zscore_comeback(self, **kwargs):
         
@@ -104,20 +105,16 @@ class SignalState:
         return change_rate < 1.001
 
     def buy_long(self, **kwargs):
-        
-        # print("Passed all signals, Order Buy long")
-        self.is_open = True
-        self.tm_upbit.buy_long_market(symbol=symbolize_upbit(self.symbol), krw=25000)
         self.initialize()
-
+        # print("Passed all signals, Order Buy long")
+        if self.tm_upbit.buy_long_market(symbol=symbolize_upbit(self.symbol), krw=6000):
+            self.is_open = True
         #self.tm_binance.buy_short_market(symbol=symbolize_binance(self.symbol), usdt=20)
 
     def sell_long(self, **kwargs):
-        
-        # print("Passed all signals, Order Sell long")
-        self.is_open = False
-        self.tm_upbit.sell_long_market(symbol=symbolize_upbit(self.symbol))
         self.initialize()
-
+        # print("Passed all signals, Order Sell long")
+        if self.tm_upbit.sell_long_market(symbol=symbolize_upbit(self.symbol), ratio=1.0):
+            self.is_open = False
 
         #self.tm_binance.sell_short_market(symbol=symbolize_binance(self.symbol), ratio=1)

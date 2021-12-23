@@ -7,6 +7,7 @@ from arte.data import RequestDataManager
 from arte.data.common_symbol_collector import CommonSymbolCollector
 from arte.system.binance.trade_manager import BinanceTradeManager
 from arte.system.upbit.trade_manager import UpbitTradeManager
+from arte.system.telegram_bot import DominicBot
 
 from strategy_loop import StrategyLoop
 
@@ -89,11 +90,12 @@ if __name__ == "__main__":
     api_key = config["API_KEY"]
     secret_key = config["SECRET_KEY"]
     use_bot = config.getboolean("USE_BOT")
+    telegram_bot = DominicBot()
 
     api_key_upbit = config["API_KEY_UPBIT"]
     secret_key_upbit = config["SECRET_KEY_UPBIT"]
 
     client_binance = Client(mode, api_key, secret_key)
     client_upbit = UpbitClient(api_key_upbit, secret_key_upbit)
-    trader = TradeScheduler(client_binance, client_upbit)
+    trader = TradeScheduler(client_binance, client_upbit, bot=telegram_bot)
     trader.start()
