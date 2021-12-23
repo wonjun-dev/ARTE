@@ -32,7 +32,7 @@ class TradeScheduler:
         except Exception:
             traceback.print_exc()
 
-    def start(self, watch_interval: float = 3.0):
+    def start(self, watch_interval: float = 0.5):
         self.socket_data_manager.open_upbit_trade_socket(symbols=self.symbols)
 
         self.scheduler.add_job(self.mainloop, "interval", seconds=watch_interval)

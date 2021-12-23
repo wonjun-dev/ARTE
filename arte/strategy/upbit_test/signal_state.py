@@ -41,7 +41,7 @@ class SignalState:
         )
 
         self.is_open = False
-        self.buy_count = 0
+        self.buy_count = -1
         self.timer = Timer()
 
     def print_end(self, **kwargs):
@@ -59,7 +59,7 @@ class SignalState:
         return self.timer.check_timeup(kwargs["current_time"])
 
     def buy_onetime(self, **kwargs):
-        return self.buy_count == 0
+        return self.buy_count < 1
 
     def buy_long(self, **kwargs):
         self.initialize()
