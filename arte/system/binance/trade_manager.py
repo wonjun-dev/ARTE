@@ -57,7 +57,7 @@ class BinanceTradeManager:
                 symbol=symbol,
                 order_side=OrderSide.BUY,
                 position_side=PositionSide.LONG,
-                price=self.environment.socket_data_manager.binance_future_trade.price[symbol[:-4]],
+                price=self.environment.socket_data_manager.binance_future_trade.price[symbol],
                 usdt=usdt,
                 ratio=ratio,
             )
@@ -69,7 +69,7 @@ class BinanceTradeManager:
                 symbol=symbol,
                 order_side=OrderSide.SELL,
                 position_side=PositionSide.SHORT,
-                price=self.environment.socket_data_manager.binance_future_trade.price[symbol[:-4]],
+                price=self.environment.socket_data_manager.binance_future_trade.price[symbol],
                 usdt=usdt,
                 ratio=ratio,
             )

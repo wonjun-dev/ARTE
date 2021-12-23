@@ -1,4 +1,3 @@
-import math
 import time
 import secrets
 from decimal import Decimal, getcontext
@@ -6,6 +5,8 @@ from decimal import Decimal, getcontext
 from binance_f.constant.test import *
 from binance_f.base.printobject import *
 from binance_f.model.constant import *
+
+from arte.system.utils import symbolize_upbit
 
 
 ERROR_DICT = {"result": dict(error=None)}
@@ -26,7 +27,7 @@ class UpbitOrderHandler:
             if ratio:
                 krw = self.account["KRW"] * ratio
             return self.request_client.Order.Order_new(
-                market=symbol,
+                market=symbolize_upbit(symbol),
                 side=UpbitOrderSide.BUY,
                 ord_type=UpbitOrderType.PRICE,
                 price=str(krw),
@@ -36,15 +37,14 @@ class UpbitOrderHandler:
             raise ValueError("You have to pass either quantity or ratio.")
 
     def sell_market(self, symbol: str, ratio):
-        pure_symbol = symbol[4:]
-        if pure_symbol not in self.account.symbols:
+        if symbol not in self.account.symbols:
             return ERROR_DICT
-        if self.account[pure_symbol] > 0:
+        if self.account[symbol] > 0:
             return self.request_client.Order.Order_new(
-                market=symbol,
+                market=symbolize_upbit(symbol),
                 side=UpbitOrderSide.SELL,
                 ord_type=UpbitOrderType.MARKET,
-                volume=self._asset_ratio_to_quantity(pure_symbol, ratio)
+                volume=self._asset_ratio_to_quantity(symbol, ratio)
                 # identifier=self._generate_order_id(symbol)
             )
         else:
@@ -60,7 +60,7 @@ class UpbitOrderHandler:
         return _quantity
 
     def _generate_order_id(self, symbol: str):
-        _id = symbol + str(get_timestamp()) + f"-{secrets.token_hex(4)}"
+        _id = symbolize_upbit(symbol) + str(get_timestamp()) + f"-{secrets.token_hex(4)}"
         return _id
 
 
