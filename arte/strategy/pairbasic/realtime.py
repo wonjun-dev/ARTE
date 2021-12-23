@@ -17,7 +17,7 @@ class TradeScheduler:
         self.client_binance = client_binance
         self.scheduler = BlockingScheduler()
         self.socket_data_manager = SocketDataManager(self.client_binance)
-        self.pair_symbols = ["ETC", "EOS"]
+        self.pair_symbols = ["ONT", "ZRX"]
 
         # Init bot
         self.bot = None
@@ -26,7 +26,8 @@ class TradeScheduler:
             self.bot.trader = self
 
         # Trade manager 
-        self.tm_binance = BinanceTradeManager(client_binance, self.pair_symbols, max_order_count=1)
+        self.tm_binance = BinanceTradeManager(client_binance, self.pair_symbols, max_order_count=1, bot=self.bot)
+        self.tm_binance.environment = self
         self.strategy = StrategyLoop(trade_manager= self.tm_binance)
         
 
@@ -37,15 +38,15 @@ class TradeScheduler:
             #Update strategy
             self.strategy.update(
                 future_prices=self.socket_data_manager.binance_future_trade,
-                gamma=9.862,
-                mu=8.373
+                gamma=0.8505,
+                mu=0.0189
             )
             self.strategy.run()
 
         except Exception:
             traceback.print_exc()
 
-    def start(self, watch_interval: float = 3.0):
+    def start(self, watch_interval: float = 60.0):
         self.socket_data_manager.open_binanace_future_trade_socket(symbols=self.pair_symbols)
 
         self.strategy.initialize(self.pair_symbols)

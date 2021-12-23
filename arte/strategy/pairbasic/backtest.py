@@ -31,8 +31,8 @@ class BackTester:
             )
             self.strategy.update(
                 future_prices=self.test_data_manager.binance_trade,
-                gamma=9.862,
-                mu=8.373
+                gamma=0.8505,
+                mu=0.0189
             )
             self.strategy.run()
 
@@ -54,9 +54,9 @@ class BackTester:
 
 if __name__ == "__main__":
     strategy_name = "pairbasic_baseline"
-    start_date = "2021-11-19"
+    start_date = "2021-11-18"
     end_date = "2021-12-18"
-    symbols = ["ETC", "EOS"]
+    symbols = ["ONT", "ZRX"]
 
     bbt = BackTester(DATA_PATH, strategy_name, ["binance_futures"], symbols, start_date, end_date)
     saver = BatchBacktester(bbt, DATA_PATH, strategy_name, ["binance_futures"], symbols, start_date, end_date)

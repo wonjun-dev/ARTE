@@ -12,7 +12,7 @@ class StrategyLoop:
         self.tm = trade_manager
         self.im = IndicatorManager(indicators=[Indicator.SPREAD])
 
-        self.spread_threshold = 0.7
+        self.spread_threshold = 0.01
         self.q_maxlen = 10
         self.dict_price_q = {}
 
