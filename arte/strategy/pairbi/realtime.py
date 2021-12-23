@@ -20,7 +20,7 @@ class TradeScheduler:
         self.request_data_manager = RequestDataManager(self.client_binance)
         # self.symbol_collector = CommonSymbolCollector()
 
-        #selected_assets = "BTC ETH BCH AAVE SOL LTC AXS ETC NEO DOT ATOM LINK QTUM OMG KAVA MANA EOS 1INCH ADA"
+        # selected_assets = "BTC ETH BCH AAVE SOL LTC AXS ETC NEO DOT ATOM LINK QTUM OMG KAVA MANA EOS 1INCH ADA"
         self.common_symbols = ["QTUM"]
         # Init bot
         self.bot = None
@@ -37,13 +37,12 @@ class TradeScheduler:
         self.except_list = []  # self.request_data_manager.get_closed_symbols()
         self.exchange_rate = self.request_data_manager.get_usdt_to_kor()
         # self.common_symbols = self.symbol_collector.get_future_symbol()
-        
 
     def mainloop(self):
         try:
             _cur_time = Timestamp.now()
 
-            #Update strategy
+            # Update strategy
             self.strategy.update(
                 upbit_price=self.socket_data_manager.upbit_trade,
                 binance_spot_price=self.socket_data_manager.binance_future_trade,
@@ -51,7 +50,6 @@ class TradeScheduler:
                 except_list=self.except_list,
                 current_time=_cur_time,
             )
-
 
             self.strategy.print_state()
             self.strategy.run()
