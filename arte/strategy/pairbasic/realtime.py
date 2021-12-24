@@ -46,7 +46,7 @@ class TradeScheduler:
         except Exception:
             traceback.print_exc()
 
-    def start(self, watch_interval: float = 60.0):
+    def start(self, watch_interval: float = 10.0):
         self.socket_data_manager.open_binanace_future_trade_socket(symbols=self.pair_symbols)
 
         self.strategy.initialize(self.pair_symbols)
