@@ -24,7 +24,7 @@ def _process_order(method):
 class BinanceTradeManager:
     def __init__(self, client, symbols, *args, **kwargs):
         self.symbols = symbols
-        self.account = BinanceAccount(client.request_client)
+        self.account = BinanceAccount(client.request_client, symbols=symbols)
         self.order_handler = BinanceOrderHandler(client.request_client, self.account)
         self.order_handler.manager = self
         self.order_recorder = BinanceOrderRecorder()

@@ -15,9 +15,9 @@ from binance_f.model.constant import *
 
 
 class BinanceAccount:
-    def __init__(self, request_client):
+    def __init__(self, request_client, symbols):
         self.request_client = request_client
-        self._positions = self._get_positions(["ETHUSDT"])
+        self._positions = self._get_positions([s + "USDT" for s in symbols])
         self._positions["USDT"] = self._get_usdt_balance()
 
     def _get_usdt_balance(self):
@@ -50,6 +50,7 @@ class BinanceAccount:
                 self._positions[pos.symbol][pos.positionSide] = pos.amount
 
     def __getitem__(self, key):
+        
         return self._positions[key]
 
     def get_account_total_value(self):
