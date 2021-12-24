@@ -70,7 +70,7 @@ class UpbitTradeManager:
         threading.Thread(target=self._postprocess_order, args=(order, message,)).start()
 
     def _postprocess_order(self, order, message=None):
-        time.sleep(0.35)  # minimum waiting time. need to adjust later (more longer?)
+        time.sleep(0.5)  # minimum waiting time. need to adjust later (more longer?)
         order_result = order["result"]
         pure_symbol = order_result["market"][4:]
         # update account
