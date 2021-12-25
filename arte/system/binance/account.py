@@ -1,53 +1,54 @@
 """
-Account
-
-핵심기능
-1. 현재 usdt 잔액
-2. 현재 보유 포지션 및 정보(롱, 숏, 보유 시작 시간, amount)
-
-부가기능
-1. 현재가 입력시 내 총자산 크기(구매가격 필요)
+BinanceAccount
 """
 from binance_f import RequestClient
 from binance_f.constant.test import *
 from binance_f.base.printobject import *
 from binance_f.model.constant import *
 
+from arte.system.utils import purify_binance_symbol
+
 
 class BinanceAccount:
-    def __init__(self, request_client):
+    def __init__(self, request_client, symbols):
         self.request_client = request_client
-        self._positions = self._get_positions(["ETHUSDT"])
-        self._positions["USDT"] = self._get_usdt_balance()
+        self._symbols = symbols
+        self._positions = dict()
+        self._update_restapi()
 
-    def _get_usdt_balance(self):
+    def _get_usdt_balance_restapi(self):
         result = self.request_client.get_balance_v2()
         return result[1].balance
 
-    def _get_positions(self, symbols: list):
+    def _get_positions_restapi(self, symbols: list):
         positions = {}
         results = self.request_client.get_position_v2()
         for pos in results:
-            if pos.symbol in symbols:
-                if pos.symbol not in positions:
-                    positions[pos.symbol] = dict()
+            _psymbol = purify_binance_symbol(pos.symbol)
+            if _psymbol in symbols:
+                if _psymbol not in positions:
+                    positions[_psymbol] = {PositionSide.LONG: 0, PositionSide.SHORT: 0}
                 if pos.positionSide == PositionSide.LONG:
-                    positions[pos.symbol][pos.positionSide] = pos.positionAmt
+                    positions[_psymbol][pos.positionSide] = pos.positionAmt
                 elif pos.positionSide == PositionSide.SHORT:
-                    positions[pos.symbol][pos.positionSide] = pos.positionAmt
+                    positions[_psymbol][pos.positionSide] = pos.positionAmt
         return positions
 
     def _update_restapi(self):
         self._positions["USDT"] = self._get_usdt_balance()
-        self._positions = self._get_positions(["ETHUSDT"])
+        self._positions = self._get_positions(self._symbols)
 
     def update(self, event):
+        """
+        User Data Stream based account update
+        """
         self._positions["USDT"] = event.balances[0].crossWallet
         for pos in event.positions:
+            _psymbol = purify_binance_symbol(pos.symbol)
             if pos.positionSide == PositionSide.LONG:
-                self._positions[pos.symbol][pos.positionSide] = pos.amount
+                self._positions[_psymbol][pos.positionSide] = pos.amount
             elif pos.positionSide == PositionSide.SHORT:
-                self._positions[pos.symbol][pos.positionSide] = pos.amount
+                self._positions[_psymbol][pos.positionSide] = pos.amount
 
     def __getitem__(self, key):
         return self._positions[key]
@@ -65,7 +66,7 @@ if __name__ == "__main__":
     # BASE_URL = "https://fapi.binance.com"  # production base url
     BASE_URL = "https://testnet.binancefuture.com"  # testnet base url
     request_client = RequestClient(api_key=KEY, secret_key=SECRET, url=BASE_URL)
-    acc = BinanceAccount(request_client)
-    print(acc["ETHUSDT"][PositionSide.LONG].positionAmt)
-    print(acc["ETHUSDT"][PositionSide.SHORT].positionAmt)
+    acc = BinanceAccount(request_client, symbols=["ETH"])
+    print(acc["ETH"][PositionSide.LONG].positionAmt)
+    print(acc["ETH"][PositionSide.SHORT].positionAmt)
     print(acc["USDT"])

@@ -63,3 +63,11 @@ def symbolize_binance(pure_symbol, upper=False):
 def symbolize_upbit(pure_symbol):
     usymbol = "KRW-" + pure_symbol.upper()
     return usymbol
+
+
+def purify_binance_symbol(bsymbol):
+    return bsymbol[:-4].upper()
+
+
+def purify_upbit_symbol(usymbol):
+    return usymbol[4:].upper()
