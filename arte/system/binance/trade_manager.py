@@ -8,6 +8,7 @@ from .account import BinanceAccount
 from .order_handler import BinanceOrderHandler
 from arte.system.binance.order_recorder import BinanceOrderRecorder
 from arte.data.user_data_manager import UserDataManager
+from arte.system.utils import purify_binance_symbol
 
 
 def _process_order(method):
@@ -22,24 +23,22 @@ def _process_order(method):
 
 
 class BinanceTradeManager:
-    def __init__(self, client, symbols, *args, **kwargs):
+    def __init__(self, client, symbols, max_order_count, bot=None):
         self.symbols = symbols
+        self.max_order_count = max_order_count
         self.account = BinanceAccount(client.request_client)
         self.order_handler = BinanceOrderHandler(client.request_client, self.account)
         self.order_handler.manager = self
         self.order_recorder = BinanceOrderRecorder()
         self.user_data_manager = UserDataManager(client, self.account, self.order_recorder)
 
-        # Trader have to be assigned
+        # TradeScheduler have to be assigned
         self.environment = None
 
-        self.bot = None
-        if "bot" in kwargs:
-            self.bot = kwargs["bot"]
-        if "max_order_count" in kwargs:
-            self.max_order_count = kwargs["max_order_count"]
+        # bot
+        self.bot = bot if bot else None
 
-        # state manage
+        # state(per symbol) init
         self.symbols_state = dict()
         for _psymbol in self.symbols:
             self.symbols_state[_psymbol] = self._init_symbol_state()
@@ -123,15 +122,16 @@ class BinanceTradeManager:
         )
 
     def _postprocess_order(self, order):
-        symbol = order.symbol[:-4].upper()
-        if self._is_buy_or_sell(order) == "BUY":
+        symbol = purify_binance_symbol(order.symbol)
+        _orderside = self._is_buy_or_sell(order)
+        if _orderside == "BUY":
             self.symbols_state[symbol]["order_count"] += 1
             self.symbols_state[symbol]["positionSize"] = float(
                 Decimal(self.symbols_state[symbol]["positionSize"] + order.origQty)
             )
             self.symbols_state[symbol]["positionSide"] = order.positionSide
 
-        elif self._is_buy_or_sell(order) == "SELL":
+        elif _orderside == "SELL":
             self.symbols_state[symbol]["positionSize"] = float(
                 Decimal(self.symbols_state[symbol]["positionSize"] - order.origQty)
             )
@@ -139,7 +139,7 @@ class BinanceTradeManager:
                 self.symbols_state[symbol] = self._init_symbol_state()
 
         # Process result message
-        message = f"Order {order.clientOrderId}: {order.side} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
+        message = f"Order {order.clientOrderId}: {_orderside} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
         print(message)
         if self.bot:
             self.bot.sendMessage(message)
