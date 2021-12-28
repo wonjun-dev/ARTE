@@ -11,16 +11,7 @@ from .account import BinanceAccount
 from .order_handler import BinanceOrderHandler
 from arte.system.binance.order_recorder import BinanceOrderRecorder
 from arte.data.user_data_manager import UserDataManager
-from arte.system.utils import purify_binance_symbol
-
-
-def threaded(fn):
-    def wrapper(*args, **kwargs):
-        thread = threading.Thread(target=fn, args=args, kwargs=kwargs)
-        thread.start()
-        return thread
-
-    return wrapper
+from arte.system.utils import purify_binance_symbol, threaded
 
 
 def _process_order(method):
@@ -40,6 +31,7 @@ class BinanceTradeManager:
     def __init__(self, client, symbols, max_order_count, bot=None):
         self.symbols = symbols
         self.max_order_count = max_order_count
+        self.bot = bot if bot else None
         self.account = BinanceAccount(client.request_client, self.symbols)
         self.order_handler = BinanceOrderHandler(client.request_client, self.account)
         self.order_handler.manager = self
@@ -49,19 +41,27 @@ class BinanceTradeManager:
         # TradeScheduler have to be assigned
         self.environment = None
 
-        # bot
-        self.bot = bot if bot else None
-
         # state(per symbol) init
-        self.symbols_state = dict()
-        for _psymbol in self.symbols:
-            self.symbols_state[_psymbol] = self._init_symbol_state()
+        self._initialize_symbol_state()
 
         # start user data stream
         self.user_data_manager.open_user_data_socket()
 
-    def _init_symbol_state(self):
-        return dict(order_count=0, positionSize=0, positionSide=PositionSide.INVALID, is_open=False)
+    def _initialize_symbol_state(self):
+        self.symbols_state = dict()
+        for _psymbol in self.symbols:
+            self.symbols_state[_psymbol] = dict(
+                order_count=0, positionSize=0, positionSide=PositionSide.INVALID, is_open=False
+            )
+            if self.account[_psymbol][PositionSide.LONG] > 0:
+                self.symbols_state[_psymbol]["positionSize"] = self.account[_psymbol][PositionSide.LONG]
+                self.symbols_state[_psymbol]["positionSide"] = PositionSide.LONG
+                self.symbols_state[_psymbol]["is_open"] = True
+            elif self.account[_psymbol][PositionSide.SHORT] < 0:
+                self.symbols_state[_psymbol]["positionSize"] = self.account[_psymbol][PositionSide.SHORT]
+                self.symbols_state[_psymbol]["positionSide"] = PositionSide.SHORT
+                self.symbols_state[_psymbol]["is_open"] = True
+        print(self.symbols_state)
 
     @threaded
     @_process_order
@@ -167,7 +167,9 @@ class BinanceTradeManager:
                 Decimal(self.symbols_state[symbol]["positionSize"] - order.origQty)
             )
             if self.symbols_state[symbol]["positionSize"] <= sys.float_info.epsilon:
-                self.symbols_state[symbol] = self._init_symbol_state()
+                self.symbols_state[symbol] = dict(
+                    order_count=0, positionSize=0, positionSide=PositionSide.INVALID, is_open=False
+                )
 
         # Process result message
         message = f"Order {order.clientOrderId}: {_orderside} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
@@ -188,29 +190,3 @@ class BinanceTradeManager:
             return "SELL"
         else:
             raise ValueError("Cannot check order is buy or sell")
-
-
-if __name__ == "__main__":
-    import threading
-    import time
-    import configparser
-    from arte.system.client import Client
-
-    cfg = configparser.ConfigParser()
-    cfg.read("/media/park/hard2000/arte_config/config.ini")
-    config = cfg["TEST"]
-    # access_key = config["UPBIT_ACCESS_KEY"]
-    # secret_key = config["UPBIT_SECRET_KEY"]
-
-    API_KEY = config["API_KEY"]
-    SECRET_KEY = config["SECRET_KEY"]
-    cl = Client(mode="TEST", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
-    tm = BinanceTradeManager(client=cl, max_order_count=3)
-    tm.buy_short_market("ETH", 2783, usdt=100)
-    time.sleep(0.05)
-    tm.sell_short_market("ETH", ratio=1)
-
-    for t in threading.enumerate():
-        if t is threading.current_thread():
-            continue
-        t.join()

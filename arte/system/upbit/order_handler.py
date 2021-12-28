@@ -9,9 +9,6 @@ from binance_f.model.constant import *
 from arte.system.utils import symbolize_upbit
 
 
-ERROR_DICT = {"result": dict(error=None)}
-
-
 def get_timestamp():
     return int(time.time())  # * 1000)
 
@@ -20,36 +17,44 @@ class UpbitOrderHandler:
     def __init__(self, request_client, account):
         self.request_client = request_client
         self.account = account
-        self.manager = None
 
     def buy_market(self, symbol: str, krw=None, ratio=None):
         if bool(krw) ^ bool(ratio):
             if ratio:
-                krw = self.account["KRW"] * ratio
-            return self.request_client.Order.Order_new(
+                krw = round(self.account["KRW"] * ratio)
+            order_result = self.request_client.Order.Order_new(
                 market=symbolize_upbit(symbol),
                 side=UpbitOrderSide.BUY,
                 ord_type=UpbitOrderType.PRICE,
                 price=str(krw),
                 # identifier=self._generate_order_id(symbol)
             )
+            if "error" in order_result["result"]:
+                raise ValueError(order_result["result"])
+            else:
+                return order_result
         else:
-            raise ValueError("You have to pass either quantity or ratio.")
+            raise ValueError("You have to pass either krw or ratio.")
 
     def sell_market(self, symbol: str, ratio):
         if symbol not in self.account.symbols:
-            return ERROR_DICT
+            raise ValueError(f"Cannot sell {symbol} - not exist in your account")
         if self.account[symbol] > 0:
-            return self.request_client.Order.Order_new(
+            order_result = self.request_client.Order.Order_new(
                 market=symbolize_upbit(symbol),
                 side=UpbitOrderSide.SELL,
                 ord_type=UpbitOrderType.MARKET,
                 volume=self._asset_ratio_to_quantity(symbol, ratio)
                 # identifier=self._generate_order_id(symbol)
             )
+            if "error" in order_result["result"]:
+                raise ValueError(order_result["result"])
+            else:
+                return order_result
         else:
-            print(f"Cannot execute sell {symbol}, you dont have any position.")
-            return ERROR_DICT
+            raise ValueError(
+                f"Cannot execute sell {symbol}:{self.account[symbol]}, you dont have any position or not enough size to sell."
+            )
 
     def _asset_ratio_to_quantity(self, symbol: str, ratio, unit_float=8):
         getcontext().prec = unit_float + 1

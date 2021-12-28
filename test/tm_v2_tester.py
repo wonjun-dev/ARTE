@@ -2,7 +2,7 @@ import threading
 import time
 import configparser
 from arte.system.client import Client
-from arte.system.binance.trade_manager_v2 import BinanceTradeManager
+from arte.system.binance.trade_manager import BinanceTradeManager
 
 from arte.data.socket_data_manager import SocketDataManager
 
@@ -63,11 +63,11 @@ tm.environment = Environment(cl, symbols)
 # tm.sell_long_market("ETH", ratio=1)
 
 # multi-asset trade test
-tm.buy_long_market("ETH", usdt=100)
-tm.buy_short_market("BTC", usdt=200)
-time.sleep(0.2)
-tm.sell_long_market("ETH", ratio=1)
-tm.sell_short_market("BTC", ratio=1)
+# tm.buy_long_market("ETH", usdt=100)
+# tm.buy_short_market("BTC", usdt=200)
+# time.sleep(0.2)
+# tm.sell_long_market("ETH", ratio=1)
+# tm.sell_short_market("BTC", ratio=1)
 
 for t in threading.enumerate():
     if t is threading.current_thread():

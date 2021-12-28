@@ -1,5 +1,6 @@
 import random
 import string
+import threading
 
 import pandas as pd
 import numpy as np
@@ -71,3 +72,12 @@ def purify_binance_symbol(bsymbol):
 
 def purify_upbit_symbol(usymbol):
     return usymbol[4:].upper()
+
+
+def threaded(fn):
+    def wrapper(*args, **kwargs):
+        thread = threading.Thread(target=fn, args=args, kwargs=kwargs)
+        thread.start()
+        return thread
+
+    return wrapper

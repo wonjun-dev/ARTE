@@ -18,21 +18,21 @@ from binance_f.constant.test import *
 from binance_f.base.printobject import *
 from binance_f.model.constant import *
 
-ZERO = Decimal("0")
+DECIMAL_ZERO = Decimal("0")
 
 
 class UpbitAccount:
     def __init__(self, request_client, symbols):
         self.request_client = request_client
         self.symbols = symbols
-        self._positions = {symbol: ZERO for symbol in self.symbols + ["KRW"]}
+        self._positions = {symbol: DECIMAL_ZERO for symbol in self.symbols + ["KRW"]}
         self.update()
 
     def __getitem__(self, key):
         return self._positions[key]
 
     def __repr__(self):
-        return str(self._positions)
+        return f"UpbitAccount({str(self._positions)})"
 
     def _json_parse(self, response):
         result_dict = {}
@@ -40,26 +40,37 @@ class UpbitAccount:
             result_dict[position["currency"]] = Decimal(position["balance"])
         return result_dict
 
-    def _get_current_positions_by_api(self):
+    def _get_current_positions(self):
         response = self.request_client.Account.Account_info()
         return self._json_parse(response["result"])
 
     def update(self):
-        result_dict = self._get_current_positions_by_api()
+        result_dict = self._get_current_positions()
         union_keys = self._positions.keys() | result_dict.keys()
         for key in union_keys:
             if key in result_dict:
                 self._positions[key] = result_dict[key]
             else:
-                self._positions[key] = ZERO
-        print(self._positions)
+                self._positions[key] = DECIMAL_ZERO
+        print(f"Account update: {self._positions}")
 
-    def _sleep_update(self):
-        time.sleep(0.05)
-        self.update()
+    def update_changed_recursive(self):
+        before_update_position = self._positions.copy()
+        result_dict = self._get_current_positions()
+        union_keys = self._positions.keys() | result_dict.keys()
+        for key in union_keys:
+            if key in result_dict:
+                self._positions[key] = result_dict[key]
+            else:
+                self._positions[key] = DECIMAL_ZERO
 
-    def update_by_thread(self):
-        threading.Thread(target=self._sleep_update).start()
+        if before_update_position == self._positions:
+            # recursive update
+            print("Wait for account reflects new order")
+            time.sleep(0.1)
+            self.update_changed_recursive()
+        else:
+            print(f"Account change update: {self._positions}")
 
 
 if __name__ == "__main__":

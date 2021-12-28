@@ -17,7 +17,7 @@ class BinanceAccount:
         self._update_restapi()
 
     def __repr__(self):
-        return str(self._positions)
+        return f"BinanceAccount({str(self._positions)})"
 
     def _get_usdt_balance_restapi(self):
         result = self.request_client.get_balance_v2()
@@ -28,7 +28,7 @@ class BinanceAccount:
         results = self.request_client.get_position_v2()
         for pos in results:
             _psymbol = purify_binance_symbol(pos.symbol)
-            if _psymbol in symbols:
+            if (_psymbol in symbols) & (pos.symbol[-4:] == "USDT"):
                 if _psymbol not in positions:
                     positions[_psymbol] = {PositionSide.LONG: 0, PositionSide.SHORT: 0}
                 if pos.positionSide == PositionSide.LONG:
