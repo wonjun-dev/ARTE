@@ -53,9 +53,13 @@ tm.environment = Environment(cl, ["ETH"])
 # order - symbol_state update time interval test
 # order - account update interval result: ~ 0.2 sec
 # order - symbol_state update interval result: ~ 0.16 sec
-print(time.time())
-tm.buy_long_market("ETH", usdt=100)
+# print(time.time())
+# tm.buy_long_market("ETH", usdt=100)
 
+# symbols_state is_open test
+tm.buy_long_market("ETH", usdt=100)
+time.sleep(0.2)
+tm.sell_long_market("ETH", ratio=1)
 
 for t in threading.enumerate():
     if t is threading.current_thread():

@@ -1,3 +1,4 @@
+import sys
 import traceback
 import threading
 from functools import wraps
@@ -64,7 +65,7 @@ class BinanceTradeManager:
         self.user_data_manager.open_user_data_socket()
 
     def _init_symbol_state(self):
-        return dict(order_count=0, positionSize=0, positionSide=PositionSide.INVALID)
+        return dict(order_count=0, positionSize=0, positionSide=PositionSide.INVALID, is_open=False)
 
     @threaded
     @_process_order
@@ -163,12 +164,13 @@ class BinanceTradeManager:
                 Decimal(self.symbols_state[symbol]["positionSize"] + order.origQty)
             )
             self.symbols_state[symbol]["positionSide"] = order.positionSide
+            self.symbols_state[symbol]["is_open"] = True
 
         elif _orderside == "SELL":
             self.symbols_state[symbol]["positionSize"] = float(
                 Decimal(self.symbols_state[symbol]["positionSize"] - order.origQty)
             )
-            if self.symbols_state[symbol]["positionSize"] == 0:
+            if self.symbols_state[symbol]["positionSize"] <= sys.float_info.epsilon:
                 self.symbols_state[symbol] = self._init_symbol_state()
 
         # Process result message
