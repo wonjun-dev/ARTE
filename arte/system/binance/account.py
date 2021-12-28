@@ -16,6 +16,9 @@ class BinanceAccount:
         self._positions = dict()
         self._update_restapi()
 
+    def __repr__(self):
+        return str(self._positions)
+
     def _get_usdt_balance_restapi(self):
         result = self.request_client.get_balance_v2()
         return result[1].balance
@@ -35,8 +38,8 @@ class BinanceAccount:
         return positions
 
     def _update_restapi(self):
-        self._positions["USDT"] = self._get_usdt_balance()
-        self._positions = self._get_positions(self._symbols)
+        self._positions["USDT"] = self._get_usdt_balance_restapi()
+        self._positions = self._get_positions_restapi(self._symbols)
 
     def update(self, event):
         """
