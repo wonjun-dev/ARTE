@@ -1,3 +1,6 @@
+import sys
+import traceback
+import threading
 from functools import wraps
 from decimal import Decimal, getcontext
 
@@ -11,13 +14,24 @@ from arte.data.user_data_manager import UserDataManager
 from arte.system.utils import purify_binance_symbol
 
 
+def threaded(fn):
+    def wrapper(*args, **kwargs):
+        thread = threading.Thread(target=fn, args=args, kwargs=kwargs)
+        thread.start()
+        return thread
+
+    return wrapper
+
+
 def _process_order(method):
     @wraps(method)
     def _impl(self, *args, **kwargs):
-        order = method(self, *args, **kwargs)
-        if order:
+        try:
+            order = method(self, *args, **kwargs)
+        except:
+            traceback.print_exc()
+        else:
             self._postprocess_order(order)
-        return order
 
     return _impl
 
@@ -26,7 +40,7 @@ class BinanceTradeManager:
     def __init__(self, client, symbols, max_order_count, bot=None):
         self.symbols = symbols
         self.max_order_count = max_order_count
-        self.account = BinanceAccount(client.request_client)
+        self.account = BinanceAccount(client.request_client, self.symbols)
         self.order_handler = BinanceOrderHandler(client.request_client, self.account)
         self.order_handler.manager = self
         self.order_recorder = BinanceOrderRecorder()
@@ -47,8 +61,9 @@ class BinanceTradeManager:
         self.user_data_manager.open_user_data_socket()
 
     def _init_symbol_state(self):
-        return dict(order_count=0, positionSize=0, positionSide=PositionSide.INVALID)
+        return dict(order_count=0, positionSize=0, positionSide=PositionSide.INVALID, is_open=False)
 
+    @threaded
     @_process_order
     def buy_long_market(self, symbol, usdt=None, ratio=None):
         if self.symbols_state[symbol]["order_count"] < self.max_order_count:
@@ -60,7 +75,10 @@ class BinanceTradeManager:
                 usdt=usdt,
                 ratio=ratio,
             )
+        else:
+            raise ValueError("Exceeded condition: order_count or position_side")
 
+    @threaded
     @_process_order
     def buy_short_market(self, symbol, usdt=None, ratio=None):
         if self.symbols_state[symbol]["order_count"] < self.max_order_count:
@@ -72,7 +90,10 @@ class BinanceTradeManager:
                 usdt=usdt,
                 ratio=ratio,
             )
+        else:
+            raise ValueError("Exceeded condition: order_count or position_side")
 
+    @threaded
     @_process_order
     def buy_long_limit(self, symbol, price, usdt=None, ratio=None):
         if self.symbols_state[symbol]["order_count"] < self.max_order_count:
@@ -84,7 +105,10 @@ class BinanceTradeManager:
                 usdt=usdt,
                 ratio=ratio,
             )
+        else:
+            raise ValueError("Exceeded condition: order_count or position_side")
 
+    @threaded
     @_process_order
     def buy_short_limit(self, symbol, price, usdt=None, ratio=None):
         if self.symbols_state[symbol]["order_count"] < self.max_order_count:
@@ -96,25 +120,31 @@ class BinanceTradeManager:
                 usdt=usdt,
                 ratio=ratio,
             )
+        else:
+            raise ValueError("Exceeded condition: order_count or position_side")
 
+    @threaded
     @_process_order
     def sell_long_market(self, symbol, ratio):
         return self.order_handler.sell_market(
             symbol=symbol, order_side=OrderSide.SELL, position_side=PositionSide.LONG, ratio=ratio
         )
 
+    @threaded
     @_process_order
     def sell_short_market(self, symbol, ratio):
         return self.order_handler.sell_market(
             symbol=symbol, order_side=OrderSide.BUY, position_side=PositionSide.SHORT, ratio=ratio
         )
 
+    @threaded
     @_process_order
     def sell_long_limit(self, symbol, price, ratio):
         return self.order_handler.sell_limit(
             symbol=symbol, order_side=OrderSide.SELL, position_side=PositionSide.LONG, price=price, ratio=ratio
         )
 
+    @threaded
     @_process_order
     def sell_short_limit(self, symbol, price, ratio):
         return self.order_handler.sell_limit(
@@ -130,17 +160,19 @@ class BinanceTradeManager:
                 Decimal(self.symbols_state[symbol]["positionSize"] + order.origQty)
             )
             self.symbols_state[symbol]["positionSide"] = order.positionSide
+            self.symbols_state[symbol]["is_open"] = True
 
         elif _orderside == "SELL":
             self.symbols_state[symbol]["positionSize"] = float(
                 Decimal(self.symbols_state[symbol]["positionSize"] - order.origQty)
             )
-            if self.symbols_state[symbol]["positionSize"] == 0:
+            if self.symbols_state[symbol]["positionSize"] <= sys.float_info.epsilon:
                 self.symbols_state[symbol] = self._init_symbol_state()
 
         # Process result message
         message = f"Order {order.clientOrderId}: {_orderside} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
         print(message)
+        print(self.symbols_state)
         if self.bot:
             self.bot.sendMessage(message)
 

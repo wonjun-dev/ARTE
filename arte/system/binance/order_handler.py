@@ -1,6 +1,7 @@
 import math
 import time
 import secrets
+import traceback
 
 from binance_f.constant.test import *
 from binance_f.base.printobject import *
@@ -70,10 +71,10 @@ class BinanceOrderHandler:
             if self.manager.symbols_state[symbol]["positionSide"] in [PositionSide.INVALID, position_side]:
                 return self._limit(symbol, order_side, position_side, price, self._usdt_to_quantity(usdt, price))
             else:
-                print(
+                raise ValueError(
                     f"Cannot execute buy_{position_side}, you have already opened {self.manager.positionSide} position."
                 )
-                return None
+
         else:
             raise ValueError("You have to pass either quantity or ratio.")
 
@@ -84,10 +85,10 @@ class BinanceOrderHandler:
             if self.manager.symbols_state[symbol]["positionSide"] in [PositionSide.INVALID, position_side]:
                 return self._market(symbol, order_side, position_side, self._usdt_to_quantity(usdt, price))
             else:
-                print(
+                raise ValueError(
                     f"Cannot execute buy_{position_side}, you have already opened {self.manager.positionSide} position."
                 )
-                return None
+
         else:
             raise ValueError("You have to pass either quantity or ratio.")
 
@@ -97,8 +98,7 @@ class BinanceOrderHandler:
                 symbol, order_side, position_side, price, self._asset_ratio_to_quantity(symbol, position_side, ratio)
             )
         else:
-            print(f"Cannot execute sell_{position_side}, you dont have any {position_side} position.")
-            return None
+            raise ValueError(f"Cannot execute sell_{position_side}, you don't have any {position_side} position.")
 
     def sell_market(self, symbol: str, order_side: OrderSide, position_side: PositionSide, ratio):
         if self.manager.symbols_state[symbol]["positionSide"] == position_side:
@@ -106,8 +106,7 @@ class BinanceOrderHandler:
                 symbol, order_side, position_side, self._asset_ratio_to_quantity(symbol, position_side, ratio)
             )
         else:
-            print(f"Cannot execute sell_{position_side}, you dont have any {position_side} position.")
-            return None
+            raise ValueError(f"Cannot execute sell_{position_side}, you don't have any {position_side} position.")
 
     def _get_ticker_price(self, symbol: str):
         # temporary function
