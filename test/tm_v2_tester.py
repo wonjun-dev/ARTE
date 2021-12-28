@@ -21,9 +21,10 @@ config = cfg["TEST"]
 API_KEY = config["API_KEY"]
 SECRET_KEY = config["SECRET_KEY"]
 
+symbols = ["ETH", "BTC"]
 cl = Client(mode="TEST", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
-tm = BinanceTradeManager(client=cl, symbols=["ETH"], max_order_count=3)
-tm.environment = Environment(cl, ["ETH"])
+tm = BinanceTradeManager(client=cl, symbols=symbols, max_order_count=3)
+tm.environment = Environment(cl, symbols)
 
 # tm test
 # for i in range(4):
@@ -57,9 +58,16 @@ tm.environment = Environment(cl, ["ETH"])
 # tm.buy_long_market("ETH", usdt=100)
 
 # symbols_state is_open test
+# tm.buy_long_market("ETH", usdt=100)
+# time.sleep(0.2)
+# tm.sell_long_market("ETH", ratio=1)
+
+# multi-asset trade test
 tm.buy_long_market("ETH", usdt=100)
+tm.buy_short_market("BTC", usdt=200)
 time.sleep(0.2)
 tm.sell_long_market("ETH", ratio=1)
+tm.sell_short_market("BTC", ratio=1)
 
 for t in threading.enumerate():
     if t is threading.current_thread():
