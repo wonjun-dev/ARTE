@@ -1,10 +1,7 @@
 import sys
+import time
 import traceback
-import threading
 from functools import wraps
-from decimal import Decimal, getcontext
-
-getcontext().prec = 4  # x.xxx (count as 4)
 
 from binance_f.model.constant import *
 from .account import BinanceAccount
@@ -27,14 +24,29 @@ def _process_order(method):
     return _impl
 
 
+def _check_buy_condition(method):
+    @wraps(method)
+    def _impl(self, *args, **kwargs):
+        if self._check_trade_condition(args[0]):
+            order = method(self, *args, **kwargs)
+            return order
+        else:
+            raise ValueError("Exceeded condition: buy_order_count or budget")
+
+    return _impl
+
+
 class BinanceTradeManager:
-    def __init__(self, client, symbols, max_order_count, bot=None):
+    def __init__(self, client, symbols, max_buy_order_count: float, budget_per_symbol: dict, bot=None):
         self.symbols = symbols
-        self.max_order_count = max_order_count
+        self.max_buy_order_count = max_buy_order_count
+        self.budget_per_symbol = budget_per_symbol
+        if not isinstance(self.budget_per_symbol, dict):
+            raise ValueError("Argument error: 'budget_per_symbol' should be dictionary")
         self.bot = bot if bot else None
+
         self.account = BinanceAccount(client.request_client, self.symbols)
         self.order_handler = BinanceOrderHandler(client.request_client, self.account)
-        self.order_handler.manager = self
         self.order_recorder = BinanceOrderRecorder()
         self.user_data_manager = UserDataManager(client, self.account, self.order_recorder)
 
@@ -47,81 +59,57 @@ class BinanceTradeManager:
         # start user data stream
         self.user_data_manager.open_user_data_socket()
 
-    def _initialize_symbol_state(self):
-        self.symbols_state = dict()
-        for _psymbol in self.symbols:
-            self.symbols_state[_psymbol] = dict(
-                order_count=0, positionSize=0, positionSide=PositionSide.INVALID, is_open=False
-            )
-            if self.account[_psymbol][PositionSide.LONG] > 0:
-                self.symbols_state[_psymbol]["positionSize"] = self.account[_psymbol][PositionSide.LONG]
-                self.symbols_state[_psymbol]["positionSide"] = PositionSide.LONG
-                self.symbols_state[_psymbol]["is_open"] = True
-            elif self.account[_psymbol][PositionSide.SHORT] < 0:
-                self.symbols_state[_psymbol]["positionSize"] = self.account[_psymbol][PositionSide.SHORT]
-                self.symbols_state[_psymbol]["positionSide"] = PositionSide.SHORT
-                self.symbols_state[_psymbol]["is_open"] = True
-        print(self.symbols_state)
-
     @threaded
     @_process_order
+    @_check_buy_condition
     def buy_long_market(self, symbol, usdt=None, ratio=None):
-        if self.symbols_state[symbol]["order_count"] < self.max_order_count:
-            return self.order_handler.buy_market(
-                symbol=symbol,
-                order_side=OrderSide.BUY,
-                position_side=PositionSide.LONG,
-                price=self.environment.socket_data_manager.binance_future_trade.price[symbol],
-                usdt=usdt,
-                ratio=ratio,
-            )
-        else:
-            raise ValueError("Exceeded condition: order_count or position_side")
+        return self.order_handler.buy_market(
+            symbol=symbol,
+            order_side=OrderSide.BUY,
+            position_side=PositionSide.LONG,
+            price=self.environment.socket_data_manager.binance_future_trade.price[symbol],
+            usdt=usdt,
+            ratio=ratio,
+        )
 
     @threaded
     @_process_order
+    @_check_buy_condition
     def buy_short_market(self, symbol, usdt=None, ratio=None):
-        if self.symbols_state[symbol]["order_count"] < self.max_order_count:
-            return self.order_handler.buy_market(
-                symbol=symbol,
-                order_side=OrderSide.SELL,
-                position_side=PositionSide.SHORT,
-                price=self.environment.socket_data_manager.binance_future_trade.price[symbol],
-                usdt=usdt,
-                ratio=ratio,
-            )
-        else:
-            raise ValueError("Exceeded condition: order_count or position_side")
+        return self.order_handler.buy_market(
+            symbol=symbol,
+            order_side=OrderSide.SELL,
+            position_side=PositionSide.SHORT,
+            price=self.environment.socket_data_manager.binance_future_trade.price[symbol],
+            usdt=usdt,
+            ratio=ratio,
+        )
 
     @threaded
     @_process_order
+    @_check_buy_condition
     def buy_long_limit(self, symbol, price, usdt=None, ratio=None):
-        if self.symbols_state[symbol]["order_count"] < self.max_order_count:
-            return self.order_handler.buy_limit(
-                symbol=symbol,
-                order_side=OrderSide.BUY,
-                position_side=PositionSide.LONG,
-                price=price,
-                usdt=usdt,
-                ratio=ratio,
-            )
-        else:
-            raise ValueError("Exceeded condition: order_count or position_side")
+        return self.order_handler.buy_limit(
+            symbol=symbol,
+            order_side=OrderSide.BUY,
+            position_side=PositionSide.LONG,
+            price=price,
+            usdt=usdt,
+            ratio=ratio,
+        )
 
     @threaded
     @_process_order
+    @_check_buy_condition
     def buy_short_limit(self, symbol, price, usdt=None, ratio=None):
-        if self.symbols_state[symbol]["order_count"] < self.max_order_count:
-            return self.order_handler.buy_limit(
-                symbol=symbol,
-                order_side=OrderSide.SELL,
-                position_side=PositionSide.SHORT,
-                price=price,
-                usdt=usdt,
-                ratio=ratio,
-            )
-        else:
-            raise ValueError("Exceeded condition: order_count or position_side")
+        return self.order_handler.buy_limit(
+            symbol=symbol,
+            order_side=OrderSide.SELL,
+            position_side=PositionSide.SHORT,
+            price=price,
+            usdt=usdt,
+            ratio=ratio,
+        )
 
     @threaded
     @_process_order
@@ -151,25 +139,26 @@ class BinanceTradeManager:
             symbol=symbol, order_side=OrderSide.BUY, position_side=PositionSide.SHORT, price=price, ratio=ratio
         )
 
+    def _check_trade_condition(self, symbol):
+        return (self.symbols_state[symbol]["buy_order_count"] < self.max_buy_order_count) and (
+            self.symbols_state[symbol]["left_budget"] > 0  # left_budget is not perfect. last order could over budget.
+        )
+
+    def _initialize_symbol_state(self):
+        self.symbols_state = dict()
+        for _psymbol in self.symbols:
+            self.symbols_state[_psymbol] = dict(buy_order_count=0, left_budget=self.budget_per_symbol[_psymbol])
+
     def _postprocess_order(self, order):
         symbol = purify_binance_symbol(order.symbol)
         _orderside = self._is_buy_or_sell(order)
         if _orderside == "BUY":
-            self.symbols_state[symbol]["order_count"] += 1
-            self.symbols_state[symbol]["positionSize"] = float(
-                Decimal(self.symbols_state[symbol]["positionSize"] + order.origQty)
-            )
-            self.symbols_state[symbol]["positionSide"] = order.positionSide
-            self.symbols_state[symbol]["is_open"] = True
-
+            self.symbols_state[symbol]["buy_order_count"] += 1
+            self.symbols_state[symbol]["left_budget"] -= order.origQty * order.avgPrice
         elif _orderside == "SELL":
-            self.symbols_state[symbol]["positionSize"] = float(
-                Decimal(self.symbols_state[symbol]["positionSize"] - order.origQty)
-            )
-            if self.symbols_state[symbol]["positionSize"] <= sys.float_info.epsilon:
-                self.symbols_state[symbol] = dict(
-                    order_count=0, positionSize=0, positionSide=PositionSide.INVALID, is_open=False
-                )
+            self.symbols_state[symbol]["left_budget"] += order.origQty * order.avgPrice
+            if abs(self.account[symbol][order.positionSide] - order.origQty) <= sys.float_info.epsilon:
+                self.symbols_state[symbol] = dict(buy_order_count=0, left_budget=self.budget_per_symbol[symbol])
 
         # Process result message
         message = f"Order {order.clientOrderId}: {_orderside} {order.positionSide} {order.type} - {order.symbol} / Qty: {order.origQty}, Price: ${order.avgPrice}"
@@ -180,12 +169,12 @@ class BinanceTradeManager:
 
     @staticmethod
     def _is_buy_or_sell(order):
-        if ((order.side == OrderSide.BUY) & (order.positionSide == PositionSide.LONG)) or (
-            (order.side == OrderSide.SELL) & (order.positionSide == PositionSide.SHORT)
+        if ((order.side == OrderSide.BUY) and (order.positionSide == PositionSide.LONG)) or (
+            (order.side == OrderSide.SELL) and (order.positionSide == PositionSide.SHORT)
         ):
             return "BUY"
-        elif ((order.side == OrderSide.SELL) & (order.positionSide == PositionSide.LONG)) or (
-            (order.side == OrderSide.BUY) & (order.positionSide == PositionSide.SHORT)
+        elif ((order.side == OrderSide.SELL) and (order.positionSide == PositionSide.LONG)) or (
+            (order.side == OrderSide.BUY) and (order.positionSide == PositionSide.SHORT)
         ):
             return "SELL"
         else:

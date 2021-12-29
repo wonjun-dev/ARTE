@@ -22,8 +22,10 @@ API_KEY = config["API_KEY"]
 SECRET_KEY = config["SECRET_KEY"]
 
 symbols = ["ETH", "BTC"]
+budgets = [500, 1000]
+budget_per_symbol = {s: b for s, b in zip(symbols, budgets)}
 cl = Client(mode="TEST", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
-tm = BinanceTradeManager(client=cl, symbols=symbols, max_order_count=3)
+tm = BinanceTradeManager(client=cl, symbols=symbols, max_buy_order_count=2, budget_per_symbol=budget_per_symbol)
 tm.environment = Environment(cl, symbols)
 
 # tm test
@@ -40,7 +42,9 @@ tm.environment = Environment(cl, symbols)
 #     time.sleep(2)
 
 # order methods test
-# tm.buy_long_market("ETH", usdt=100)
+# tm.buy_long_market("ETH", usdt=200)
+# time.sleep(0.2)
+# tm.sell_long_market("ETH", ratio=0.5)
 # time.sleep(0.2)
 # tm.sell_long_market("ETH", ratio=1)
 
@@ -68,6 +72,12 @@ tm.environment = Environment(cl, symbols)
 # time.sleep(0.2)
 # tm.sell_long_market("ETH", ratio=1)
 # tm.sell_short_market("BTC", ratio=1)
+
+# tm check_order_condition decorator test
+# for i in range(2):
+#     tm.buy_long_market("ETH", usdt=100)
+#     time.sleep(1)
+#     tm.sell_short_market("ETH", ratio=1)
 
 for t in threading.enumerate():
     if t is threading.current_thread():

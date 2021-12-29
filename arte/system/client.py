@@ -22,7 +22,7 @@ class Client:
                 api_key=_g_api_key,
                 secret_key=_g_secret_key,
                 uri=uri,
-                receive_limit_ms=900 * 1000,
+                receive_limit_ms=3600 * 1000,
                 connection_delay_failure=1,
             )
 
