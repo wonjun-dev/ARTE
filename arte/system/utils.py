@@ -81,3 +81,11 @@ def threaded(fn):
         return thread
 
     return wrapper
+
+
+def print_important(string, line_length=50):
+    padding_size = (line_length - len(string)) // 2
+    print("*" * line_length)
+    print("-" * padding_size + " " + string + " " + "-" * padding_size)
+    print("*" * line_length)
+

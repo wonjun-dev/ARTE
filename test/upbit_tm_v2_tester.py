@@ -15,9 +15,11 @@ UPBIT_API_KEY = config["UPBIT_ACCESS_KEY"]
 UPBIT_SECRET_KEY = config["UPBIT_SECRET_KEY"]
 
 symbols = ["ETH", "BTC"]
+budgets = [10000, 11000]
+budget_per_symbol = {s: b for s, b in zip(symbols, budgets)}
 cl = Client(mode="REAL", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
 upbit_cl = UpbitClient(api_key=UPBIT_API_KEY, secret_key=UPBIT_SECRET_KEY)
-tm = UpbitTradeManager(client=upbit_cl, symbols=symbols, max_order_count=3)
+tm = UpbitTradeManager(client=upbit_cl, symbols=symbols, max_buy_order_count=3, budget_per_symbol=budget_per_symbol)
 
 socket_data_manager = SocketDataManager(cl)
 socket_data_manager.open_binanace_future_trade_socket(symbols=symbols)
@@ -25,7 +27,7 @@ socket_data_manager.open_binanace_future_trade_socket(symbols=symbols)
 
 # normal trade test / pass
 # tm.buy_long_market("ETH", krw=5200)
-# time.sleep(0.5)
+# time.sleep(1)
 # tm.sell_long_market("ETH", ratio=1)
 
 # multi-asset trade test / pass

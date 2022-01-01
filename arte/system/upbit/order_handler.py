@@ -39,7 +39,7 @@ class UpbitOrderHandler:
     def sell_market(self, symbol: str, ratio):
         if symbol not in self.account.symbols:
             raise ValueError(f"Cannot sell {symbol} - not exist in your account")
-        if self.account[symbol] > 0:
+        if self.account[symbol]["is_open"]:
             order_result = self.request_client.Order.Order_new(
                 market=symbolize_upbit(symbol),
                 side=UpbitOrderSide.SELL,
@@ -58,7 +58,7 @@ class UpbitOrderHandler:
 
     def _asset_ratio_to_quantity(self, symbol: str, ratio, unit_float=8):
         getcontext().prec = unit_float + 1
-        asset_quantity = self.account[symbol]
+        asset_quantity = self.account[symbol][PositionSide.LONG]
         full_unit_quantity = str(asset_quantity * Decimal(ratio))
         div_float = full_unit_quantity.split(".")
         _quantity = div_float[0] + "." + div_float[1][:unit_float]

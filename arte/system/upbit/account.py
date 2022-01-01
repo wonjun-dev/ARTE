@@ -25,14 +25,23 @@ class UpbitAccount:
     def __init__(self, request_client, symbols):
         self.request_client = request_client
         self.symbols = symbols
-        self._positions = {symbol: DECIMAL_ZERO for symbol in self.symbols + ["KRW"]}
+
+        self._positions = dict()
+        self._positions["KRW"] = DECIMAL_ZERO
+        for _psymbol in self.symbols:
+            self._positions[_psymbol] = {
+                PositionSide.LONG: 0,
+                "positionSide": PositionSide.INVALID,
+                "is_open": False,
+            }
         self.update()
+        print(f"UpbitAccount Initialized: {self}")
 
     def __getitem__(self, key):
         return self._positions[key]
 
     def __repr__(self):
-        return f"UpbitAccount({str(self._positions)})"
+        return f"UpbitAccount({self._positions})"
 
     def _json_parse(self, response):
         result_dict = {}
@@ -47,30 +56,41 @@ class UpbitAccount:
     def update(self):
         result_dict = self._get_current_positions()
         union_keys = self._positions.keys() | result_dict.keys()
+        union_keys.remove("KRW")
         for key in union_keys:
             if key in result_dict:
-                self._positions[key] = result_dict[key]
+                self._positions[key][PositionSide.LONG] = result_dict[key]
+                self._positions[key]["positionSide"] = PositionSide.LONG
+                self._positions[key]["is_open"] = True
             else:
-                self._positions[key] = DECIMAL_ZERO
-        print(f"Account update: {self._positions}")
+                self._positions[key][PositionSide.LONG] = DECIMAL_ZERO
+                self._positions[key]["positionSide"] = PositionSide.INVALID
+                self._positions[key]["is_open"] = False
+        self._positions["KRW"] = result_dict["KRW"]
+        # print(f"Account update: {self}")
 
     def update_changed_recursive(self):
         before_update_position = self._positions.copy()
         result_dict = self._get_current_positions()
         union_keys = self._positions.keys() | result_dict.keys()
+        union_keys.remove("KRW")
         for key in union_keys:
             if key in result_dict:
-                self._positions[key] = result_dict[key]
+                self._positions[key][PositionSide.LONG] = result_dict[key]
+                self._positions[key]["positionSide"] = PositionSide.LONG
+                self._positions[key]["is_open"] = True
             else:
-                self._positions[key] = DECIMAL_ZERO
-
+                self._positions[key][PositionSide.LONG] = DECIMAL_ZERO
+                self._positions[key]["positionSide"] = PositionSide.INVALID
+                self._positions[key]["is_open"] = False
+        self._positions["KRW"] = result_dict["KRW"]
         if before_update_position == self._positions:
             # recursive update
             print("Wait for account reflects new order")
             time.sleep(0.1)
             self.update_changed_recursive()
-        else:
-            print(f"Account change update: {self._positions}")
+        # else:
+        #     print(f"Account change update: {self}")
 
 
 if __name__ == "__main__":

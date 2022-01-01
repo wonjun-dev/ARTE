@@ -8,7 +8,7 @@ from .account import BinanceAccount
 from .order_handler import BinanceOrderHandler
 from arte.system.binance.order_recorder import BinanceOrderRecorder
 from arte.data.user_data_manager import UserDataManager
-from arte.system.utils import purify_binance_symbol, threaded
+from arte.system.utils import purify_binance_symbol, threaded, print_important
 
 
 def _process_order(method):
@@ -58,6 +58,8 @@ class BinanceTradeManager:
 
         # start user data stream
         self.user_data_manager.open_user_data_socket()
+
+        print_important("Binance Trade Manager Initialized, Trading start!", line_length=100)
 
     @threaded
     @_process_order

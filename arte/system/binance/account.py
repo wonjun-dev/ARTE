@@ -17,7 +17,7 @@ class BinanceAccount:
         self._symbols = symbols
         self._positions = dict()
         self._update_restapi()
-        print(self)
+        print(f"BinanceAccount Initialized: {self}")
 
     def __repr__(self):
         return f"BinanceAccount({str(self._positions)})"

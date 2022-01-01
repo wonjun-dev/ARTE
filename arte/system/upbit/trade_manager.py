@@ -8,7 +8,7 @@ from binance_f.model.constant import *
 from arte.system.upbit.account import UpbitAccount
 from arte.system.upbit.order_handler import UpbitOrderHandler
 from arte.system.upbit.order_recorder import UpbitOrderRecorder
-from arte.system.utils import threaded
+from arte.system.utils import threaded, print_important
 
 
 def _process_order(method):
@@ -31,10 +31,11 @@ def _process_order(method):
 
 
 class UpbitTradeManager:
-    def __init__(self, client, symbols, max_order_count, bot=None):
+    def __init__(self, client, symbols, max_buy_order_count: float, budget_per_symbol: dict, bot=None):
         self.req_client = client.request_client
         self.symbols = symbols
-        self.max_order_count = max_order_count
+        self.max_buy_order_count = max_buy_order_count
+        self.budget_per_symbol = budget_per_symbol
         self.bot = bot if bot else None
 
         self.account = UpbitAccount(self.req_client, self.symbols)
@@ -44,19 +45,17 @@ class UpbitTradeManager:
         # state manage
         self._initialize_symbol_state()
 
+        print_important("Upbit Trade Manager Initialized, Trading start!", line_length=100)
+
     def _initialize_symbol_state(self):
         self.symbols_state = dict()
         for _psymbol in self.symbols:
-            self.symbols_state[_psymbol] = dict(order_count=0, position_size=0, is_open=False)
-            if self.account[_psymbol] > 0:
-                self.symbols_state[_psymbol]["position_size"] = self.account[_psymbol]
-                self.symbols_state[_psymbol]["is_open"] = True
-        print(self.symbols_state)
+            self.symbols_state[_psymbol] = dict(buy_order_count=0, left_budget=self.budget_per_symbol[_psymbol])
 
     @threaded
     @_process_order
     def buy_long_market(self, symbol, krw=None, ratio=None, **kwargs):
-        if self.symbols_state[symbol]["order_count"] < self.max_order_count:
+        if self._check_trade_condition(symbol):
             return self.order_handler.buy_market(symbol=symbol, krw=krw, ratio=ratio)
         else:
             raise ValueError("Exceeded condition: order_count or position_side")
@@ -66,24 +65,17 @@ class UpbitTradeManager:
     def sell_long_market(self, symbol, ratio, **kwargs):
         return self.order_handler.sell_market(symbol=symbol, ratio=ratio)
 
+    def _check_trade_condition(self, symbol):
+        return (self.symbols_state[symbol]["buy_order_count"] < self.max_buy_order_count) and (
+            self.symbols_state[symbol]["left_budget"] > 0  # left_budget is not perfect. last order could over budget.
+        )
+
     def _postprocess_order(self, order, message=None):
         time.sleep(0.3)  # minimum waiting time. need to adjust later (more longer?)
         order_result = order["result"]
-        pure_symbol = order_result["market"][4:]
+        psymbol = order_result["market"][4:]
         # update account
         self.account.update_changed_recursive()
-
-        # update self.symbols_state
-        for _symbol in self.symbols:
-            self.symbols_state[_symbol]["position_size"] = self.account[_symbol]
-
-        if order_result["side"] == UpbitOrderSide.BUY:
-            self.symbols_state[pure_symbol]["order_count"] += 1
-            self.symbols_state[pure_symbol]["is_open"] = True
-
-        elif order_result["side"] == UpbitOrderSide.SELL:
-            if self.symbols_state[pure_symbol]["position_size"] <= 0.00000001:
-                self.symbols_state[pure_symbol] = dict(order_count=0, position_size=0, is_open=False)
 
         # update order_record
         resp = self.req_client.Order.Order_info(uuid=order_result["uuid"])
@@ -91,9 +83,20 @@ class UpbitTradeManager:
         order_info["message"] = message
         order_inst = self.order_recorder.get_event(order_info)
 
+        # update self.symbols_state
+        if order_result["side"] == UpbitOrderSide.BUY:
+            self.symbols_state[psymbol]["buy_order_count"] += 1
+            self.symbols_state[psymbol]["left_budget"] -= order_inst.avgPrice * order_inst.origQty
+
+        elif order_result["side"] == UpbitOrderSide.SELL:
+            if self.account[psymbol][PositionSide.LONG] <= 0.00000001:
+                self.symbols_state[psymbol] = dict(buy_order_count=0, position_size=self.budget_per_symbol[psymbol])
+
         # Process result message
         message = f"Order {order_inst.clientOrderId}: {order_inst.side} {order_inst.type} - {order_inst.symbol} / Qty: {order_inst.origQty}, Price: KRW {order_inst.avgPrice}"
         print(message)
+        print(self.account)
+        print(self.symbols_state)
         if self.bot:
             self.bot.sendMessage(message)
 
