@@ -21,6 +21,14 @@ class BinanceOrderHandler:
     def __init__(self, request_client, account):
         self.request_client = request_client
         self.account = account
+        self._quantity_precisions = dict()
+        self._initialize_quantity_precision()
+
+    def _initialize_quantity_precision(self):
+        ex_info_per_symbol = self.request_client.get_exchange_information().symbols
+        for ex in ex_info_per_symbol:
+            if ex.quoteAsset == "USDT":
+                self._quantity_precisions[ex.baseAsset] = ex.quantityPrecision
 
     def _limit(self, symbol: str, order_side: OrderSide, position_side: PositionSide, price: float, quantity: float):
         result = self.request_client.post_order(
@@ -37,6 +45,7 @@ class BinanceOrderHandler:
         return result
 
     def _market(self, symbol: str, order_side: OrderSide, position_side: PositionSide, quantity: float):
+        print(quantity)
         result = self.request_client.post_order(
             symbol=symbolize_binance(symbol),
             side=order_side,
@@ -68,7 +77,13 @@ class BinanceOrderHandler:
             if ratio:
                 usdt = self.account["USDT"] * ratio
             if self.account[symbol]["positionSide"] in [PositionSide.INVALID, position_side]:
-                return self._limit(symbol, order_side, position_side, price, self._usdt_to_quantity(usdt, price))
+                return self._limit(
+                    symbol,
+                    order_side,
+                    position_side,
+                    price,
+                    self._usdt_to_quantity(usdt, price, unit_float=self._quantity_precisions[symbol]),
+                )
             else:
                 raise ValueError(
                     f"Cannot execute BUY_{position_side}, you have already opened {self.manager.positionSide} position."
@@ -82,7 +97,12 @@ class BinanceOrderHandler:
             if ratio:
                 usdt = self.account["USDT"] * ratio
             if self.account[symbol]["positionSide"] in [PositionSide.INVALID, position_side]:
-                return self._market(symbol, order_side, position_side, self._usdt_to_quantity(usdt, price))
+                return self._market(
+                    symbol,
+                    order_side,
+                    position_side,
+                    self._usdt_to_quantity(usdt, price, unit_float=self._quantity_precisions[symbol]),
+                )
             else:
                 raise ValueError(
                     f"Cannot execute BUY_{position_side}, you have already opened {self.manager.positionSide} position."
@@ -94,7 +114,13 @@ class BinanceOrderHandler:
     def sell_limit(self, symbol: str, order_side: OrderSide, position_side: PositionSide, price, ratio):
         if self.account[symbol]["positionSide"] == position_side:
             return self._limit(
-                symbol, order_side, position_side, price, self._asset_ratio_to_quantity(symbol, position_side, ratio)
+                symbol,
+                order_side,
+                position_side,
+                price,
+                self._asset_ratio_to_quantity(
+                    symbol, position_side, ratio, unit_float=self._quantity_precisions[symbol]
+                ),
             )
         else:
             raise ValueError(f"Cannot execute SELL_{position_side}, you don't have any {position_side} position.")
@@ -102,7 +128,12 @@ class BinanceOrderHandler:
     def sell_market(self, symbol: str, order_side: OrderSide, position_side: PositionSide, ratio):
         if self.account[symbol]["positionSide"] == position_side:
             return self._market(
-                symbol, order_side, position_side, self._asset_ratio_to_quantity(symbol, position_side, ratio)
+                symbol,
+                order_side,
+                position_side,
+                self._asset_ratio_to_quantity(
+                    symbol, position_side, ratio, unit_float=self._quantity_precisions[symbol]
+                ),
             )
         else:
             raise ValueError(f"Cannot execute SELL_{position_side}, you don't have any {position_side} position.")

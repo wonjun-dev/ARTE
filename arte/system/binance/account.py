@@ -83,8 +83,9 @@ class BinanceAccount:
         !!! 0.004~6 sec slower than order return 
         """
         self._positions["USDT"] = event.balances[0].crossWallet
-        long_pos = event.positions[1]
-        short_pos = event.positions[2]
+        long_pos = event.positions[-2]
+        print(event.positions[-2].amount, event.positions[-1].amount)
+        short_pos = event.positions[-1]
         _psymbol = purify_binance_symbol(long_pos.symbol)
 
         self._positions[_psymbol]["is_open"] = True
