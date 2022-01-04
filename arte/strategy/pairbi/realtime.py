@@ -50,6 +50,7 @@ class TradeScheduler:
                 exchange_rate=self.exchange_rate,
                 except_list=self.except_list,
                 current_time=_cur_time,
+                upbit_orderbook = self.socket_data_manager.upbit_orderbook
             )
 
             self.strategy.print_state()
@@ -59,6 +60,7 @@ class TradeScheduler:
             traceback.print_exc()
 
     def start(self, watch_interval: float = 3.0):
+        self.socket_data_manager.open_upbit_orderbook_socket(symbols=self.common_symbols)
         self.socket_data_manager.open_upbit_trade_socket(symbols=self.common_symbols)
         self.socket_data_manager.open_binanace_future_trade_socket(symbols=self.common_symbols)
 

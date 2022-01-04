@@ -56,6 +56,7 @@ class StrategyLoop:
         self.exchange_rate = kwargs["exchange_rate"]
         self.except_list = kwargs["except_list"]
         self.current_time = kwargs["current_time"]
+        self.upbit_orderbook = kwargs["upbit_orderbook"]
 
     def run(self):
         self.init_price_counter += 1
@@ -72,20 +73,22 @@ class StrategyLoop:
                 self.kalman_avg_binance[symbol].update(self.binance_spot_price.price[symbol])
                 self.kalman_reg[symbol].update( self.kalman_avg_upbit[symbol].his_state_means[-1][0], self.kalman_avg_binance[symbol].his_state_means[-1][0] )
             self.spread[symbol].append( self.upbit_price.price[symbol]*self.kalman_reg[symbol].his_state_means[-1,0] - self.binance_spot_price.price[symbol] )
-
-        if self.init_price_counter >=  self.q_maxlen:
+        #Multi-processing으로 Kamlanfilter 계산만 분산하기!
+        if self.init_price_counter >= 300:# self.q_maxlen:
             for symbol in self.symbols_wo_excepted:
                 self.asset_signals[symbol].proceed(
                     price_q=self.dict_price_q[symbol],
                     binance_price_q=self.dict_binance_price_q[symbol],
                     current_time=self.current_time,
                     spread = self.spread[symbol],
+                    upbit_orderbook = self.upbit_orderbook[symbol]
                     #half_life = self.cal_half_life(self.spread[symbol])
                 )
 
     def print_state(self):
         print(f'Upbit: {self.upbit_price.price}')
         print(f'Bspot: {self.binance_spot_price.price}')
+        print(f'Upbit_orderbook : {self.upbit_orderbook._orderbook}')
 
     def cal_half_life(self, spread_deque):
     
