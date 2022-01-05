@@ -28,7 +28,10 @@ setup(
         "urllib3",
         "tzlocal<3.0",
         "pyupbit",
-        "python-binance"
+        "python-binance",
+        "tqdm",
+        "pandas",
+        "numpy",
         # "ta-lib",
     ],
 )
