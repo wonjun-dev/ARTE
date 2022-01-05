@@ -90,7 +90,7 @@ class UpbitTradeManager:
 
         elif order_result["side"] == UpbitOrderSide.SELL:
             if self.account[psymbol][PositionSide.LONG] <= 0.00000001:
-                self.symbols_state[psymbol] = dict(buy_order_count=0, position_size=self.budget_per_symbol[psymbol])
+                self.symbols_state[psymbol] = dict(buy_order_count=0, left_budget=self.budget_per_symbol[psymbol])
 
         # Process result message
         message = f"Order {order_inst.clientOrderId}: {order_inst.side} {order_inst.type} - {order_inst.symbol} / Qty: {order_inst.origQty}, Price: KRW {order_inst.avgPrice}"

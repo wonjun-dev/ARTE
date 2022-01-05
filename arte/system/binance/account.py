@@ -84,7 +84,6 @@ class BinanceAccount:
         """
         self._positions["USDT"] = event.balances[0].crossWallet
         long_pos = event.positions[-2]
-        print(event.positions[-2].amount, event.positions[-1].amount)
         short_pos = event.positions[-1]
         _psymbol = purify_binance_symbol(long_pos.symbol)
 
