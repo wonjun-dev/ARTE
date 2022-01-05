@@ -18,6 +18,8 @@ setup(
         "arte.test_system",
         # "arte.strategy",
         "arte.system",
+        "arte.system.binance"
+        "arte.system.upbit"
     ],
     install_requires=[
         "black",
