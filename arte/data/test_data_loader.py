@@ -86,8 +86,8 @@ class TestDataLoader:
             # self.upbit_ohlcv_list[symbol] = self.upbit_ohlcv[symbol].to_dict("records")
             self.binance_ohlcv_list[symbol] = self.binance_ohlcv[symbol].to_dict("records")
 
-        self.exchange_rate_df = pd.read_csv(os.path.join(self.root_data_path, "market_index.csv"), index_col=0)
-        self.load_exchange_rate()
+        # self.exchange_rate_df = pd.read_csv(os.path.join(self.root_data_path, "market_index.csv"), index_col=0)
+        # self.load_exchange_rate()
         print("Complete Data Loading")
 
     def init_upbit_test_loader(self):
