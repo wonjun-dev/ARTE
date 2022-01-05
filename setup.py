@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="arte",
-    version="0.1.1",
+    version="1.0",
     packages=[
         "binance_f",
         "binance_f.impl",
