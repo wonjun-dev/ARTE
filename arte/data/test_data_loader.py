@@ -69,12 +69,12 @@ class TestDataLoader:
         self.freq = str(ohlcv_interval) + "ms"
         self.ohlcv_interval = ohlcv_interval
 
-        self.upbit_trade = TradeParser(symbols=self.symbols)
+        # self.upbit_trade = TradeParser(symbols=self.symbols)
         self.binance_trade = TradeParser(symbols=self.symbols)
 
-        self.upbit_last_askbid = {symbol: None for symbol in self.symbols}
+        # self.upbit_last_askbid = {symbol: None for symbol in self.symbols}
 
-        self.init_upbit_test_loader()
+        # self.init_upbit_test_loader()
         self.init_binance_test_loader()
 
         self.start_time = pd.to_datetime(start_date)
@@ -83,7 +83,7 @@ class TestDataLoader:
         self.count = 0
 
         for symbol in tqdm(self.symbols, ncols=100):
-            self.upbit_ohlcv_list[symbol] = self.upbit_ohlcv[symbol].to_dict("records")
+            # self.upbit_ohlcv_list[symbol] = self.upbit_ohlcv[symbol].to_dict("records")
             self.binance_ohlcv_list[symbol] = self.binance_ohlcv[symbol].to_dict("records")
 
         self.exchange_rate_df = pd.read_csv(os.path.join(self.root_data_path, "market_index.csv"), index_col=0)
