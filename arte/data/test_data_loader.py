@@ -5,7 +5,7 @@ from tqdm import tqdm
 from datetime import datetime, timedelta
 
 from arte.data.trade_parser import TradeParser
-from arte.system.utils import Grouping
+# from arte.system.utils import Grouping
 
 
 class TestDataLoader:
