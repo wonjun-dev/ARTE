@@ -19,7 +19,7 @@ def _process_order(method):
         except:
             traceback.print_exc()
         else:
-            self._postprocess_order(order, **kwargs)
+            self._postprocess_order(order)
 
     return _impl
 
@@ -55,6 +55,7 @@ class BinanceTradeManager:
 
         # state(per symbol) init
         self._initialize_symbol_state()
+        self._position_diff_tracker = {key: 0 for key in self.symbols}
 
         # start user data stream
         self.user_data_manager.open_user_data_socket()
@@ -151,16 +152,17 @@ class BinanceTradeManager:
         for _psymbol in self.symbols:
             self.symbols_state[_psymbol] = dict(buy_order_count=0, left_budget=self.budget_per_symbol[_psymbol])
 
-    def _postprocess_order(self, order, **kwargs):
+    def _postprocess_order(self, order):
         symbol = purify_binance_symbol(order.symbol)
         _orderside = self._is_buy_or_sell(order)
         if _orderside == "BUY":
             self.symbols_state[symbol]["buy_order_count"] += 1
             self.symbols_state[symbol]["left_budget"] -= order.origQty * order.avgPrice
+            self._position_diff_tracker[symbol] += order.origQty
         elif _orderside == "SELL":
             self.symbols_state[symbol]["left_budget"] += order.origQty * order.avgPrice
-            # if abs(self.account[symbol][order.positionSide] - order.origQty) <= sys.float_info.epsilon:
-            if kwargs["ratio"] == 1.0:
+            self._position_diff_tracker[symbol] -= order.origQty
+            if abs(self._position_diff_tracker[symbol]) <= sys.float_info.epsilon:
                 self.symbols_state[symbol] = dict(buy_order_count=0, left_budget=self.budget_per_symbol[symbol])
 
         # Process result message
