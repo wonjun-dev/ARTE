@@ -45,7 +45,6 @@ class BinanceOrderHandler:
         return result
 
     def _market(self, symbol: str, order_side: OrderSide, position_side: PositionSide, quantity: float):
-        print(quantity)
         result = self.request_client.post_order(
             symbol=symbolize_binance(symbol),
             side=order_side,
