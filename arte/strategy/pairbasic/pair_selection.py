@@ -6,24 +6,15 @@ from math import inf
 from tqdm import tqdm
 import gc
 
+from statsmodels.tsa.stattools import adfuller
+
 root = '/hdd/binance_futures'
 
 assets = os.listdir(root)
 pairs = list(combinations(assets, 2))
 
-# concate dataframes
-# def concate_dataframes(dirs: list, root='/hdd/binance_futures'):
-#     symbol = dirs[0].split('-')[0]
 
-#     for i, f in enumerate(dirs):
-#         if i == 0:
-#             df = pd.read_csv(root + '/' + f'{symbol}' + '/' + f)
-#         else:
-#             df = pd.concat([df, pd.read_csv(root + '/' + f'{symbol}' + '/' + f)])
-
-#     return df
-
-
+# Pair Selection
 def concate_dataframes(root_path, symbol, start_date, end_date):
     current_date = datetime.strptime(start_date, "%Y-%m-%d")
     start_date = datetime.strptime(start_date, "%Y-%m-%d")
@@ -55,6 +46,15 @@ def norm_price_dist(price_a, price_b):
     
     npd = (norm_a - norm_b).pow(2).sum()
     return npd
+
+# Cointegration test
+
+
+
+# Optimal threshold
+
+
+
 
 if __name__ == "__main__":
     best_npd = inf
