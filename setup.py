@@ -16,6 +16,8 @@ setup(
         "arte.data",
         "arte.indicator",
         "arte.test_system",
+        "arte.test_system.binance",
+        "arte.test_system.upbit",
         # "arte.strategy",
         "arte.system",
         "arte.system.binance",
