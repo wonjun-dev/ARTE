@@ -19,7 +19,7 @@ def _process_order(method):
         except:
             traceback.print_exc()
         else:
-            self._postprocess_order(order)
+            self._postprocess_order(order, **kwargs)
 
     return _impl
 
@@ -151,7 +151,7 @@ class BinanceTradeManager:
         for _psymbol in self.symbols:
             self.symbols_state[_psymbol] = dict(buy_order_count=0, left_budget=self.budget_per_symbol[_psymbol])
 
-    def _postprocess_order(self, order):
+    def _postprocess_order(self, order, **kwargs):
         symbol = purify_binance_symbol(order.symbol)
         _orderside = self._is_buy_or_sell(order)
         if _orderside == "BUY":
@@ -159,7 +159,8 @@ class BinanceTradeManager:
             self.symbols_state[symbol]["left_budget"] -= order.origQty * order.avgPrice
         elif _orderside == "SELL":
             self.symbols_state[symbol]["left_budget"] += order.origQty * order.avgPrice
-            if abs(self.account[symbol][order.positionSide] - order.origQty) <= sys.float_info.epsilon:
+            # if abs(self.account[symbol][order.positionSide] - order.origQty) <= sys.float_info.epsilon:
+            if kwargs["ratio"] == 1.0:
                 self.symbols_state[symbol] = dict(buy_order_count=0, left_budget=self.budget_per_symbol[symbol])
 
         # Process result message
