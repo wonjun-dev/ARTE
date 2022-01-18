@@ -18,8 +18,11 @@ def _process_order(method):
             order = method(self, *args, **kwargs)
         except:
             traceback.print_exc()
+            return False
         else:
+            print("order process flows here")
             self._postprocess_order(order)
+            return True
 
     return _impl
 
@@ -62,7 +65,7 @@ class BinanceTradeManager:
 
         print_important("Binance Trade Manager Initialized, Trading start!", line_length=100)
 
-    @threaded
+    # @threaded
     @_process_order
     @_check_buy_condition
     def buy_long_market(self, symbol, usdt=None, ratio=None):
@@ -75,7 +78,7 @@ class BinanceTradeManager:
             ratio=ratio,
         )
 
-    @threaded
+    # @threaded
     @_process_order
     @_check_buy_condition
     def buy_short_market(self, symbol, usdt=None, ratio=None):
@@ -88,7 +91,7 @@ class BinanceTradeManager:
             ratio=ratio,
         )
 
-    @threaded
+    # @threaded
     @_process_order
     @_check_buy_condition
     def buy_long_limit(self, symbol, price, usdt=None, ratio=None):
@@ -101,7 +104,7 @@ class BinanceTradeManager:
             ratio=ratio,
         )
 
-    @threaded
+    # @threaded
     @_process_order
     @_check_buy_condition
     def buy_short_limit(self, symbol, price, usdt=None, ratio=None):
@@ -114,28 +117,28 @@ class BinanceTradeManager:
             ratio=ratio,
         )
 
-    @threaded
+    # @threaded
     @_process_order
     def sell_long_market(self, symbol, ratio):
         return self.order_handler.sell_market(
             symbol=symbol, order_side=OrderSide.SELL, position_side=PositionSide.LONG, ratio=ratio
         )
 
-    @threaded
+    # @threaded
     @_process_order
     def sell_short_market(self, symbol, ratio):
         return self.order_handler.sell_market(
             symbol=symbol, order_side=OrderSide.BUY, position_side=PositionSide.SHORT, ratio=ratio
         )
 
-    @threaded
+    # @threaded
     @_process_order
     def sell_long_limit(self, symbol, price, ratio):
         return self.order_handler.sell_limit(
             symbol=symbol, order_side=OrderSide.SELL, position_side=PositionSide.LONG, price=price, ratio=ratio
         )
 
-    @threaded
+    # @threaded
     @_process_order
     def sell_short_limit(self, symbol, price, ratio):
         return self.order_handler.sell_limit(

@@ -1,11 +1,183 @@
-import pandas as pd
 import os
-from pandas.core.frame import DataFrame
-from tqdm import tqdm
 from datetime import datetime, timedelta
 
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
+
 from arte.data.trade_parser import TradeParser
-from arte.system.utils import Grouping
+import arte.system.utils as utils
+
+MARKETS = ["binance_spot", "binance_futures", "upbit"]
+
+
+class ExchangeRate:
+    """
+    ex = ExchangeRate(ROOT)
+    ex_freq = ex.get_freq_divided_date_range(start_date, end_date)
+    """
+
+    def __init__(self, root_path):
+        self._root = root_path
+        self.ex_df = self._load()
+
+    def _load(self):
+        def float_with_comma(x):
+            return float(x.replace(",", ""))
+
+        _df = pd.read_csv(
+            os.path.join(self._root, "market_index.csv"), index_col=0, converters={"value": float_with_comma}
+        )
+        _df.index = pd.to_datetime(_df.index)
+        _df.sort_index(inplace=True)
+        _df = _df.reindex(pd.date_range(_df.index[0], _df.index[-1], freq="D"))
+        _df = _df.ffill()
+        return _df
+
+    def get_freq_divided_date_range(self, start_date, end_date, freq="1S"):
+        def date_range(start_date, end_date, freq):
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)
+            new_end_date = str(end_dt.date())
+            return pd.date_range(start_date, new_end_date, freq=freq, closed="left")
+
+        # need to chekc start_date, end_date in ex_df.index
+        slice_df = self.ex_df[start_date:end_date]
+        slice_df = slice_df.reindex(date_range(start_date, end_date, freq))
+        slice_df = slice_df.ffill()
+        return slice_df
+
+
+class TradeLoader:
+    def __init__(self, root_path):
+        self._root = root_path
+
+    def load(self, market, symbol, start_date, end_date, silence=False):
+        def _load_single_day(root_path, market, symbol, date):
+            fpath = os.path.join(
+                root_path, market, symbol, f"{symbol}-{date.year:04d}-{date.month:02d}-{date.day:02d}.csv"
+            )
+            try:
+                _df = pd.read_csv(fpath)
+            except:
+                print(f"Error: Do not exist {fpath}!\n")
+            return _df
+
+        _dates = pd.date_range(start_date, end_date).tolist()
+        _df = pd.DataFrame()
+        for _dt in tqdm(_dates, disable=silence):
+            _df = _df.append(_load_single_day(self._root, market, symbol, _dt))
+        _df["datetime"] = pd.to_datetime(_df["timestamp"].apply(lambda x: x), unit="ms")
+        _df.set_index("datetime", inplace=True)
+
+        if market == "upbit":
+            _df["isbuyermaker"] = np.where(_df["ask_bid"] == "BID", True, False)
+
+        return _df
+
+
+class DataProcessor:
+    def __init__(self, root_path, symbols, start_date, end_date, freq="1S"):
+        self.silence = False
+        self.symbols = symbols
+        self.start_date = start_date
+        self.end_date = end_date
+        self.freq = freq
+        self.trade_loader = TradeLoader(root_path)
+        self.ex = ExchangeRate(root_path)
+        self.ex_freq = self.ex.get_freq_divided_date_range(self.start_date, self.end_date, freq=freq)
+
+    def process(self, markets: list, silence=False):
+        self.silence = silence
+        d = dict()
+        for market in markets:
+            d[market] = self.process_market(market)
+        return d
+
+    def process_market(self, market):
+        d = dict()
+        for symbol in self.symbols:
+            df = self.trade_loader.load(market, symbol, self.start_date, self.end_date, silence=self.silence)
+            d[symbol] = self.process_single(market, df)
+        return d
+
+    def process_single(self, market, df):
+        df = self._add_fake_trades(market, df)
+        r = df.resample(self.freq)
+        ohlc = r["price"].ohlc()
+        ohlc = ohlc.fillna(dict.fromkeys(ohlc.columns.tolist(), ohlc.close.ffill()))
+
+        if "binance" in market:
+            ohlc = ohlc.multiply(self.ex_freq["value"], axis=0)
+
+        volume = r["quantity"].sum()
+        n_trade = r.size()
+        n_trade[0] -= 2
+        n_trade[-1] -= 2
+
+        r_buy = df[~df["isbuyermaker"]].resample(self.freq)
+        volume_buy = r_buy["quantity"].sum()
+        n_trade_buy = r_buy.size()
+        n_trade_buy[0] -= 1
+        n_trade_buy[-1] -= 1
+
+        r_sell = df[df["isbuyermaker"]].resample(self.freq)
+        volume_sell = r_sell["quantity"].sum()
+        n_trade_sell = r_sell.size()
+        n_trade_sell[0] -= 1
+        n_trade_sell[-1] -= 1
+
+        result_df = pd.DataFrame(
+            {
+                "o": ohlc["open"],
+                "h": ohlc["high"],
+                "l": ohlc["low"],
+                "c": ohlc["close"],
+                "v": volume,
+                "vb": volume_buy,
+                "vs": volume_sell,
+                "n": n_trade,
+                "nb": n_trade_buy,
+                "ns": n_trade_sell,
+            }
+        )
+        return result_df
+
+    def _add_fake_trades(self, market, df):
+        if "binance" in market:
+            fake_trade = {
+                "tradeid": 999999999,
+                "price": np.nan,
+                "quantity": 0,
+                "quoteqty": 0,
+                "timestamp": 0,
+                "isbuyermaker": False,
+                "isbestmatch": False,
+            }
+        elif market == "upbit":
+            fake_trade = {
+                "market": "NONE",
+                "trade_date_utc": "0000-00-00",
+                "trade_time_utc": "00:00:00",
+                "timestamp": 0,
+                "price": np.nan,
+                "quantity": 0,
+                "prev_closing_price": 0,
+                "change_price": 0,
+                "ask_bid": None,
+                "sequantial_id": 0,
+                "isbuyermaker": False,
+            }
+        dt_fake_start_trade = pd.Timestamp(self.start_date)
+        dt_fake_end_trade = pd.Timestamp(self.end_date) + pd.Timedelta("1D") - pd.Timedelta("1ms")
+        # Front fake trade insert
+        fake_trade_sell = fake_trade.copy()
+        fake_trade_sell["isbuyermaker"] = True
+        df_fake = pd.DataFrame([fake_trade, fake_trade_sell], index=[dt_fake_start_trade] * 2)
+        df = df_fake.append(df)
+        # Back fake trade insert
+        df_fake = pd.DataFrame([fake_trade, fake_trade_sell], index=[dt_fake_end_trade] * 2)
+        df = df.append(df_fake)
+        return df
 
 
 class TestDataLoader:
@@ -30,22 +202,15 @@ class TestDataLoader:
         init_test_data_loader : symbol의 list, start_date, end_date, ohlcv를 input으로 받아 trade data를 읽어 ohlcv로 변환
         load_next : upbit_trade, binance_trade에 current_time의 가격정보 업데이트
         load_next_by_counter : upbit_trade, binance_trade에 current_time의 가격정보 업데이트 ( tqdm 사용 시 )
-
-
     """
 
     def __init__(self, root_data_path: str):
-        """
-        root_data_path를 input으로 받음, root_data_path는 binance, upbit, market_index.csv 등 data의 base 경로
-        """
         self.root_data_path = root_data_path
         self.upbit_ohlcv = dict()
         self.binance_ohlcv = dict()
 
         self.upbit_ohlcv_list = dict()
         self.binance_ohlcv_list = dict()
-
-        self.grouping = Grouping()
 
     def init_test_data_loader(self, symbols: list, start_date: str, end_date: str, ohlcv_interval: int = 250):
         """
@@ -112,7 +277,7 @@ class TestDataLoader:
         """
         current_date의 upbit trade 데이터를 ohlcv 데이터로 가공.
         """
-        gp = self.grouping.make_group(upbit_trade_df, freq=self.freq)
+        gp = utils.make_group(upbit_trade_df, freq=self.freq)
         temp_upbit_ohlcv = gp["price"].ohlc()
         temp_upbit_ohlcv["volume"] = gp["quantity"].sum()
         temp_upbit_ohlcv["trade_num"] = gp["trade_num"].sum()
@@ -163,7 +328,7 @@ class TestDataLoader:
         """
         current_date의 binance trade 데이터를 ohlcv 데이터로 가공.
         """
-        gp = self.grouping.make_group(binance_trade_df, freq=self.freq)
+        gp = utils.make_group(binance_trade_df, freq=self.freq)
         temp_binance_ohlcv = gp["price"].ohlc()
         temp_binance_ohlcv["volume"] = gp["quantity"].sum()
         temp_binance_ohlcv["trade_num"] = gp["trade_num"].sum()
@@ -192,7 +357,7 @@ class TestDataLoader:
 
         return temp_binance_ohlcv
 
-    def load_trade_data(self, symbol: str, current_date: datetime, is_upbit: bool):
+    def _load_trade_data(self, symbol: str, current_date: datetime, is_upbit: bool):
         """
         특정 symbol의 current_data의 trade data csv를 읽어오는 함수
         """
@@ -218,24 +383,6 @@ class TestDataLoader:
         output_df["trade_num"] = [1] * len(output_df)
 
         return output_df
-
-    def load_next(self):
-        """
-        current time에 해당하는 가격을 binance_trade, upbit_trade에 업데이트하고
-        current_time을 한 timedelta 이후로 미루는 함수
-        """
-        self.load_exchange_rate()
-        if self.current_time < self.end_current_time:
-            for symbol in self.symbols:
-
-                self.upbit_trade.price[symbol] = self.upbit_ohlcv_list[symbol][self.count]["close"]
-                self.binance_trade.price[symbol] = self.binance_ohlcv_list[symbol][self.count]["close"]
-
-            self.count += 1
-            self.current_time += timedelta(milliseconds=self.ohlcv_interval)
-            return True
-        else:
-            return False
 
     def get_counter(self):
         td = self.end_current_time - self.current_time

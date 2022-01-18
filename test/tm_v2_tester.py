@@ -1,6 +1,7 @@
 import threading
 import time
 import configparser
+import traceback
 from arte.system.client import Client
 from arte.system.binance.trade_manager import BinanceTradeManager
 
@@ -30,8 +31,15 @@ tm.environment = Environment(cl, symbols)
 
 
 # normal buy and sell test
-time.sleep(2)
-tm.buy_long_market("XRP", usdt=100)
+time.sleep(1)
+
+
+if tm.buy_long_market("XRP", usdt=-100):
+    print("order success")
+else:
+    print("order failed")
+
+
 # time.sleep(1)
 # tm.sell_long_market("XRP", ratio=0.2)
 
