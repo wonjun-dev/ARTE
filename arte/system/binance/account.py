@@ -83,23 +83,49 @@ class BinanceAccount:
         !!! 0.004~6 sec slower than order return 
         """
         self._positions["USDT"] = event.balances[0].crossWallet
-        long_pos = event.positions[-2]
-        short_pos = event.positions[-1]
-        _psymbol = purify_binance_symbol(long_pos.symbol)
+        long_pos = None
+        short_pos = None
+        both_pos = None
+        for pos in event.positions:
+            if pos.positionSide == PositionSide.LONG:
+                long_pos = pos
+            elif pos.positionSide == PositionSide.SHORT:
+                short_pos = pos
+            elif pos.positionSide == PositionSide.BOTH:
+                both_pos = pos
+        
+        _psymbol = purify_binance_symbol(both_pos.symbol)
 
-        self._positions[_psymbol]["is_open"] = True
-        if (long_pos.amount > 0) and (short_pos.amount == 0):
-            self._positions[_psymbol]["positionSide"] = PositionSide.LONG
-        elif (long_pos.amount == 0) and (short_pos.amount < 0):
+        if not long_pos:
             self._positions[_psymbol]["positionSide"] = PositionSide.SHORT
-        elif (long_pos.amount != 0) and (short_pos.amount != 0):
-            self._positions[_psymbol]["positionSide"] = PositionSide.BOTH
-        elif (long_pos.amount == 0) and (short_pos.amount == 0):
-            self._positions[_psymbol]["positionSide"] = PositionSide.INVALID
-            self._positions[_psymbol]["is_open"] = False
+            self._positions[_psymbol][PositionSide.SHORT] = short_pos.amount
+            self._positions[_psymbol]["is_open"] = True
+            if short_pos.amount == 0:
+                self._positions[_psymbol]["positionSide"] = PositionSide.INVALID
+                self._positions[_psymbol]["is_open"] = False
+            
+        elif not short_pos:
+            self._positions[_psymbol]["positionSide"] = PositionSide.LONG
+            self._positions[_psymbol][PositionSide.LONG] = long_pos.amount
+            self._positions[_psymbol]["is_open"] = True
+            if long_pos.amount == 0:
+                self._positions[_psymbol]["positionSide"] = PositionSide.INVALID
+                self._positions[_psymbol]["is_open"] = False
 
-        self._positions[_psymbol][PositionSide.LONG] = long_pos.amount
-        self._positions[_psymbol][PositionSide.SHORT] = short_pos.amount
+        else:
+            self._positions[_psymbol]["is_open"] = True
+            if (long_pos.amount > 0) and (short_pos.amount == 0):
+                self._positions[_psymbol]["positionSide"] = PositionSide.LONG
+            elif (long_pos.amount == 0) and (short_pos.amount < 0):
+                self._positions[_psymbol]["positionSide"] = PositionSide.SHORT
+            elif (long_pos.amount != 0) and (short_pos.amount != 0):
+                self._positions[_psymbol]["positionSide"] = PositionSide.BOTH
+            elif (long_pos.amount == 0) and (short_pos.amount == 0):
+                self._positions[_psymbol]["positionSide"] = PositionSide.INVALID
+                self._positions[_psymbol]["is_open"] = False
+
+            self._positions[_psymbol][PositionSide.LONG] = long_pos.amount
+            self._positions[_psymbol][PositionSide.SHORT] = short_pos.amount
 
     def __getitem__(self, key):
         return self._positions[key]

@@ -17,12 +17,12 @@ class Environment:
 
 
 cfg = configparser.ConfigParser()
-cfg.read("/media/park/hard2000/arte_config/config.ini")
+cfg.read("D:/arte_config/config.ini")
 config = cfg["TEST"]
 API_KEY = config["API_KEY"]
 SECRET_KEY = config["SECRET_KEY"]
 
-symbols = ["XRP", "ETH", "BTC"]
+symbols = ["MKR", "BNB", "BTC"]
 budgets = [500, 1000, 1000]
 budget_per_symbol = {s: b for s, b in zip(symbols, budgets)}
 cl = Client(mode="TEST", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
@@ -34,11 +34,17 @@ tm.environment = Environment(cl, symbols)
 time.sleep(1)
 
 
-if tm.buy_long_market("XRP", usdt=-100):
+if tm.buy_long_market("MKR", usdt=100) and tm.buy_short_market("BNB", usdt=100):
     print("order success")
 else:
     print("order failed")
 
+time.sleep(1)
+
+if tm.sell_long_market("MKR", ratio=1) and tm.sell_short_market("BNB", ratio=1):
+    print("2 order success")
+else:
+    print("2 order failed")
 
 # time.sleep(1)
 # tm.sell_long_market("XRP", ratio=0.2)

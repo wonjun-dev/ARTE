@@ -20,7 +20,6 @@ def _process_order(method):
             traceback.print_exc()
             return False
         else:
-            print("order process flows here")
             self._postprocess_order(order)
             return True
 
