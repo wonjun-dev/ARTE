@@ -22,12 +22,16 @@ class BinanceOrderHandler:
         self.request_client = request_client
         self.account = account
         self._quantity_precisions = dict()
+        self._min_qty = dict()
         self._initialize_quantity_precision()
 
     def _initialize_quantity_precision(self):
         ex_info_per_symbol = self.request_client.get_exchange_information().symbols
         for ex in ex_info_per_symbol:
             if ex.quoteAsset == "USDT":
+                market_lot_info = ex.filters[2]
+                # step_size = market_lot_info['stepSize']
+                self._min_qty[ex.baseAsset] = float(market_lot_info['minQty'])
                 self._quantity_precisions[ex.baseAsset] = ex.quantityPrecision
 
     def _limit(self, symbol: str, order_side: OrderSide, position_side: PositionSide, price: float, quantity: float):
@@ -95,6 +99,10 @@ class BinanceOrderHandler:
         if bool(usdt) ^ bool(ratio):
             if ratio:
                 usdt = self.account["USDT"] * ratio
+            
+            if usdt < self._min_qty[symbol]*price:
+                raise ValueError(f"Order fail: Minimum usdt to buy {symbol} is {self._min_qty[symbol]*price}, you tried with {usdt}.")
+
             if self.account[symbol]["positionSide"] in [PositionSide.INVALID, position_side]:
                 return self._market(
                     symbol,

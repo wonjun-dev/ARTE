@@ -18,33 +18,37 @@ class Environment:
 
 cfg = configparser.ConfigParser()
 cfg.read("D:/arte_config/config.ini")
-config = cfg["TEST"]
+config = cfg["REAL_JAEHAN"]
 API_KEY = config["API_KEY"]
 SECRET_KEY = config["SECRET_KEY"]
+print(API_KEY, SECRET_KEY)
 
-symbols = ["MKR", "BNB", "BTC"]
+symbols = ["XRP", "ETH", "BTC"]
 budgets = [500, 1000, 1000]
 budget_per_symbol = {s: b for s, b in zip(symbols, budgets)}
-cl = Client(mode="TEST", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
+cl = Client(mode="REAL", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
 tm = BinanceTradeManager(client=cl, symbols=symbols, max_buy_order_count=2, budget_per_symbol=budget_per_symbol)
 tm.environment = Environment(cl, symbols)
 
 
 # normal buy and sell test
 time.sleep(1)
+tm.buy_long_market("BTC", usdt=10)
+time.sleep(3)
+tm.sell_long_market("BTC", ratio=1.0)
 
 
-if tm.buy_long_market("MKR", usdt=100) and tm.buy_short_market("BNB", usdt=100):
-    print("order success")
-else:
-    print("order failed")
+# if tm.buy_long_market("MKR", usdt=100) and tm.buy_short_market("BNB", usdt=100):
+#     print("order success")
+# else:
+#     print("order failed")
 
-time.sleep(1)
+# time.sleep(1)
 
-if tm.sell_long_market("MKR", ratio=1) and tm.sell_short_market("BNB", ratio=1):
-    print("2 order success")
-else:
-    print("2 order failed")
+# if tm.sell_long_market("MKR", ratio=1) and tm.sell_short_market("BNB", ratio=1):
+#     print("2 order success")
+# else:
+#     print("2 order failed")
 
 # time.sleep(1)
 # tm.sell_long_market("XRP", ratio=0.2)
