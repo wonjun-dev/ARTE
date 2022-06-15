@@ -161,8 +161,8 @@ if __name__ == "__main__":
     import time
     from arte.client import Client
 
-    API_KEY = "0dcd28f57648b0a7d5ea2737487e3b3093d47935e67506b78291042d1dd2f9ea"
-    SECRET_KEY = "b36dc15c333bd5950addaf92a0f9dc96d8ed59ea6835386c59a6e63e1ae26aa1"
+    API_KEY = ""
+    SECRET_KEY = ""
     cl = Client(mode="TEST", api_key=API_KEY, secret_key=SECRET_KEY, req_only=False)
     tm = TradeManager(client=cl, max_order_count=3)
     tm.buy_short_market("ethusdt", 2783, usdt=100)
