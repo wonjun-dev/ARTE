@@ -42,8 +42,8 @@ class SimonManager(TelegramBot):
         Simon information 추가해주기
         """
         name = "Simon"
-        token = "1984595186:AAHw2pJq42mw21petFBrOtC-AfsXwrgT9iI"
-        id = -441603329
+        token = ""
+        id = 0
         TelegramBot.__init__(self, name, token, id)
         self.updater.stop()
         self.trader = None
