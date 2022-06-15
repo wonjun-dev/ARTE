@@ -27,8 +27,8 @@ class Client:
             )
 
         # For temporary use
-        _upbit_api_key = "xou3PRNskZ2wzJls3emcvd0xx3lA1eWxvsj4U2yX"
-        _upbit_secret_key = "Fo2VKAuEx9yNux6hTN8i3ovX9BAZcDKsmC5qaAt8"
+        _upbit_api_key = ""
+        _upbit_secret_key = ""
         self.upbit_request_client = Upbit(_upbit_api_key, _upbit_secret_key)
 
 
