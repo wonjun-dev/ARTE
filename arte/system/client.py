@@ -21,6 +21,6 @@ class Client:
             self.sub_client = SubscriptionClient(api_key=_g_api_key, secret_key=_g_secret_key, uri=uri)
 
         # For temporary use
-        _upbit_api_key = "xou3PRNskZ2wzJls3emcvd0xx3lA1eWxvsj4U2yX"
-        _upbit_secret_key = "Fo2VKAuEx9yNux6hTN8i3ovX9BAZcDKsmC5qaAt8"
+        _upbit_api_key = ""
+        _upbit_secret_key = ""
         self.upbit_request_client = Upbit(_upbit_api_key, _upbit_secret_key)
