@@ -60,8 +60,8 @@ class DominicBot(TelegramBot):
         Simon information 추가해주기
         """
         name = "Dominic"
-        token = "1952844067:AAHo17k6QH2pU0UlHvtDBXVpZxNVr63KwYc"
-        id = -571188161
+        token = ""
+        id = 0
         start_message = "Arbi start!"
         TelegramBot.__init__(self, name, token, id, start_message)
         self.updater.stop()
@@ -108,8 +108,8 @@ class SimonBot(TelegramBot):
         Simon information 추가해주기
         """
         name = "Simon"
-        token = "1984595186:AAHw2pJq42mw21petFBrOtC-AfsXwrgT9iI"
-        id = -441603329
+        token = "
+        id = 0
         start_message = "Arte start!"
         TelegramBot.__init__(self, name, token, id, start_message)
         self.updater.stop()
